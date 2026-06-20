@@ -622,7 +622,44 @@ def evaluate_and_retry(response: str, task_type: str, original_model: str, max_r
     
     # Initialize Actor-Critic core
     core = ActorCriticCore(self_improve=False, max_rounds=3, judge_threshold=4.0)
-    
+
+    # ── Real LLM judge (audit 2026-06-20 Q1) ──────────────────────────────────────
+    # The built-in _default_judge scores by counting structural keywords/tags, which is
+    # gameable and ignores correctness. Wire a real free-model judge with a rubric prompt.
+    # SAFE/additive: on ANY failure it delegates to the original _default_judge, so behavior
+    # is never worse than before.
+    def _llm_judge(jtask, actor_output, reference, rubric):
+        import json as _json, re as _re
+        try:
+            prompt = (
+                "You are a STRICT quality judge. Score the RESPONSE on a 0-5 scale "
+                "(5=excellent, 0=unusable) considering ACCURACY, COMPLETENESS, CORRECTNESS, "
+                "and how well it satisfies the TASK and REFERENCE CRITERIA. Penalize fabrication "
+                "and unsupported claims; reward correct, well-grounded answers. "
+                'Reply with ONLY compact JSON: {"score": <number 0-5>, "feedback": "<one sentence>"}.\n\n'
+                f"TASK:\n{jtask}\n\nREFERENCE CRITERIA:\n{reference}\n\nRESPONSE:\n{(actor_output or '')[:6000]}"
+            )
+            _mid, _prov, _ = model_route_task_simple("evaluate and score answer quality (reasoning)")
+            from ilma_model_router import execute_call
+            raw = execute_call(model_id=_mid, provider=_prov, message=prompt)
+            if not raw or raw.strip().startswith("Error:") or "❌" in raw[:30]:
+                raise RuntimeError("judge model returned no/error output")
+            m = _re.search(r"\{.*\}", raw, _re.DOTALL)
+            data = _json.loads(m.group(0)) if m else {}
+            score = max(0.0, min(5.0, float(data["score"])))
+            return score, f"[LLM-judge {_mid}] {str(data.get('feedback',''))[:400]}"
+        except Exception as _je:
+            # graceful fallback to the deterministic heuristic — never worse than before
+            try:
+                s, fb = core._default_judge(jtask, actor_output, reference, rubric)
+                return s, f"[heuristic fallback: {type(_je).__name__}] {fb}"
+            except Exception:
+                return 3.0, f"[judge unavailable: {_je}]"
+    try:
+        core.set_judge_callback(_llm_judge)
+    except Exception:
+        pass
+
     # Create evaluation session
     session = core.create_session(
         task=f"Task type: {task_type}\nEvaluate response quality",
