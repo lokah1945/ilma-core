@@ -687,6 +687,26 @@ def run_full_optimization() -> Dict[str, Any]:
     # Step 8: Git Sync if needed
     if results["health"].get("git_sync", {}).get("uncommitted", 0) > 5:
         logger.info("[STEP 8] Git sync...")
+        # VALIDATION GATE (audit 2026-06-20 C2): don't auto-commit a broken cycle. Gated by
+        # feature flag autonomy_push_requires_validation (default ON / fail-safe). Uses the
+        # wiring + pipeline results already computed in steps 4-5.
+        try:
+            from ilma_feature_flags import get_flags
+            _gate_on = get_flags().is_enabled("autonomy_push_requires_validation")
+        except Exception:
+            _gate_on = True
+        _verify = results.get("verify", {})
+        _imports_ok = _verify.get("total_wired", 0) > 0 and not _verify.get("import_errors") \
+            and _verify.get("imported_ok", 0) == _verify.get("total_wired", 0)
+        _pipeline_ok = results.get("pipeline", {}).get("pipeline_integrity", 0.0) >= 0.80
+        if _gate_on and not (_imports_ok and _pipeline_ok):
+            results["git_sync_error"] = (
+                f"BLOCKED by validation gate: imports_ok={_imports_ok} "
+                f"pipeline={results.get('pipeline', {}).get('pipeline_integrity', 0.0):.2f}"
+            )
+            logger.error(f"[validation-gate] SKIPPED auto-commit — {results['git_sync_error']}")
+            results["execution_time"] = time.time() - start_time
+            return results
         try:
             subprocess.run(["git", "-C", str(ILMA_ROOT), "add", "-A"], capture_output=True, timeout=15)
             # SECRET GUARD (C2 2026-06-20): abort the auto-commit if staged content has secrets.

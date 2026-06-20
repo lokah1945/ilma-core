@@ -38,6 +38,12 @@ DEFAULT_FLAGS = {
     "sql_injection_validation": True,  # Critical fix
     # Existing
     "input_validation_enabled": True,
+    # ── RISKY items staged behind flags (audit 2026-06-20) ──────────────────
+    # Gate autonomy commit/push on validation passing (fail-safe ON: safer default).
+    "autonomy_push_requires_validation": True,
+    # Make domain validation BLOCKING + structural for high-criticality tasks.
+    # Canary OFF by default — enable per-canary, then broaden.
+    "domain_validation_blocking": False,
 }
 
 # Persistent storage
