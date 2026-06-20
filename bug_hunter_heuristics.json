@@ -80,6 +80,15 @@
       "playbook_ref": null,
       "occurrences": 1,
       "first_seen": "2026-06-20T19:52:49Z"
+    },
+    {
+      "signature": "Tunggu instruksi Bos",
+      "category": "closing_tagline_noise",
+      "auto_classify": "LOW",
+      "suggested_action": "Don't emit closing tagline after benign end-of-turn responses. Reserve '✅ terkirim 1x' marker ONLY for legitimate anti-duplicate-sending risk (long outputs, async tasks, retries).",
+      "playbook_ref": null,
+      "occurrences": 1,
+      "first_seen": "2026-06-20T20:13:09Z"
     }
   ],
   "playbooks": {
