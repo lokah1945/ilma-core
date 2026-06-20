@@ -720,8 +720,15 @@ Use `/context` in interactive mode to see a colored grid of context usage. Key t
 
 1. **Interactive mode REQUIRES tmux** — Claude Code is a full TUI app. Using `pty=true` alone in Hermes terminal works but tmux gives you `capture-pane` for monitoring and `send-keys` for input, which is essential for orchestration.
 2. **`--dangerously-skip-permissions` dialog defaults to "No, exit"** — you must send Down then Enter to accept. Print mode (`-p`) skips this entirely.
-3. **`--max-budget-usd` minimum is ~$0.05** — system prompt cache creation alone costs this much. Setting lower will error immediately.
-4. **`--max-turns` is print-mode only** — ignored in interactive sessions.
+3. **Running Claude Code as root silently refuses `--dangerously-skip-permissions`** — prints `--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons` to stderr and exits with code 0 (no error visible without tailing output). When ILMA itself runs as root inside the LXC, this hits you on every attempt.
+   - **Symptom**: `claude -p --dangerously-skip-permissions "..."` returns exit 0, looks fine, but Claude never writes — content comes back as `"result": "app.py"` and the file doesn't exist.
+   - **Diagnosis**: inspect the JSON `permission_denials` array — every `Write` and `Edit` tool_use will be listed there even though the exit code is 0.
+   - **Workarounds in preferred order**:
+     1. **Have Claude return content as embedded code blocks** — ask Claude to respond with `\`\`\`json {"filename":"app.py","content":"..."}\`\`\`` blocks; the result string in the JSON output contains them; parse with `python3 -c` and `write_file` from the agent side. Proven pattern: 3 files (app.py 883 bytes, requirements.txt 13 bytes, README.md 914 bytes) end-to-end in ~41s for $0.13.
+     2. **Run Claude as a dedicated non-root user** — `useradd -m ilacode`, `chown -R ilacode /workdir`, then invoke with `sudo -u ilacode claude -p ... --dangerously-skip-permissions` (still works since UID != 0 inside the subprocess).
+     3. **`--permission-mode acceptEdits`** — newer flag (v2.1+) that auto-approves edits without the root refusal; does NOT grant shell execution. Easiest fix when only writes are needed.
+4. **`--max-budget-usd` minimum is ~$0.05** — system prompt cache creation alone costs this much. Setting lower will error immediately.
+5. **`--max-turns` is print-mode only** — ignored in interactive sessions.
 5. **Claude may use `python` instead of `python3`** — on systems without a `python` symlink, Claude's bash commands will fail on first try but it self-corrects.
 6. **Session resumption requires same directory** — `--continue` finds the most recent session for the current working directory.
 7. **`--json-schema` needs enough `--max-turns`** — Claude must read files before producing structured output, which takes multiple turns.
