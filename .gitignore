@@ -287,3 +287,4 @@ api_key*.json
 config.yaml.backup*
 config.yaml.bak*
 *.backup_*
+.autonomy_paused
