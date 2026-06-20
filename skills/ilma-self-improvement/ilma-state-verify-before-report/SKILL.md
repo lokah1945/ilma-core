@@ -346,6 +346,74 @@ curl -s http://127.0.0.1:9100/v1/chat/completions \
 
 A 200 with non-empty `content` = live path. Empty / 500 / timeout = wrapper broken.
 
+### P-14: Single-send guarantee — verify YOUR OWN delivery state before claiming "selesai kirim"
+
+**Bos standing preference (2026-06-20, Sesi 2026-06-20):**
+> "1 respon = 1x kirim Telegram. Selalu verify delivery state via tool sebelum claim 'response terkirim'. Kalau ada risk duplikat, ack sekali saja per turn, TIDAK kirim berulang."
+
+**The problem class:** the Hermes gateway has multiple parallel send paths
+(`run.py` line 16297 guard, `stream_consumer.py` line 555/637/655/676/747/
+894/985/1317 finalize points, queued-message promotion at 16090-16150).
+When ILMA produces a long response (>2 KB), the gateway may double-send:
+- Progressive stream edit + final fallback send
+- Response preceded by queue promotion + final response
+- Plugin transform post-stream triggers edit + normal send
+
+**Concrete evidence (file:line audit 2026-06-20):**
+- `run.py:13723` — `response_previewed = _stream_consumer is not None and bool(full_response)`
+  → claims "previewed" without verifying the message ACTUALLY landed via adapter.
+- `run.py:16297` — guard uses 3 flags (`_streamed`, `_previewed`, `_content_delivered`)
+  that can disagree in race conditions.
+- `stream_consumer.py:985` — `_final_response_sent = True` set after `asyncio.wait_for(stream_task, timeout=5.0)`
+  may cancel before the assignment completes.
+
+**Before claiming "response delivered" you MUST verify:**
+
+1. **Long response?** (>2 KB) → inspect `run.py` clone + check `_final_response_sent` flag,
+   don't assume idempotency.
+2. **Queued follow-up present?** → check `stream_consumer_holder[0]` AND `result.get("response_previewed")` BEFORE
+   triggering any manual `adapter.send()`.
+3. **Tool calls in flight?** → each tool result may trigger an interim send; count them.
+4. **Stream consumer timeout (5s)?** → timeout means guard may have run BEFORE flag set; you may be the second send.
+
+**Shipping rule for ILMA:** if the response exceeds ~2 KB OR includes
+≥1 tool call OR there is a queued follow-up, **deliver once via the
+gateway's natural path** and respond to Bos with a "✅ terkirim 1x" line.
+Do NOT re-emit the same content manually via `send_message` tool — that
+will overlay a duplicate on whatever the gateway already pushed.
+
+**Audit recipe (when Bos reports duplicate):**
+```bash
+# 1. Session search for the response text
+session_search(query="<first 30 chars of duplicate>", limit=5)
+
+# 2. Inspect request_dump JSON for that session
+LATEST=$(ls -t /root/.hermes/profiles/ilma/sessions/request_dump_* | head -1)
+python3 -c "
+import json
+d = json.load(open('$LATEST'))
+# Look for double response_previewer references
+for k in ['final_response', 'already_sent', 'response_previewed', 'response_transformed']:
+    print(k, '=', d.get(k, '<missing>')[:120])
+"
+
+# 3. Check gateway flag positions in run.py at the lines above
+grep -n 'response_previewed\|_final_response_sent\|already_sent\b' \
+  /root/.hermes/hermes-agent/gateway/run.py | head
+```
+
+**Negative example (DO NOT do this):**
+> After tool call, draft final answer → call `send_message` manually → ALSO let
+> the gateway resume and stream the same content → Bos receives 2 copies.
+
+**Positive example (correct behavior):**
+> Tool call returns → craft final answer → print as final assistant message →
+> gateway streams it ONCE → ack to Bos with 1 marker line. Do not re-send manually.
+
+See `references/duplicate-delivery-audit-2026-06-20.md` for the full code-level
+audit transcript including line-numbered evidence from `run.py` and
+`stream_consumer.py`.
+
 ## Anti-patterns
 
 ❌ "Saya pakai MiniMax-M3 dari provider MiniMax." (jumped from header)
@@ -358,6 +426,13 @@ A 200 with non-empty `content` = live path. Empty / 500 / timeout = wrapper brok
 
 ## See Also
 
+- `references/duplicate-delivery-audit-2026-06-20.md` — concrete
+  Sesi 2026-06-20 audit transcript where ILMA response was sent 3x to
+  Telegram. Includes line-numbered evidence from `hermes-agent/gateway/run.py`
+  (`response_previewed` logic gap at line 13723, guard race at 16297) and
+  `stream_consumer.py` (8 finalize points: 555, 637, 655, 676, 747, 894, 985, 1317)
+  + fix proposals. Read this before reporting "response terkirim" for any
+  long (>2 KB) or tool-using response.
 - `references/repr-sandbox-masking-2026-06-19.md` — concrete Sesi
   2026-06-19 case where output sanitizer masked a live Token Plan key
   as `'sk-cp-...S-Ig'`, and the two-channel verify pattern that
