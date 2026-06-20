@@ -8,11 +8,13 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [Coding-Agent, Claude, Anthropic, Code-Review, Refactoring, PTY, Automation]
-    related_skills: [codex, hermes-agent, opencode]
+    related_skills: [codex, hermes-agent, opencode, ssh-server-discovery-and-recon]
 ---
-
 # Claude Code — Hermes Orchestration Guide
 
+[paired-skill] For remote VPS / SSH / unknown-host remote-coding targets, ALWAYS pair with `ssh-server-discovery-and-recon` BEFORE writing any code. Its 4-step matrix-discovery (TCP probe → key+user scan → persist SSH shortcut → service verification via `pm2 list`/`ss`) prevents the "10 keys × 4 users = brute force" failure mode documented 2026-06-20.
+
+Delegate coding tasks to [Claude Code](https://code.claude.com/docs/en/cli-reference) via the Hermes terminal.
 Delegate coding tasks to [Claude Code](https://code.claude.com/docs/en/cli-reference) (Anthropic's autonomous coding agent CLI) via the Hermes terminal. Claude Code v2.x can read files, write code, run shell commands, spawn subagents, and manage git workflows autonomously.
 
 ## Prerequisites
@@ -115,6 +117,65 @@ terminal(command="sleep 15 && tmux capture-pane -t claude-work -p -S -60")
 ```
 
 **Note:** After the first trust acceptance for a directory, the trust dialog won't appear again. Only the permissions dialog recurs each time you use `--dangerously-skip-permissions`.
+
+## Remote Project Workflow (Local → SSH-push → Remote verify)
+
+When the coding target is a REMOTE host (production VPS, customer's server, GitHub-Actions runner), do **not** invoke Claude Code directly on the remote unless it is already installed there. Most remote VPSes run Python + Node + bare Debian without Claude CLI. The lockdown pattern proven 2026-06-20:
+
+### The 3-stage pipeline
+```
+LOCAL (ILMA LXC container, has claude CLI)
+     │
+     ├── 1. Claude writes files into local workdir
+     │      workdir = /root/conversation-bos/<DATE>_<descr>/   ← NOT /root
+     │      pattern: claude -p --output-format json "..." (avoiding --dangerously-skip-permissions)
+     │
+     ├── 2. SCP files to remote
+     │      scp app.py requirements.txt README.md <ssh_host>:/tmp/<project>/
+     │
+     └── 3. SSH to remote, verify & run
+            ssh <ssh_host> "cd /tmp/<project> && pip install -r requirements.txt && nohup python3 app.py > /tmp/server.log 2>&1 &"
+            ssh <ssh_host> "curl -s http://127.0.0.1:<port>/..."
+            ssh <shortcut> "pkill -f <proc>  # cleanup"
+```
+
+### Critical: pick or create `workdir` BEFORE running Claude
+Bos preference (2026-06-20): **separate workdir, NOT `/root`**. Reason: `/root` accumulation makes orphan tracking impossible and breaks the per-session audit trail.
+
+```bash
+WORKDIR=/root/conversation-bos/$(date +%Y-%m-%d)_<project-slug>
+mkdir -p "$WORKDIR" && cd "$WORKDIR"
+```
+
+### SSH shortcut prerequisites
+Always establish `/root/.ssh/config` shortcut BEFORE pushing code:
+
+```bash
+cat >> /root/.ssh/config <<EOF
+
+Host <shortcut>
+    HostName <IP>
+    User <user>
+    IdentityFile /root/credential/<keyfile>
+    IdentitiesOnly yes                # don't offer wrong keys to wrong host
+    StrictHostKeyChecking accept-new  # auto-accept on first connect
+    ServerAliveInterval 30
+    ServerAliveCountMax 4
+EOF
+chmod 600 /root/.ssh/config
+ssh-keyscan -H <IP> 2>/dev/null >> /root/.ssh/known_hosts
+ssh <shortcut> 'echo OK_$(hostname) && exit'
+```
+
+If the key+user combo is unknown, defer to the **`ssh-server-discovery-and-recon`** skill first — do NOT brute-force, do NOT trust `vps_project.json` blindly.
+
+### Cost & timing reference (Opus 4.8)
+- 2 print-mode calls per project (one for code, one for two-file JSON block): ~$0.10–0.15, 20–50s
+- Output file sizes 800–1000 bytes typical Python source; expand proportionally for richer specs
+- `--output-format json` returns the full structured result; the `result` field contains natural language + code blocks + the `permission_denials[]` array exposing what Claude wanted to write but couldn't
+
+### Cleanup is mandatory
+Remote processes left running waste memory and pollute logs. Always `pkill -f "<proc>"` after each verification cycle, even on partial failures.
 
 ## CLI Subcommands
 
@@ -737,6 +798,7 @@ Use `/context` in interactive mode to see a colored grid of context usage. Key t
 10. **Slash commands (like `/commit`) only work in interactive mode** — in `-p` mode, describe the task in natural language instead.
 11. **`--bare` skips OAuth** — requires `ANTHROPIC_API_KEY` env var or an `apiKeyHelper` in settings.
 12. **Context degradation is real** — AI output quality measurably degrades above 70% context window usage. Monitor with `/context` and proactively `/compact`.
+13. **Load the skill library BEFORE reinventing workarounds.** When you hit an obstacle (e.g. `claude -p --dangerously-skip-permissions` fails for root), your first move should be `skills_list()` then `skill_view(name='claude-code')`, not running 3 retries to discover the answer. The skill you don't load is the skill you can't reuse next session.
 
 ## Rules for Hermes Agents
 

@@ -138,6 +138,8 @@ Documented vs real port deltas are common — re-verify every time.
 5. **Internal port vs Public IP.** A Next.js app at `172.16.103.200:3201` is NOT exposed at `yapsi.or.id` — DNS for the public site points to a different IP (often via Nginx/LiteSpeed reverse proxy). Verify the public IP separately.
 6. **Avoid destructive ops on first contact.** No `rm -rf`, no service restarts, no log clears until the user explicitly approves. Initial recon is read-only.
 7. **Approval gates will fire on HTTP requests to private IPs.** The Hermes runtime's security scanner prompts the user even for `http://172.16.103.200:3201/` curls. That's expected and will pass — but make sure the message is informed (mention you're doing recon, what IP, what host).
+8. **Per-host key pinning: a same-named .pem can authorize only one host.** Verified 2026-06-20: `lokah1945.pem` works on `172.16.103.253` (YAPSIDarussalam) but is REJECTED on `172.16.103.200` (FullStackVPS); conversely `smahud.pem` works on `.200` but is rejected on `.253`. Each `authorized_keys` on each host has different fingerprints. So rename keys by intended host (`lokah1945-yapsi.pem`, `smahud-fullstack.pem`) when ambiguous rather than carry generic `lokah1945.pem` and `smahud.pem` per-VPS. Until then, always run the matrix scan from Step 2 — never trust the `private_key_file` field of an SOT config blindly.
+9. **Don't fabricate a working combo when evidence says otherwise.** If Step 2 produces zero CONN lines, your answer is "no match found — escalate to user" not "I assume key X works because vps_project.json says so". The skill's contract is evidence, not intent.
 
 ## Related skills
 - `claude-code` — Claude Code CLI orchestration; especially see Pitfall #3 about running as root, which fits this server-discovery context
@@ -147,3 +149,4 @@ Documented vs real port deltas are common — re-verify every time.
 
 ## Reference files
 - `references/2026-06-20-fullstackvps-audit.md` — full transcript of the 2026-06-20 matrix-scan on FullStackVPS (smahud.pem + 172.16.103.200 + port reassignments 3100/3200/3201). Use as a worked example when port docs say 3000/3001/1337 but reality disagrees.
+- `references/vps-project-json-surgical-update.md` — recipe for safely updating `vps_project.json` (or any SOT-infra JSON) when ports/keys have drifted from doc reality. Use this after a Step 4 service audit discovers mismatch.
