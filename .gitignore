@@ -7,13 +7,16 @@
 # ========================================================================
 
 # ── Credentials & Secrets ──────────────────────────────────────────────────
-# NEVER commit these — they contain API keys, tokens, passwords
-/root/credential/
-/root/.hermes/profiles/ilma/auth.json
-/root/.hermes/profiles/ilma/auth.lock
-/root/.hermes/profiles/ilma/.env
-/root/.hermes/profiles/ilma/config.yaml
-/root/.hermes/profiles/ilma/ilma_evidence_ledger.json
+# NEVER commit these — they contain API keys, tokens, passwords.
+# NOTE (2026-06-20 audit fix): these MUST be repo-relative. A leading "/" anchors to
+# the REPO root; an absolute filesystem path like "/root/.hermes/profiles/ilma/auth.json"
+# is treated as "<repo>/root/.hermes/..." and NEVER matches — which is why auth.json,
+# config.yaml and ilma_evidence_ledger.json were silently committed for many cycles.
+/auth.json
+/auth.lock
+/.env
+/config.yaml
+/ilma_evidence_ledger.json
 
 # API Keys & Tokens (in any file — scan ALL files)
 ghp_*
