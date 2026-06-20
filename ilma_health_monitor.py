@@ -148,7 +148,12 @@ class HealthMonitor:
             return {"healthy": True, "score": 1.0, "message": "No state file"}
         
         try:
-            data = json.loads(STATE_FILE.read_text())
+            raw = json.loads(STATE_FILE.read_text())
+            # Health state schema: {"_meta":..., "providers":..., "models": {id: {...}}}.
+            # Must iterate the nested models dict, not the 3 top-level keys (fixed 2026-06-20
+            # audit: len(data)==3 made this check always report healthy).
+            data = raw.get("models", raw) if isinstance(raw, dict) else {}
+            data = {k: v for k, v in data.items() if isinstance(v, dict) and k != "_meta"}
             total = len(data)
             unavailable = sum(1 for v in data.values() if v.get("unavailable", False))
             rate = unavailable / total if total > 0 else 0

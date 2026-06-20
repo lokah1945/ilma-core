@@ -509,7 +509,9 @@ def check_system_health() -> Dict[str, Any]:
     if results["model_health"].get("healthy", False):
         rate_str = results["model_health"].get("rate", "0%")
         rate_val = float(rate_str.rstrip("%")) / 100.0 if isinstance(rate_str, str) else rate_str
-        scores.append(1.0 - rate_val)
+        # `rate` is the model AVAILABILITY rate (available/total, see line ~466), so a
+        # fully-available fleet must score 1.0 — NOT 0.0. (fixed 2026-06-20 audit: was 1.0-rate_val)
+        scores.append(rate_val)
     if results["disk_usage"].get("healthy", False):
         scores.append(1.0)
     if results["git_sync"].get("healthy", False):
