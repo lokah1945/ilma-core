@@ -104,7 +104,10 @@ class AutonomousLoopEngine:
                 "evolution_score": round(self.evolution_score, 6),
                 "last_run": (self._last_run.isoformat() if self._last_run else None),
                 "history": [
-                    {"loop": h.get("loop_count"), "ts": h.get("timestamp"),
+                    # accept both fresh (loop_count/timestamp) and reloaded (loop/ts) shapes,
+                    # else reloaded entries re-serialize as null (audit 2026-06-20: 19/20 null)
+                    {"loop": h.get("loop_count", h.get("loop")),
+                     "ts": h.get("timestamp", h.get("ts")),
                      "evolution_delta": h.get("evolution_delta"),
                      "improvements": self._safe_len(h.get("improvements")),
                      "discoveries": self._safe_len(h.get("discoveries"))}
