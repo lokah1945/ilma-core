@@ -46,6 +46,8 @@ DENYLIST_PATTERNS = [
     re.compile(r"(?i)(^|/)[^/]*secret[^/]*$"),
     re.compile(r"(?i)(^|/)[^/]*token[^/]*\.json$"),
     re.compile(r"(?i)(^|/)id_(rsa|ed25519|ecdsa)(\.pub)?$"),
+    re.compile(r"(^|/)config(_sss)?\.ya?ml$"),
+    re.compile(r"(?i)\.(pem|key|p12|pfx)$"),
 ]
 
 
