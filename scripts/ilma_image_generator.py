@@ -254,9 +254,14 @@ def register_image_capability():
     if not registry_path.exists():
         print(f"{C_Y}⚠️{C_RESET} Registry not found, skipping")
         return
-    
-    with open(registry_path) as f:
-        registry = json.load(f)
+
+    try:
+        with open(registry_path) as f:
+            registry = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        # Root capability_registry.json is known-corrupt; live system uses config/ copy.
+        print(f"{C_Y}⚠️{C_RESET} Registry unreadable ({e}); skipping registration")
+        return
     
     image_cap = {
         "image_generation": {
@@ -414,10 +419,13 @@ def verify_integration():
     print(f"\n3️⃣  Capability Registry")
     registry_path = ILMA_ROOT / "capability_registry.json"
     if registry_path.exists():
-        with open(registry_path) as f:
-            reg = json.load(f)
-        image_caps = [k for k in reg.get("capabilities", {}).keys() if "image" in k]
-        print(f"   Image capabilities: {image_caps}")
+        try:
+            with open(registry_path) as f:
+                reg = json.load(f)
+            image_caps = [k for k in reg.get("capabilities", {}).keys() if "image" in k]
+            print(f"   Image capabilities: {image_caps}")
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"   Registry unreadable: {e}")
     else:
         print(f"   Registry not found")
     
