@@ -19,14 +19,33 @@ SECRET_PATTERNS = [
     (re.compile(r"sk-or-v1-[A-Za-z0-9]{24,}"), "openrouter_key"),
     (re.compile(r"sk-proj-[A-Za-z0-9_\-]{20,}"), "openai_proj_key"),
     (re.compile(r"sk-ant-[A-Za-z0-9_\-]{20,}"), "anthropic_key"),
+    (re.compile(r"sk-[A-Za-z0-9]{32,}"), "generic_sk_key"),
     (re.compile(r"gsk_[A-Za-z0-9]{30,}"), "groq_key"),
     (re.compile(r"csk-[A-Za-z0-9]{30,}"), "cerebras_key"),
     (re.compile(r"AIza[A-Za-z0-9_\-]{30,}"), "google_key"),
     (re.compile(r"tgp_v1_[A-Za-z0-9_\-]{20,}"), "together_key"),
     (re.compile(r"xai-[A-Za-z0-9]{60,}"), "xai_key"),
     (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"), "private_key"),
+    # JWT / OAuth tokens (the auth.json leak class, 2026-06-20): header.payload.sig
+    (re.compile(r"eyJ[A-Za-z0-9_\-]{10,}\.eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}"), "jwt_token"),
+    (re.compile(r"\brt_[A-Za-z0-9]{20,}"), "refresh_token"),
+    (re.compile(r"(?i)\b(access[_-]?token|refresh[_-]?token|agent[_-]?key|bearer)\b\s*[:=]\s*[\"']?[A-Za-z0-9._\-]{16,}"),
+     "oauth_token_assignment"),
     (re.compile(r"(?i)(password|passwd|secret|api[_-]?key|auth[_-]?token)\s*[:=]\s*[\"'][^\"'\s]{12,}[\"']"),
      "generic_secret_assignment"),
+]
+
+# Fail-closed filename denylist: these files must NEVER be committed regardless of
+# their content (defense-in-depth in case a value pattern is missed). Matched against
+# the staged path basename and full path.
+DENYLIST_PATTERNS = [
+    re.compile(r"(^|/)auth\.json$"),
+    re.compile(r"(^|/)auth\.lock$"),
+    re.compile(r"(^|/)\.env(\.|$)"),
+    re.compile(r"(?i)credential"),
+    re.compile(r"(?i)(^|/)[^/]*secret[^/]*$"),
+    re.compile(r"(?i)(^|/)[^/]*token[^/]*\.json$"),
+    re.compile(r"(?i)(^|/)id_(rsa|ed25519|ecdsa)(\.pub)?$"),
 ]
 
 
@@ -52,14 +71,37 @@ def _dynamic_secret_values() -> set:
 _DYNAMIC_SECRETS = _dynamic_secret_values()
 
 
+def _scan_staged_filenames(repo: str) -> list:
+    """Fail-closed: flag any staged path matching the secret-file denylist."""
+    try:
+        # --diff-filter=ACMR: only Added/Copied/Modified/Renamed (NOT Deleted), so
+        # committing the REMOVAL of a denylisted file is still allowed.
+        names = subprocess.run(["git", "-C", repo, "diff", "--cached",
+                                "--name-only", "--diff-filter=ACMR"],
+                               capture_output=True, text=True, timeout=30).stdout
+    except Exception:
+        return []
+    found = []
+    for path in names.splitlines():
+        path = path.strip()
+        if not path:
+            continue
+        for pat in DENYLIST_PATTERNS:
+            if pat.search(path):
+                found.append(("denylisted_file", path))
+                break
+    return found
+
+
 def scan_staged(repo: str) -> list:
-    """Secrets found in newly-ADDED staged lines. Returns [(kind, masked_sample), ...]."""
+    """Secrets found in newly-ADDED staged lines + denylisted staged filenames.
+    Returns [(kind, masked_sample), ...]."""
+    found = _scan_staged_filenames(repo)
     try:
         diff = subprocess.run(["git", "-C", repo, "diff", "--cached", "--unified=0"],
                               capture_output=True, text=True, timeout=30).stdout
     except Exception:
-        return []
-    found = []
+        return found
     for line in diff.splitlines():
         if not line.startswith("+") or line.startswith("+++"):
             continue
