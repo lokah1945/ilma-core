@@ -498,8 +498,8 @@ class JudgeSystemWrapper:
         self._cache = {}
 
     def verify(self, file_path, levels=None):
-        from typing import Optional, List, Dict, Any, Tuple
-        from .ilma_judge_system import verify_file
+        # verify_file is defined in THIS module; the old `from .ilma_judge_system import`
+        # was a self-relative import that raised ImportError at top-level (audit 2026-06-20 D3).
         return verify_file(file_path, levels)
 
     def get_available_levels(self):
@@ -508,7 +508,6 @@ class JudgeSystemWrapper:
                 "L9_ADVERSARIAL", "L10_MUTATION"]
 
     def get_level(self, level):
-        from .ilma_judge_system import _normalize_level
         return _normalize_level(level)
 
 def get_judge_system() -> JudgeSystemWrapper:
