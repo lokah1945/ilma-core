@@ -44,6 +44,9 @@ logger = logging.getLogger(__name__)
 ILMA_ROOT = Path("/root/.hermes/profiles/ilma")
 ILMA_LEARNINGS = ILMA_ROOT / ".learnings"
 LOCK_FILE = ILMA_ROOT / ".optimize.lock"
+# Runtime kill-switch: create this file to halt the autonomy loop WITHOUT disabling the
+# systemd timer (audit 2026-06-20). Remove it to resume.
+PAUSE_FILE = ILMA_ROOT / ".autonomy_paused"
 STATE_FILE = ILMA_ROOT / "ilma_model_router_data" / "model_health_state.json"
 
 
@@ -268,19 +271,14 @@ def auto_wire_modules() -> Dict[str, Any]:
     results["newly_wired"] = newly_wired
     results["wired_after"] = results["wired_before"] + len(newly_wired)
     
+    # REPORT-ONLY (audit 2026-06-20): this function never actually writes to the wiring
+    # file — auto-editing the wiring of a live self-improving system is intentionally NOT
+    # done here. Report honest "candidates detected" instead of a fabricated "auto-wired".
+    results["auto_wire_candidates"] = len(newly_wired)
+    results["auto_wired"] = False
     if newly_wired:
-        # Auto-wire to wiring file
-        try:
-            new_entries = "\n    ".join([f'"{n["name"]}",  # AUTO-WIRED v2' for n in newly_wired])
-            old_layer_comment = "# Auto-wire section marker"
-            if old_layer_comment in wiring_content:
-                # Add at end of LAYER definitions
-                pass
-            results["auto_wired"] = True
-            logger.info(f"[AUTO-WIRE] {len(newly_wired)} modules auto-wired")
-        except Exception as e:
-            results["wiring_errors"].append(f"auto-wire failed: {e}")
-    
+        logger.info(f"[AUTO-WIRE] {len(newly_wired)} wiring candidate(s) detected (report-only, not written)")
+
     return results
 
 
@@ -598,7 +596,7 @@ def log_optimization_result(results: Dict[str, Any]) -> None:
 **Health Score:** {hs:.3f}
 **Pipeline Integrity:** {pi:.1%}
 **Modules Wired:** {vo}/{vt}
-**Auto-wired:** {aw} new modules
+**Wiring candidates (report-only):** {aw}
 **Self-Improve Cycle:** #{sc}
 **Hermes Updated:** {hu}
 **Skills Found:** {sk}
@@ -720,7 +718,7 @@ def run_full_optimization() -> Dict[str, Any]:
     logger.info(f"  Health Score:   {health:.3f}")
     logger.info(f"  Pipeline:       {pipeline:.1%}")
     logger.info(f"  Wired:          {wired}/{total}")
-    logger.info(f"  Auto-wired:     {len(results['auto_wire']['newly_wired'])} new")
+    logger.info(f"  Wiring cands:   {len(results['auto_wire']['newly_wired'])} detected (report-only)")
     logger.info(f"  Hermes Updated: {results['hermes']['hermes_updated']}")
     logger.info(f"  Skills:         {results['capabilities'].get('total_modules', 0)}")
     logger.info(f"  Self-Improve:   #{results['self_improve']['cycle_count']}")
@@ -854,26 +852,42 @@ Examples:
         interval = 3600  # 1 hour
         
         while True:
-            run_full_optimization()
+            if PAUSE_FILE.exists():
+                logger.info(f"[DAEMON] paused ({PAUSE_FILE.name} present); skipping cycle")
+            else:
+                run_full_optimization()
             logger.info(f"[DAEMON] Sleeping {interval}s until next run...")
             time.sleep(interval)
-    
+
     else:
-        # One-shot optimization
-        # Acquire lock
-        if LOCK_FILE.exists():
+        # ── Kill-switch: a runtime pause file halts the loop without disabling the timer ──
+        if PAUSE_FILE.exists():
+            print(f"[PAUSED] {PAUSE_FILE.name} present — autonomy halted. Remove it to resume.")
+            sys.exit(0)
+
+        # One-shot optimization — acquire lock ATOMICALLY (O_CREAT|O_EXCL) to avoid the
+        # exists()->read->write TOCTOU race between two timer-launched runs (audit 2026-06-20).
+        lock_fd = None
+        try:
+            lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
             try:
                 pid = int(LOCK_FILE.read_text().strip())
-                import os as _os
-                if _os.path.exists(f"/proc/{pid}"):
-                    print(f"[!] Optimizer already running (PID {pid}). Exiting.")
-                    sys.exit(0)
-            except:
-                pass
-        
-        with open(LOCK_FILE, "w") as f:
-            f.write(str(os.getpid()))
-        
+            except Exception:
+                pid = None
+            if pid and os.path.exists(f"/proc/{pid}"):
+                print(f"[!] Optimizer already running (PID {pid}). Exiting.")
+                sys.exit(0)
+            # stale lock from a dead process — reclaim atomically, lose-race-safe
+            try:
+                LOCK_FILE.unlink()
+                lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except (FileExistsError, OSError):
+                print("[!] Lost race for stale lock; another run won. Exiting.")
+                sys.exit(0)
+        os.write(lock_fd, str(os.getpid()).encode())
+        os.close(lock_fd)
+
         try:
             results = run_full_optimization()
             
@@ -884,7 +898,7 @@ Examples:
             print(f"Health Score:   {results['health']['health_score']:.3f}")
             print(f"Pipeline E2E:   {results['pipeline']['pipeline_integrity']:.1%}")
             print(f"Wired Modules:  {results['verify']['imported_ok']}/{results['verify']['total_wired']}")
-            print(f"Auto-wired:     {len(results['auto_wire']['newly_wired'])} new modules")
+            print(f"Wiring cands:   {results['auto_wire'].get('auto_wire_candidates', 0)} detected (report-only)")
             print(f"Hermes Update:  {results['hermes']['hermes_updated']}")
             print(f"Skills:         {results['capabilities'].get('total_modules', 0)}")
             print(f"Self-Improve:   #{results['self_improve']['cycle_count']}")
