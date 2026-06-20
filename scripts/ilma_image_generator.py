@@ -18,6 +18,7 @@ import argparse
 import urllib.request
 import urllib.error
 from pathlib import Path
+from typing import Optional, Dict, Any
 
 # ─── PATHS ───────────────────────────────────────────────────────────────────
 ILMA_ROOT = Path("/root/.hermes/profiles/ilma")
@@ -39,7 +40,12 @@ class ImageGenerator:
     PROVIDER = "xai"
     MODEL = "grok-imagine-image"
     ENDPOINT = "https://api.x.ai/v1/images/generations"
-    
+
+    # Bos directive 2026-06-21: all capability goes through SOT FREE-only.
+    # Keep static PROVIDER/MODEL/ENDPOINT for backward-compat tests, but the
+    # runtime `generate()` path will now consult SOT dispatcher first.
+    USE_SOT_FREE = True
+
     # Prompts for blog content
     BLOG_IMAGE_STYLES = {
         "featured": "Professional blog featured image with {topic}, modern design, high quality illustration, cinematic lighting",
@@ -48,10 +54,29 @@ class ImageGenerator:
         "social": "Social media post image for {topic}, square format, engaging visual, modern aesthetic",
         "abstract": "Abstract art representing {topic}, futuristic style, digital art, blue and purple tones",
     }
-    
+
     def __init__(self):
         self.api_key = self._load_api_key()
         self.enabled = bool(self.api_key)
+        self._sot_resolved = None
+
+    def _resolve_via_sot(self) -> Optional[Dict[str, Any]]:
+        """Query SOT dispatcher for the best FREE image model (soft-fallback).
+        Cached. Returns provider/model/endpoint or None."""
+        if not self.USE_SOT_FREE:
+            return None
+        if self._sot_resolved is not None:
+            return self._sot_resolved
+        try:
+            sys.path.insert(0, str(ILMA_ROOT))
+            from ilma_sot_dispatcher import sot_dispatch
+            res = sot_dispatch("image", strict=False, allow_paid=False)
+            if res and not res.get("error") and res.get("provider"):
+                self._sot_resolved = res
+                return res
+        except Exception as e:
+            print(f"[ilma_image_generator] SOT dispatch failed: {e}")
+        return None
     
     def _load_api_key(self) -> str:
         """Load xAI API key from credentials"""
@@ -69,7 +94,89 @@ class ImageGenerator:
         
         # Also check env var
         return os.environ.get("XAI_API_KEY", "")
-    
+
+    def _log(self, msg: str) -> None:
+        """Stdout-only log helper (no extra deps)."""
+        print(f"[ilma_image_generator] {msg}")
+
+    def _resolve_provider_key(self, provider: str) -> str:
+        """Look up API key for given provider from credentials file or env."""
+        try:
+            cp = Path("/root/credential/api_key.json")
+            if cp.exists():
+                creds = json.loads(cp.read_text())
+                entry = creds.get(provider, {})
+                keys = entry.get("keys", []) if isinstance(entry, dict) else []
+                if keys and isinstance(keys[0], str):
+                    return keys[0]
+            # env var fallback: PROVIDER_API_KEY
+            return os.environ.get(f"{provider.upper()}_API_KEY", "")
+        except Exception:
+            return ""
+
+    def _resolve_provider_base(self, provider: str) -> str:
+        """Look up base URL for provider via SOT `providers` collection."""
+        try:
+            sys.path.insert(0, str(ILMA_ROOT))
+            from sot_free_model_picker import get_db
+            db = get_db()["providers"]
+            row = db.find_one({"provider": provider})
+            base = (row or {}).get("base_url") if row else None
+            if base:
+                return base.rstrip("/") if base.endswith("/v1") else f"{base.rstrip('/')}/v1"
+        except Exception:
+            pass
+        # fallback known values
+        return {
+            "xai":       "https://api.x.ai/v1",
+            "together":  "https://api.together.xyz/v1",
+            "openai":    "https://api.openai.com/v1",
+            "openrouter":"https://openrouter.ai/api/v1",
+            "groq":      "https://api.groq.com/openai/v1",
+            "fal":       "https://fal.run/v1",
+        }.get(provider, "https://api.openai.com/v1")
+
+    def _call_image_endpoint(self, *, base_url: str, model_id: str,
+                              api_key: str, prompt: str, aspect: str,
+                              style: str, size: str, provider: str,
+                              sot_resolution: Dict[str, Any]) -> Dict[str, Any]:
+        """POST image generation to any OpenAI-compatible /v1/images/generations."""
+        url = f"{base_url.rstrip('/')}/images/generations"
+        payload = {"model": model_id, "prompt": prompt, "n": 1}
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode(),
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                result = json.loads(resp.read())
+            image_url = result.get("data", [{}])[0].get("url", "")
+            return {
+                "status": "success",
+                "provider": provider,
+                "model": model_id,
+                "url": image_url,
+                "aspect": aspect,
+                "cost_usd": 0,
+                "prompt": prompt,
+                "sot_dispatch": {
+                    "skill": "SOT free-only image gen",
+                    "sot_resolved": sot_resolution,
+                },
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": f"{type(e).__name__}: {e}",
+                "provider": provider,
+                "model": model_id,
+            }
+
     def generate(self, prompt: str, aspect: str = "landscape", 
                  style: str = "natural", size: str = "1024x1024") -> dict:
         """
@@ -91,7 +198,39 @@ class ImageGenerator:
                 "provider": "xai",
                 "solution": "Set XAI_API_KEY in /root/credential/api_key.json"
             }
-        
+
+        # ── Resolve via SOT FREE-only dispatcher (Bos mandate 2026-06-21) ──────
+        sot_resolution = self._resolve_via_sot()
+        if sot_resolution:
+            chosen_provider = sot_resolution["provider"]
+            chosen_model = sot_resolution["model_id"]
+            chosen_ep = sot_resolution.get("endpoint_type", "image-generations")
+            self._log(f"SOT picked FREE image model: {chosen_provider}/{chosen_model} "
+                      f"(endpoint={chosen_ep}, score={sot_resolution.get('score')}, "
+                      f"is_free_final={sot_resolution.get('is_free_final')})")
+            if sot_resolution.get("policy_warning"):
+                self._log(f"  ⚠ policy_warning: {sot_resolution['policy_warning']}")
+            # For now, xAI grok-imagine-image is the only wired backend here.
+            # If SOT picks a different provider, fall through to xAI path with
+            # an explicit warning so the user/Bos can wire more backends.
+            if chosen_provider not in ("xai",):
+                # Use the SOT-picked provider/endpoint IF we have credentials;
+                # otherwise fall back to xAI (legacy) and WARN.
+                api_key = self._resolve_provider_key(chosen_provider)
+                if api_key:
+                    base = self._resolve_provider_base(chosen_provider)
+                    return self._call_image_endpoint(
+                        base_url=base,
+                        model_id=chosen_model,
+                        api_key=api_key,
+                        prompt=prompt,
+                        aspect=aspect, style=style, size=size,
+                        provider=chosen_provider,
+                        sot_resolution=sot_resolution,
+                    )
+                self._log(f"  ⚠ no credential for SOT-picked provider "
+                          f"{chosen_provider}; falling back to legacy xAI")
+
         try:
             req = urllib.request.Request(
                 self.ENDPOINT,
@@ -108,13 +247,13 @@ class ImageGenerator:
                 },
                 method="POST"
             )
-            
+
             with urllib.request.urlopen(req, timeout=120) as resp:
                 result = json.loads(resp.read())
-            
+
             image_url = result["data"][0]["url"]
             cost = result.get("usage", {}).get("cost_in_usd_ticks", 0)
-            
+
             return {
                 "status": "success",
                 "provider": "xai",
@@ -123,8 +262,12 @@ class ImageGenerator:
                 "aspect": aspect,
                 "cost_usd": cost / 1e12 if cost else 0,
                 "prompt": prompt,
+                "sot_dispatch": {
+                    "skill": "SOT free-only image gen",
+                    "sot_resolved": self._sot_resolved,
+                } if self._sot_resolved else None,
             }
-            
+
         except urllib.error.HTTPError as e:
             error_body = e.read().decode()[:200]
             return {

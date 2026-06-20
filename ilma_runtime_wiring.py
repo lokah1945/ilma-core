@@ -109,6 +109,7 @@ class ILMARuntimeWiring:
         "ilma_super_coding_command_center",  # Coding orchestrator: Claude/Codex/OpenCode/Gemini + judge integration
         "ilma_partner_wrappers",              # Partner wrappers: Prometheus-2 (Judge) + DeepSeek-R1 (Critic)
         "ilma_orphan_wiring",                # Phase 70-Autonomy: wires the 22 previously-orphan admin/CLI modules
+        "ilma_sot_dispatcher",               # Phase 73-SOT_FREE: single source-of-truth capability dispatch (FREE-only policy)
     ]
 
     LAYER_9_SELF_IMPROVE = [
@@ -151,6 +152,7 @@ class ILMARuntimeWiring:
         "ilma_super_coding_command_center": "Coding orchestrator: Claude/Codex/OpenCode/Gemini + judge integration",
         "ilma_partner_wrappers": "Partner wrappers: Prometheus-2 (Judge) + DeepSeek-R1 (Critic)",
         "ilma_orphan_wiring": "Phase 70-Autonomy: wires 22 previously-orphan CLI modules (drift/miner/disable/chart/log/etc) into the system via stable Python API + CLI subcommand",
+        "ilma_sot_dispatcher": "Phase 73-SOT_FREE: SOT-only capability dispatcher (chat/image/TTS/STT/embedding/video/rerank). FREE-only by default; consults MongoDB credentials.models for live candidates. Single source of truth for runtime call sites.",
         # LAYER 9 — SELF-IMPROVEMENT (v1.2)
         "ilma_self_improve_integrator": "LAYER 9 CANONICAL: unifies LearningLogger + SelfImprovementEngine + KnowledgeGraph + Evidence → unified closed-loop self-improvement",
     }

@@ -186,6 +186,64 @@ class SubAgentRouter:
         )
 
     # ══════════════════════════════════════════════════════════════════════════
+    # Phase 73 — SOT FREE-ONLY DIRECT (capability → model) dispatch
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def route_capability(self, capability: str, *, strict: bool = False,
+                         allow_paid: bool = False,
+                         provider: Optional[str] = None,
+                         quality: Optional[str] = None,
+                         thinking: str = "Auto") -> RoutingDecision:
+        """SOT-only routing for ANY non-chat capability (image, tts, stt,
+        embedding, video, audio, rerank, ...).
+
+        - strict=False (default) → soft fallback to raw is_free=True for ramp-up
+        - allow_paid=True → bypass FREE filter (NOT ILMA default).
+        - provider=None → best across all FREE providers in SOT.
+        """
+        try:
+            from ilma_sot_dispatcher import sot_dispatch
+            disp = sot_dispatch(capability, strict=strict,
+                                allow_paid=allow_paid,
+                                provider=provider,
+                                quality=quality)
+        except Exception as e:
+            logger.warning(f"SOT dispatch unavailable ({e}); falling back to chat router")
+            return self.route(task_type_or_desc=capability,
+                              thinking=thinking,
+                              allow_paid=allow_paid)
+
+        if disp.get("error"):
+            return RoutingDecision(
+                model="",
+                thinking=thinking,
+                provider="",
+                source_type="SOT",
+                is_fallback=False,
+                fallback_models=[],
+                reasoning=f"SOT dispatch failed: {disp.get('error')} | "
+                          f"hint={disp.get('hint', '')}",
+            )
+        alts = [
+            f"{a['provider']}/{a['model_id']}"
+            for a in disp.get("alternatives", [])
+        ]
+        return RoutingDecision(
+            model=disp["model_id"],
+            thinking=thinking,
+            provider=disp["provider"],
+            source_type="SOT",
+            is_fallback=False,
+            fallback_models=alts,
+            reasoning=("SOT free-only dispatch — provider={prov} model={m} "
+                       "ep={e} if={iff} score={sc}").format(
+                prov=disp["provider"], m=disp["model_id"],
+                e=disp.get("endpoint_type"),
+                iff=disp.get("is_free_final"),
+                sc=disp.get("score")),
+        )
+
+    # ══════════════════════════════════════════════════════════════════════════
     # LEGACY COMPATIBILITY
     # ══════════════════════════════════════════════════════════════════════════
     # select_model(role, task_category) — called by ilma.py --status for health-check.
