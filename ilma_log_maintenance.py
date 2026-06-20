@@ -9,9 +9,10 @@ import gzip
 import shutil
 from pathlib import Path
 
-LOGS_DIR = Path("/root/.hermes/profiles/ilma/logs")
-APPROVAL_LOG = Path("/root/.hermes/profiles/ilma/approval_queue.jsonl")
-SHADOW_LOG = Path("/root/.hermes/profiles/ilma/shadow_eval_log.jsonl")
+ILMA_ROOT = Path("/root/.hermes/profiles/ilma")
+LOGS_DIR = ILMA_ROOT / "logs"
+APPROVAL_LOG = ILMA_ROOT / "approval_queue.jsonl"
+SHADOW_LOG = ILMA_ROOT / "shadow_eval_log.jsonl"
 
 MAX_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
 
@@ -31,20 +32,43 @@ def rotate_file(filepath: Path):
         # Clear the original file safely
         open(filepath, 'w').close()
 
+def cleanup_caches() -> int:
+    """Run unified-cache TTL expiry + per-namespace LRU eviction (audit 2026-06-20:
+    cleanup_expired/lru_evict existed but were never called -> unbounded growth)."""
+    removed = 0
+    try:
+        import sys
+        sys.path.insert(0, str(ILMA_ROOT))
+        from ilma_unified_cache import get_cache
+        cache = get_cache()
+        removed += cache.cleanup_expired()
+        for ns in list(cache.stats().keys()):
+            removed += cache.lru_evict(ns)
+        print(f"Cache cleanup: removed {removed} entries")
+    except Exception as e:
+        print(f"Cache cleanup skipped: {e}")
+    return removed
+
 def main():
     print("Running log maintenance...")
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     logs_to_check = [
         APPROVAL_LOG,
         SHADOW_LOG,
         LOGS_DIR / "quality_gate.jsonl",
-        LOGS_DIR / "agent.log"
+        LOGS_DIR / "agent.log",
+        # audit 2026-06-20: these grew unbounded with no rotation
+        LOGS_DIR / "router_traces.ndjson",
+        LOGS_DIR / "autonomy.log",
+        LOGS_DIR / "errors.log",
+        LOGS_DIR / "gateway.log",
     ]
-    
+
     for log in logs_to_check:
         rotate_file(log)
-        
+
+    cleanup_caches()
     print("Log maintenance complete.")
 
 if __name__ == "__main__":

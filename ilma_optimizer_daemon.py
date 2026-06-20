@@ -673,7 +673,17 @@ def run_full_optimization() -> Dict[str, Any]:
     # Step 7: Self-Improvement Cycle (now acts on telemetry learnings)
     logger.info("[STEP 7] Self-Improvement Cycle...")
     results["self_improve"] = run_self_improvement_cycle()
-    
+
+    # Step 7.5: Log rotation + cache cleanup (audit 2026-06-20: nothing was scheduling
+    # these -> router_traces.ndjson/autonomy.log grew unbounded; cache TTL/LRU never ran).
+    logger.info("[STEP 7.5] Log + cache maintenance...")
+    try:
+        import ilma_log_maintenance as _lm
+        _lm.main()
+        results["maintenance"] = {"ok": True}
+    except Exception as e:
+        results["maintenance"] = {"ok": False, "error": str(e)}
+
     # Step 8: Git Sync if needed
     if results["health"].get("git_sync", {}).get("uncommitted", 0) > 5:
         logger.info("[STEP 8] Git sync...")
