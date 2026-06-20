@@ -180,6 +180,20 @@ class ILMAOrchestrator:
                 exec_result["domain_validation"] = val_res
                 if not val_res.get("valid", True):
                     logger.warning(f"Domain validation failed for {domain}: {val_res}")
+                    # Q2 (audit 2026-06-20): optionally BLOCK on failure for high-criticality
+                    # domains. Flag domain_validation_blocking is OFF by default (canary); when
+                    # ON, a failing SECURITY/CODING output is surfaced as needs_revision instead
+                    # of being silently returned. Response is preserved for inspection.
+                    try:
+                        from ilma_feature_flags import get_flags
+                        _blocking = get_flags().is_enabled("domain_validation_blocking")
+                    except Exception:
+                        _blocking = False
+                    if _blocking and str(contract.domain).upper() in ("SECURITY", "CODING"):
+                        exec_result["status"] = "needs_revision"
+                        exec_result["quality_gate"] = "FAILED"
+                        exec_result["quality_gate_missing"] = val_res.get("details", val_res)
+                        logger.error(f"[domain-gate] BLOCKED {contract.domain}: {val_res.get('details', val_res)}")
         except Exception as e:
             logger.debug(f"Domain validation skipped: {e}")
             

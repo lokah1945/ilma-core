@@ -3,7 +3,14 @@
 ILMA Domain Evaluators
 Validates output against domain-specific methodology checklists.
 """
+import re
 from typing import Dict, Any, List
+
+# Structural detectors (audit 2026-06-20 Q2): match real artifacts, not just keywords.
+# A genuine citation/source: URL, [1] ref, "Source:/References", or DOI.
+_CITATION_RE = re.compile(r"https?://|\[\d+\]|\bsources?\s*:|\breferences\b|\bdoi:\s*\S|\baccording to\b", re.I)
+# A genuine diff/patch: ```diff fence, unified-diff markers, or a git hunk header.
+_DIFF_RE = re.compile(r"```\s*diff|^---\s+a/|^\+\+\+\s+b/|^@@ .* @@|^diff --git ", re.M)
 
 class DomainValidator:
     def validate(self, output: str, contract: Any) -> Dict[str, Any]:
@@ -14,11 +21,12 @@ class ResearchValidator(DomainValidator):
     def validate(self, output: str, contract: Any) -> Dict[str, Any]:
         out_lower = output.lower()
         missing = []
-        if "evidence" not in out_lower and "bukti" not in out_lower and "sumber" not in out_lower:
+        # Require an ACTUAL citation/source artifact, not just the word "evidence".
+        if not _CITATION_RE.search(output or ""):
             missing.append("evidence_table")
         if "confidence" not in out_lower and "limitat" not in out_lower and "keterbatasan" not in out_lower:
             missing.append("uncertainty_handling")
-        
+
         valid = len(missing) == 0
         return {"valid": valid, "score": 1.0 if valid else 0.5, "missing": missing, "name": "ResearchValidator"}
 
@@ -35,9 +43,11 @@ class CodingValidator(DomainValidator):
     def validate(self, output: str, contract: Any) -> Dict[str, Any]:
         out_lower = output.lower()
         missing = []
-        if "diff" not in out_lower and "```diff" not in out_lower and "patch" not in out_lower:
+        # Require a REAL diff/patch artifact (fenced diff / unified-diff markers / git hunk),
+        # not merely the word "diff" appearing in prose.
+        if not _DIFF_RE.search(output or ""):
             missing.append("diff_generation")
-        if "rollback" not in out_lower and "kembalikan" not in out_lower:
+        if "rollback" not in out_lower and "kembalikan" not in out_lower and "revert" not in out_lower:
             missing.append("rollback_plan")
             
         valid = len(missing) == 0
