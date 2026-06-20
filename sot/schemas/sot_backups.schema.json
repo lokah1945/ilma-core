@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sot_backups",
+  "description": "Backup metadata (logical, not full mongodump). One doc per backup run.",
+  "type": "object",
+  "required": ["backup_id", "created_at", "type", "actor"],
+  "properties": {
+    "backup_id":            { "type": "string", "minLength": 1 },
+    "created_at":           { "type": ["string", "null"], "format": "date-time" },
+    "type":                 { "type": "string", "enum": ["logical_metadata_only", "mongodump_full", "logical_with_secrets"] },
+    "collections_backed_up":{ "type": ["array", "null"], "items": { "type": "string" } },
+    "total_docs":           { "type": ["integer", "null"], "minimum": 0 },
+    "actor":                { "type": "string", "minLength": 1 },
+    "evidence_id":          { "type": ["string", "null"] },
+    "notes":                { "type": ["string", "null"] }
+  }
+}

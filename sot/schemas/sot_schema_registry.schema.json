@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sot_schema_registry",
+  "description": "Self-describing schema registry: tracks which schema version is active for each collection, migration history.",
+  "type": "object",
+  "required": ["collection", "version", "active", "schema_file"],
+  "properties": {
+    "collection":   { "type": "string", "minLength": 1 },
+    "version":      { "type": "string", "minLength": 1 },
+    "active":       { "type": "boolean" },
+    "schema_file":  { "type": "string", "minLength": 1 },
+    "fields_count": { "type": ["integer", "null"], "minimum": 0 },
+    "fl_fixed":     { "type": ["array", "null"], "items": { "type": "string" } },
+    "registered_at":{ "type": ["string", "null"], "format": "date-time" },
+    "registered_by":{ "type": ["string", "null"] },
+    "evidence_id":  { "type": ["string", "null"] },
+    "migrations":   { "type": ["array", "null"], "items": { "type": "object" } }
+  }
+}

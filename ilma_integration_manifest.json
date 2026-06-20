@@ -1,0 +1,100 @@
+{
+  "$schema": "https://ilma.local/schemas/integration-manifest-v2.json",
+  "version": "3.0.0",
+  "updated": "2026-06-18",
+  "profile": "ilma",
+
+  "data_stores": {
+    "PROVIDER_INTELLIGENCE_MASTER": {
+      "file": "/root/.hermes/profiles/ilma/ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json",
+      "purpose": "Single Source of Truth for all model + provider metadata",
+      "writer": "scripts/ilma_model_db_manager.py",
+      "readers": ["ilma_model_router.py", "ilma_subagent_router.py", "ilma_unified_model_router.py"]
+    },
+    "RUNTIME_HEALTH_STATE": {
+      "file": "/root/.openclaw/workspace/scripts/.provider_health_state.json",
+      "description": "Runtime health state — rate limits, failures, availability",
+      "readers": ["ilma_model_router.py", "ilma_subagent_router.py"],
+      "writers": ["ilma_model_router.py"]
+    }
+  },
+
+  "pipeline": {
+    "canonical_entry": "scripts/ilma_model_db_manager.py",
+    "steps": [
+      {"step": 1, "name": "sync_providers", "source": "cloud APIs (OpenRouter, NVIDIA, etc.)", "output": "MASTER[provider]", "keys": "/root/credential/api_key.json + .env"},
+      {"step": 2, "name": "enrich", "source": "capabilities + scores → MASTER", "output": "MASTER[enriched]"},
+      {"step": 3, "name": "git_push", "source": "MASTER", "output": "GitHub", "optional": true}
+    ],
+    "cli_aliases": {
+      "ilma_db_pipeline.py": "scripts/ilma_model_db_manager.py --full-sync",
+      "--cron": "scripts/ilma_model_db_manager.py --full-sync --git-push"
+    },
+  },
+
+  "routing_engine": {
+    "file": "ilma_model_router.py",
+    "class": "ILMAUnifiedRouter",
+    "sot": "ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json",
+    "scoring_method": "composite score = capability×0.35 + intelligence×0.30 + context×0.10 + trust×0.15 + freshness×0.10",
+    "task_types": ["heavy_coding", "medium_coding", "reasoning_xhigh", "research", "fast_tasks", "general", "security_review", "vision", "writing", "creative", "planning", "long_context"],
+    "sub_agent_roles": ["coding_subagent", "creative_subagent", "general_subagent", "long_context_subagent", "planning_subagent", "reasoning_subagent", "research_subagent", "vision_subagent", "writing_subagent"],
+    "features": ["circuit_breaker", "freshness_bonus", "no_repeat_30min", "health_tracking", "free_tier_first"]
+  },
+
+  "runtime_wiring": {
+    "file": "ilma_runtime_wiring.py",
+    "purpose": "Verify all 28 core modules load and wire correctly at startup",
+    "test_command": "python3 ilma_runtime_wiring.py --verify",
+    "integrates": [
+      "ilma_model_router.py",
+      "ilma_subagent_router.py",
+      "ilma_capability_registry.py",
+      "ilma_orchestrator.py",
+      "ilma_workflow_ecc.py",
+      "ilma_actor_critic_core.py",
+      "ilma_health_manager.py",
+      "ilma_browser_engine.py",
+      "scripts/ilma_model_db_manager.py"
+    ],
+  },
+
+  "scheduled_jobs": {
+    "ilma_model_db_sync": {
+      "id": "bf9ad9925449",
+      "schedule": "0 0,12 * * *",
+      "runner": "cron scheduler",
+      "command": "python3 scripts/ilma_db_pipeline.py --cron",
+      "deliver": "origin",
+      "status": "active"
+    }
+  },
+
+  "system_state": {
+    "total_models": 1341,
+    "total_providers": 25,
+    "routing_method": "ILMAUnifiedRouter_v1.0",
+    "single_db_file": true,
+    "master_db_size_mb": 9.53,
+    "last_sync": "2026-05-24T10:01:04"
+  },
+
+  "archived_files": {
+    "description": "Archived routers — replaced by ilma_model_router.py (Unified, SOT-only)",
+    "archive_dir": "router_archive/",
+    "archived": [
+      "ilma_model_router.py (old v1.0-v2.0)",
+      "ilma_canonical_router.py (adapter layer)",
+      "ilma_smart_model_router.py (multi-dim engine)",
+      "ilma_subagent_router.py (old v1.0)",
+      "ilma_model_registry.py (SQLite registry)",
+    ]
+  },
+
+  "git_sync": {
+    "repo": "https://github.com/lokah1945/ilma-core",
+    "branch": "master",
+    "auto_push": true,
+    "triggers": ["ilma_db_pipeline.py --cron"]
+  }
+}

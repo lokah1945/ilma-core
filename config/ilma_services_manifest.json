@@ -1,0 +1,82 @@
+{
+  "services": {
+    "evidence": {
+      "status": "moved",
+      "canonical": "scripts/services/evidence/",
+      "original": "scripts/evidence.py",
+      "shim": "scripts/evidence.py",
+      "moved_phase": "Phase 15D"
+    },
+    "backup": {
+      "status": "moved",
+      "canonical": "scripts/services/backup/core.py",
+      "original": "scripts/ilma_backup.py",
+      "shim": "scripts/ilma_backup.py",
+      "package": "scripts/services/backup/__init__.py",
+      "moved_phase": "Phase 36G"
+    },
+    "ingestion": {
+      "status": "deferred",
+      "reason": "HTTP dependency (urllib.parse)",
+      "script": "scripts/ilma_hermes_knowledge_ingestion.py",
+      "recommendation": "DEFER_DEPENDENCY"
+    },
+    "metrics": {
+      "status": "deferred",
+      "reason": "Empty script (0 bytes)",
+      "script": "scripts/ilma_metrics_monitoring.py",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "monitoring": {
+      "status": "deferred",
+      "reason": "Empty script (0 bytes)",
+      "script": "scripts/ilma_metrics_monitoring.py",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "search_router": {
+      "status": "deferred",
+      "reason": "HTTP dependency",
+      "script": "scripts/ilma_search_router.py",
+      "recommendation": "DEFER_DEPENDENCY"
+    },
+    "qa": {
+      "status": "deferred",
+      "reason": "Judgment dependency",
+      "script": "scripts/ilma_qa_critic.py",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "memory": {
+      "status": "deferred",
+      "reason": "Core service, high risk",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "registry": {
+      "status": "deferred",
+      "reason": "Core service, high risk",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "command_center": {
+      "status": "deferred",
+      "reason": "Core service, high risk",
+      "recommendation": "HIGH_RISK_DEFER"
+    }
+  },
+  "moved_count": 2,
+  "deferred_count": 7,
+  "total_domains": 9,
+  "registry": {
+    "verified": 31,
+    "strongly_supported": 66,
+    "partial": 1,
+    "deprecated": 1
+  },
+  "weak_verified": 0,
+  "runner": {
+    "total": 994,
+    "unit_tests": 423,
+    "behavior_tests": 44,
+    "semantic_tests": 1,
+    "import_smoke": 10,
+    "compile_checks": 516
+  }
+}

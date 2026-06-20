@@ -1,0 +1,179 @@
+{
+  "architecture_version": "1.0",
+  "phase": "46",
+  "date": "2026-05-10",
+  "framework": "Actor-Critic with Reflexion Loop",
+  "description": "Autonomous Evolution Orchestrator with deterministic state machine",
+
+  "nodes": {
+    "INIT": {
+      "description": "Initial state - task received",
+      "transitions": ["PRETASK_MEMORY_RETRIEVAL"]
+    },
+    "PRETASK_MEMORY_RETRIEVAL": {
+      "description": "Pull relevant lessons from memory before execution",
+      "transitions": ["ACTOR_PLAN"],
+      "output": "retrieved_lessons"
+    },
+    "ACTOR_PLAN": {
+      "description": "Actor generates plan with lesson context",
+      "transitions": ["ACTOR_EXECUTE"],
+      "output": "plan"
+    },
+    "ACTOR_EXECUTE": {
+      "description": "Actor implements plan",
+      "transitions": ["CRITIC_EVALUATE"],
+      "output": "artifact"
+    },
+    "CRITIC_EVALUATE": {
+      "description": "Judge evaluates artifact against criteria",
+      "transitions": ["REFLECTION", "STORE_LESSON"],
+      "output": "judge_result"
+    },
+    "REFLECTION": {
+      "description": "Reflection engine converts failure to fix plan",
+      "transitions": ["ACTOR_REVISE"],
+      "output": "reflection_result"
+    },
+    "ACTOR_REVISE": {
+      "description": "Actor applies fix plan",
+      "transitions": ["CRITIC_EVALUATE"],
+      "output": "revised_artifact"
+    },
+    "STORE_LESSON": {
+      "description": "Store successful resolution as lesson",
+      "transitions": ["FINALIZE"],
+      "output": "lesson_id"
+    },
+    "FINALIZE": {
+      "description": "Output final result with evidence",
+      "transitions": ["COMPLETE"],
+      "output": "final_report"
+    },
+    "FAILED": {
+      "description": "Max iterations or unsafe condition",
+      "transitions": [],
+      "output": "failure_report"
+    },
+    "ESCALATED": {
+      "description": "Owner intervention required",
+      "transitions": [],
+      "output": "escalation_report"
+    },
+    "BLOCKED": {
+      "description": "Missing dependency or ambiguous target",
+      "transitions": [],
+      "output": "blockage_report"
+    }
+  },
+
+  "specialist_validators": [
+    {
+      "name": "ArchitectValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates architectural soundness",
+      "checks": ["modularity", "coupling", "cohesion"]
+    },
+    {
+      "name": "QAValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates test coverage and quality",
+      "checks": ["test_existence", "test_passing", "coverage"]
+    },
+    {
+      "name": "SecurityValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates security patterns",
+      "checks": ["no_shell_injection", "no_hardcoded_secrets", "no_eval_exec", "safe_paths"]
+    },
+    {
+      "name": "EvidenceValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates evidence claims",
+      "checks": ["evidence_exists", "evidence_unique", "no_overclaim"]
+    },
+    {
+      "name": "PerformanceValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates performance characteristics",
+      "checks": ["no_infinite_loop", "timeout_enforced", "memory_bounded"]
+    },
+    {
+      "name": "TruthfulnessValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates claims against reality",
+      "checks": ["no_hallucination", "testable_claims", "evidence_backed"]
+    },
+    {
+      "name": "RegressionValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates no regression in existing functionality",
+      "checks": ["backward_compat", "import_works", "cli_works"]
+    },
+    {
+      "name": "DocumentationValidator",
+      "type": "LOCAL_RULE_BASED",
+      "description": "Validates documentation quality",
+      "checks": ["docs_exist", "no_broken_links", "clear_structure"]
+    }
+  ],
+
+  "judge_criteria": [
+    "compile_check",
+    "test_check",
+    "artifact_existence",
+    "evidence_id",
+    "security_check",
+    "truthfulness_check",
+    "no_overclaim_check",
+    "task_specific_rubric"
+  ],
+
+  "temperature_policy": {
+    "actor": {
+      "mode": "FLEXIBLE_CREATIVE",
+      "temperature_equivalent": "0.4-0.7",
+      "description": "Flexible mode for creative problem solving"
+    },
+    "critic": {
+      "mode": "STRICT_DETERMINISTIC",
+      "temperature_equivalent": "0.0-0.1",
+      "description": "Deterministic mode for objective evaluation"
+    }
+  },
+
+  "exit_conditions": {
+    "PASS": "All judge criteria met",
+    "FAIL_FIXABLE": "Judge found issues but fix plan exists",
+    "FAIL_REPEATED": "Same failure pattern 2+ times",
+    "FAIL_UNSAFE": "Unsafe condition detected",
+    "MAX_ITERATIONS": "Max iterations reached",
+    "DEPENDENCY_MISSING": "Required dependency not available",
+    "AMBIGUOUS": "Target requires owner clarification",
+    "BLOCKED": "Cannot proceed due to external factor"
+  },
+
+  "lesson_schema": {
+    "lesson_id": "string (UUID)",
+    "timestamp": "ISO8601",
+    "phase": "string",
+    "task_type": "string",
+    "failure_pattern": "string",
+    "root_cause": "string",
+    "fix": "string",
+    "validation_method": "string",
+    "future_rule": "string",
+    "confidence": "float (0-1)",
+    "source_evidence": "string"
+  },
+
+  "constraints": {
+    "max_iterations": 300,
+    "checkpoint_frequency": 25,
+    "no_auto_system_prompt_mutation": true,
+    "no_arbitrary_path_write": true,
+    "no_eval_exec": true,
+    "no_secret_logging": true,
+    "unsafe_escalation": true
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "model_intelligence",
+  "description": "Composite scores and routing metadata from credentials.model_intelligence (v2 — nullable for missing data).",
+  "type": "object",
+  "required": [
+    "provider",
+    "model_id",
+    "composite_score",
+    "score_tier",
+    "enrichment_version",
+    "enriched_at",
+    "provenance"
+  ],
+  "properties": {
+    "provider":      { "type": "string", "minLength": 1 },
+    "model_id":      { "type": "string", "minLength": 1 },
+    "quality_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "speed_score":   { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "cost_score":    { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "context_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "free_tier_bonus":{ "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "composite_score":{ "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "score_tier": {
+      "type": ["string", "null"],
+      "enum": ["S", "A", "B", "C", "D", null]
+    },
+    "capabilities": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "specialization":    { "type": ["string", "null"] },
+    "recommended_use_cases": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "enrichment_version": { "type": ["string", "null"] },
+    "enriched_at":        { "type": ["string", "null"], "format": "date-time" },
+    "enrichment_sources": {
+      "type": ["array", "null"],
+      "items": { "type": "string" }
+    },
+    "provenance":      { "type": ["string", "null"] },
+    "pricing":         { "type": ["object", "null"] },
+    "context_window":  { "type": ["integer", "null"], "minimum": 0 },
+    "modality":        { "type": ["string", "null"] },
+    "is_free":         { "type": ["boolean", "null"] },
+    "trust_score":     { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "confidence":      { "type": ["object", "null"] },
+    "benchmarks":      { "type": ["object", "null"] },
+    "audit":           { "type": ["array", "null"] },
+    "model_status":    { "type": ["object", "null"] },
+    "last_verified":   { "type": ["string", "null"], "format": "date-time" },
+    "description":     { "type": ["string", "null"] }
+  }
+}

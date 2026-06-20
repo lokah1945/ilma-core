@@ -1,0 +1,383 @@
+{
+  "version": "1.0",
+  "created": "2026-05-10T16:05:00Z",
+  "description": "ILMA Runtime Body Architecture Map \u2014 maps all ILMA organs and their connections",
+  "body_metaphor": {
+    "brain": {
+      "components": [
+        "intent_classifier",
+        "task_planner",
+        "reasoning_engine",
+        "lesson_memory_retriever"
+      ],
+      "inputs": [
+        "user_message",
+        "context",
+        "memory",
+        "lessons"
+      ],
+      "outputs": [
+        "task_plan",
+        "workflow_selection",
+        "tool_selection"
+      ],
+      "files": [
+        "scripts/ilma_task_entrypoint.py",
+        "scripts/ilma_critic_judge.py"
+      ]
+    },
+    "nervous_system": {
+      "components": [
+        "runtime_router",
+        "capability_routing_matrix",
+        "workflow_selector"
+      ],
+      "inputs": [
+        "task_plan",
+        "intent_classification"
+      ],
+      "outputs": [
+        "workflow",
+        "capability_selection"
+      ],
+      "files": [
+        "config/ilma_runtime_routing_policy.json",
+        "config/ilma_capability_routing_matrix.json"
+      ]
+    },
+    "skeleton": {
+      "components": [
+        "architecture_manifest",
+        "capability_registry",
+        "service_boundaries"
+      ],
+      "inputs": [
+        "query_requests"
+      ],
+      "outputs": [
+        "registered_capabilities",
+        "claim_boundaries"
+      ],
+      "files": [
+        "ilma_capability_registry.py",
+        "docs/ILMA_ARCHITECTURE_MANIFEST.md"
+      ]
+    },
+    "muscles": {
+      "components": [
+        "tools",
+        "scripts",
+        "skills",
+        "CLI_actions"
+      ],
+      "inputs": [
+        "tool_selection",
+        "skill_selection"
+      ],
+      "outputs": [
+        "executed_results",
+        "artifacts"
+      ],
+      "files": [
+        "scripts/",
+        "skills/",
+        "ilma_workflow_ecc.py"
+      ]
+    },
+    "immune_system": {
+      "components": [
+        "security_scanner",
+        "forbidden_scope_guard",
+        "judge_evaluator",
+        "rollback_engine"
+      ],
+      "inputs": [
+        "execution_results",
+        "artifact"
+      ],
+      "outputs": [
+        "pass/warn/fail",
+        "rollback_trigger"
+      ],
+      "files": [
+        "scripts/ilma_critic_judge.py",
+        "scripts/ilma_reflexion.py",
+        "scripts/ilma_security_scanner.py"
+      ]
+    },
+    "memory": {
+      "components": [
+        "lesson_memory",
+        "evidence_ledger",
+        "trace_archive"
+      ],
+      "inputs": [
+        "completed_tasks",
+        "failures",
+        "judge_results"
+      ],
+      "outputs": [
+        "retrieved_lessons",
+        "evidence_ids"
+      ],
+      "files": [
+        "memory/ilma_lessons.jsonl",
+        "evidence/"
+      ]
+    },
+    "heartbeat": {
+      "components": [
+        "runner",
+        "checkpoint_engine",
+        "status_monitor",
+        "health_check"
+      ],
+      "inputs": [
+        "running_tasks",
+        "cycles"
+      ],
+      "outputs": [
+        "heartbeat_logs",
+        "checkpoints",
+        "status_reports"
+      ],
+      "files": [
+        "scripts/ilma_phase48h_realtime_5min_canary.py",
+        "scripts/ilma_phase49_autoloop_runner.py"
+      ]
+    },
+    "senses": {
+      "components": [
+        "file_scanner",
+        "test_runner",
+        "log_parser",
+        "judge_feedback_receiver"
+      ],
+      "inputs": [
+        "filesystem",
+        "test_results",
+        "judge_scores"
+      ],
+      "outputs": [
+        "observations",
+        "quality_metrics"
+      ],
+      "files": [
+        "scripts/",
+        "tests/"
+      ]
+    },
+    "voice": {
+      "components": [
+        "final_artifact_producer",
+        "user_report_generator",
+        "evidence_reporter"
+      ],
+      "inputs": [
+        "completed_work",
+        "evidence",
+        "traces"
+      ],
+      "outputs": [
+        "final_answer",
+        "artifact",
+        "report"
+      ],
+      "files": [
+        "evidence/evolution_traces/"
+      ]
+    }
+  },
+  "intent_to_task_class_map": {
+    "coding": {
+      "task_class": "code",
+      "workflow": "coding_workflow",
+      "capabilities": [
+        "code_analysis",
+        "code_quality",
+        "refactor_cleaner",
+        "testing"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "search"
+      ],
+      "judge_rubric": "correctness + test_coverage + no_security_issues"
+    },
+    "writing": {
+      "task_class": "write",
+      "workflow": "writing_workflow",
+      "capabilities": [
+        "writing",
+        "documentation"
+      ],
+      "tools": [
+        "file"
+      ],
+      "judge_rubric": "clarity + coherence + evidence_backed"
+    },
+    "research": {
+      "task_class": "research",
+      "workflow": "research_workflow",
+      "capabilities": [
+        "research",
+        "data_analysis"
+      ],
+      "tools": [
+        "web",
+        "search"
+      ],
+      "judge_rubric": "sources_credible + evidence_grounded"
+    },
+    "audit": {
+      "task_class": "audit",
+      "workflow": "audit_workflow",
+      "capabilities": [
+        "code_review",
+        "security_audit",
+        "self_audit"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "search"
+      ],
+      "judge_rubric": "completeness + truthfulness + no_false_claims"
+    },
+    "planning": {
+      "task_class": "plan",
+      "workflow": "planning_workflow",
+      "capabilities": [
+        "planning",
+        "problem_solve"
+      ],
+      "tools": [
+        "file",
+        "memory"
+      ],
+      "judge_rubric": "bite_sized + actionable + rollback_available"
+    },
+    "internal_optimization": {
+      "task_class": "internal",
+      "workflow": "auto_learning_workflow",
+      "capabilities": [
+        "self_improve",
+        "learning"
+      ],
+      "tools": [
+        "file",
+        "terminal",
+        "search"
+      ],
+      "judge_rubric": "lesson_used + artifact_improved + no_regression"
+    },
+    "multi_mission": {
+      "task_class": "multi",
+      "workflow": "multi_mission_workflow",
+      "capabilities": [
+        "orchestration",
+        "delegation"
+      ],
+      "tools": [
+        "all"
+      ],
+      "judge_rubric": "coverage + coordination + no_gaps"
+    },
+    "slides_pdf": {
+      "task_class": "artifact",
+      "workflow": "artifact_workflow",
+      "capabilities": [
+        "design_md",
+        "powerpoint",
+        "media"
+      ],
+      "tools": [
+        "file",
+        "skill"
+      ],
+      "judge_rubric": "quality + fit_for_purpose"
+    },
+    "simple_answer": {
+      "task_class": "simple",
+      "workflow": "simple_answer_workflow",
+      "capabilities": [
+        "quick_answer"
+      ],
+      "tools": [
+        "memory",
+        "search"
+      ],
+      "judge_rubric": "accuracy + brevity"
+    },
+    "unsafe": {
+      "task_class": "unsafe",
+      "workflow": "safety_explanation_workflow",
+      "capabilities": [
+        "safety_guard"
+      ],
+      "tools": [
+        "none"
+      ],
+      "judge_rubric": "safety_explained + not_executed"
+    },
+    "qwen": {
+      "task_class": "qwen",
+      "workflow": "qwen_chat_workflow",
+      "capabilities": [
+        "qwen_chat",
+        "qwen_deep_research",
+        "qwen_coding"
+      ],
+      "tools": [
+        "bridge_qwen"
+      ],
+      "skills": [
+        "ilma-qwen-bridge"
+      ],
+      "judge_rubric": "quality + coherence + relevance",
+      "fallback": "general_workflow",
+      "description": "Tasks explicitly requesting Qwen AI models"
+    },
+    "arena": {
+      "task_class": "arena",
+      "workflow": "arena_chat_workflow",
+      "capabilities": [
+        "arena_chat",
+        "arena_deep_research"
+      ],
+      "tools": [
+        "bridge_arena"
+      ],
+      "skills": [
+        "ilma-arena-bridge"
+      ],
+      "judge_rubric": "quality + coherence + relevance",
+      "fallback": "general_workflow",
+      "description": "Tasks explicitly requesting Arena.ai models"
+    }
+  },
+  "failure_to_lesson_map": {
+    "parser_error": "lesson_parser_fix",
+    "scope_violation": "lesson_negative_scope",
+    "test_regression": "lesson_test_failure",
+    "weak_verified": "lesson_evidence_backfill",
+    "lesson_empty": "lesson_retrieval_targeting",
+    "judge_fail": "lesson_judge_rubric",
+    "trace_missing": "lesson_trace_schema",
+    "duplicate_lessons": "lesson_dedup_fix",
+    "reuse_not_incremented": "lesson_mark_reused"
+  },
+  "lifecycle_flow": {
+    "step_1_intent": "user_message \u2192 intent_classifier \u2192 task_class",
+    "step_2_plan": "task_class \u2192 task_planner \u2192 workflow + capabilities",
+    "step_3_select": "workflow \u2192 runtime_router \u2192 tool/skill selection",
+    "step_4_learn": "task \u2192 PreTaskLearningHook \u2192 retrieve_lessons",
+    "step_5_execute": "tools \u2192 execute \u2192 artifact",
+    "step_6_judge": "artifact \u2192 CriticJudge \u2192 score + status",
+    "step_7_reflect": "judge=FAIL \u2192 ReflectionEngine \u2192 revision",
+    "step_8_learn": "PASS/WARN \u2192 mark_reused \u2192 lesson saved",
+    "step_9_trace": "all \u2192 trace_export \u2192 trace_file",
+    "step_10_report": "final \u2192 voice \u2192 user_artifact"
+  }
+}

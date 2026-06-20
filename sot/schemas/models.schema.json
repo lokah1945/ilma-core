@@ -1,0 +1,311 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "models",
+  "description": "Auto-discovered model metadata from credentials.models. Schema v2 \u2014 extended to match fields written by provider_sync.py + passive enricher.",
+  "type": "object",
+  "required": [
+    "provider",
+    "model_id",
+    "model_name",
+    "discovered_at",
+    "discovered_via",
+    "is_active",
+    "status"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique per provider (e.g. gpt-4o)"
+    },
+    "model_name": {
+      "type": "string"
+    },
+    "context_window": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "max_output_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "modality": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "input_modalities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_modalities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "price_per_m_input": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "description": "-1 = unknown/sentinel from OpenRouter"
+    },
+    "price_per_m_output": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -1,
+      "description": "-1 = unknown/sentinel from OpenRouter"
+    },
+    "pricing": {
+      "type": "object"
+    },
+    "billing": {
+      "type": "string",
+      "enum": [
+        "free",
+        "paid",
+        "unknown"
+      ]
+    },
+    "free_tier": {
+      "type": "boolean"
+    },
+    "is_free": {
+      "type": "boolean"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capabilities_detail": {
+      "type": "object",
+      "description": "Per-capability normalized scores (0..1) \u2014 derived from AA benchmarks"
+    },
+    "specialization": {
+      "type": "string",
+      "enum": [
+        "general",
+        "coding",
+        "reasoning",
+        "vision",
+        "instruct",
+        "fast",
+        "chat",
+        "embedding"
+      ]
+    },
+    "specializations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "score": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Composite score 0..100 (from _compute_score)"
+    },
+    "score_tier": {
+      "type": "string",
+      "enum": [
+        "S",
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    "score_source": {
+      "type": "string",
+      "enum": [
+        "aa+heuristic",
+        "heuristic",
+        "manual",
+        "sot_deep_fix_from_intelligence",
+        "sot_enricher"
+      ]
+    },
+    "score_breakdown": {
+      "type": "object",
+      "description": "Per-dimension score components"
+    },
+    "benchmark_score": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Passive benchmark 0..100 from model_usage.jsonl"
+    },
+    "benchmark_aa": {
+      "type": "object",
+      "description": "Artificial Analysis indices (ai/coding/math/mmlu_pro/gpqa/livecodebench)"
+    },
+    "benchmark_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_requests": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "error_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "discovered_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "discovered_via": {
+      "type": "string",
+      "enum": [
+        "provider_direct",
+        "openrouter",
+        "sot_fix_master_sync",
+        "sot_fix_v2",
+        "passive",
+        "manual",
+        "live_purge_20260618",
+        "sot_reconcile"
+      ]
+    },
+    "provider_status_source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "[REMOVED 2026-06-19] Was implementation-only \u2014 no value retained",
+      "enum": [
+        null,
+        "deprecated"
+      ]
+    },
+    "refreshed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "last_verified": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Last successful health check / verification timestamp"
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "disabled",
+        "deprecated",
+        "quota_exceeded",
+        "broken",
+        "unknown"
+      ]
+    },
+    "deactivation_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "user_allowed": {
+      "type": "boolean"
+    },
+    "admin_override": {
+      "type": "boolean"
+    },
+    "disabled": {
+      "type": "boolean"
+    },
+    "disabled_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "raw_metadata": {
+      "type": "object"
+    },
+    "enrichment_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "benchmark_profile": {
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "model_info": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "_sot_last_sync": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "is_free_final": {
+      "type": "boolean",
+      "description": "FINAL free/paid verdict (T3 SOT) computed by sot_billing_classify \u2014 runtime free gate reads THIS. Trap-safe: force_free hardcode + mixed :free/-free suffix + direct flags."
+    },
+    "billing_class": {
+      "type": "string",
+      "enum": [
+        "free",
+        "paid"
+      ],
+      "description": "free|paid \u2014 final billing classification"
+    },
+    "free_reason": {
+      "type": "string",
+      "description": "why is_free_final was set (force_free:provider, mixed_free_suffix, mixed_no_free_suffix, paid_keyword, price>0, direct_flag, no_free_evidence)"
+    }
+  }
+}

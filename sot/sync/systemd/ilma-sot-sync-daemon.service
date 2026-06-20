@@ -1,0 +1,20 @@
+[Unit]
+Description=ILMA SOT sync daemon — real-time llm_providers->models auto-build (change stream)
+After=network-online.target mongod.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/.hermes/profiles/ilma/sot/sync
+Environment=PYTHONPATH=/root/.hermes/profiles/ilma:/root/.hermes/profiles/ilma/sot/discovery:/root/.hermes/profiles/ilma/sot/orchestration
+ExecStart=/usr/bin/python3 /root/.hermes/profiles/ilma/sot/sync/sot_sync_daemon.py
+Restart=always
+RestartSec=10
+MemoryMax=400M
+Nice=10
+StandardOutput=append:/root/.hermes/profiles/ilma/logs/sot_sync_daemon.log
+StandardError=append:/root/.hermes/profiles/ilma/logs/sot_sync_daemon.log
+
+[Install]
+WantedBy=multi-user.target

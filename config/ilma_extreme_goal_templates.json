@@ -1,0 +1,145 @@
+{
+  "templates": {
+    "LONGFORM_1000_PAGE": {
+      "description": "1000-page longform document (book, thesis, technical manual)",
+      "target": "1000-page document",
+      "stages": [
+        {"id": "OUTLINE", "objective": "Create detailed outline and chapter structure"},
+        {"id": "RESEARCH", "objective": "Gather sources, research, and evidence"},
+        {"id": "FIRST_DRAFT", "objective": "Write first draft chapters (first half)"},
+        {"id": "REVISION_1", "objective": "Revise first half, write second half"},
+        {"id": "REVISION_2", "objective": "Full revision and consistency pass"},
+        {"id": "EDITING", "objective": "Line editing, fact-checking, citations"},
+        {"id": "FINAL_REVIEW", "objective": "Final polish and formatting"}
+      ],
+      "quality_gates": {
+        "OUTLINE": ["chapter_dependency_matrix", "outline_approved"],
+        "RESEARCH": ["source_attribution_complete", "claim_ledger_populated", "no_unattributed_claims"],
+        "FIRST_DRAFT": ["word_count_target", "chapter_completeness", "internal_consistency"],
+        "REVISION_1": ["contradiction_detection_pass", "continuity_check"],
+        "REVISION_2": ["peer_review_simulation"],
+        "EDITING": ["citation_format_complete", "glossary_complete"],
+        "FINAL_REVIEW": ["final_approval", "formatting_verified"]
+      },
+      "evidence_requirements": {
+        "minimum_checkpoints": 5,
+        "per_chapter_evidence": true,
+        "source_attribution_required": true
+      },
+      "likely_blockers": [
+        "Scope creep (document grows beyond 1000 pages)",
+        "Consistency drift (tone, terminology changes over long draft)",
+        "Research gaps discovered mid-draft",
+        "Citation rot (sources become unavailable)"
+      ],
+      "minimum_safe_next_rung": "OUTLINE complete + RESEARCH sources identified"
+    },
+    "CODEBASE_1000_FILE": {
+      "description": "1000-file production codebase (not counting tests/docs)",
+      "target": "1000 production files",
+      "stages": [
+        {"id": "ARCHITECTURE", "objective": "Define architecture, module structure, dependencies"},
+        {"id": "CORE_SCAFFOLD", "objective": "Build core modules and interfaces"},
+        {"id": "FEATURE_SET_1", "objective": "Implement first feature set (first 250 files)"},
+        {"id": "FEATURE_SET_2", "objective": "Implement second feature set (next 250 files)"},
+        {"id": "INTEGRATION", "objective": "Integration testing and API consistency"},
+        {"id": "OPTIMIZATION", "objective": "Performance optimization and cleanup"},
+        {"id": "PRODUCTION_HARDENING", "objective": "Security, docs, deployment configs"}
+      ],
+      "quality_gates": {
+        "ARCHITECTURE": ["dependency_graph_valid", "no_circular_deps", "architecture_reviewed"],
+        "CORE_SCAFFOLD": ["core_modules_compile", "interfaces_defined"],
+        "FEATURE_SET_1": ["compile_checks_pass", "unit_tests_80_percent"],
+        "FEATURE_SET_2": ["compile_checks_pass", "integration_tests_pass"],
+        "INTEGRATION": ["mutation_tests_pass", "security_scan_clean"],
+        "OPTIMIZATION": ["performance_benchmark_met", "no_memory_leaks"],
+        "PRODUCTION_HARDENING": ["security_review_pass", "docs_complete", "deployment_verified"]
+      },
+      "evidence_requirements": {
+        "minimum_checkpoints": 4,
+        "compile_evidence_per_stage": true,
+        "test_coverage_evidence": true,
+        "security_review_evidence": true
+      },
+      "likely_blockers": [
+        "Dependency hell at scale",
+        "Test time grows quadratically",
+        "Merge conflicts in shared core",
+        "Documentation drift"
+      ],
+      "minimum_safe_next_rung": "ARCHITECTURE approved + CORE compiles"
+    },
+    "PAPER_GRADE_RESEARCH": {
+      "description": "Peer-review simulation research paper (NeurIPS/ICML/ACL format)",
+      "target": "Publishable-quality research paper",
+      "stages": [
+        {"id": "LITERATURE_REVIEW", "objective": "Survey related work and identify gaps"},
+        {"id": "HYPOTHESIS", "objective": "Form hypothesis and research questions"},
+        {"id": "METHODOLOGY", "objective": "Design methodology and experiments"},
+        {"id": "IMPLEMENTATION", "objective": "Build experimental implementation"},
+        {"id": "EVALUATION", "objective": "Run experiments and collect results"},
+        {"id": "ANALYSIS", "objective": "Analyze results and validate claims"},
+        {"id": "WRITING", "objective": "Write paper (abstract, intro, methods, results, related work, conclusion)"},
+        {"id": "REVISION", "objective": "Internal review and revision"}
+      ],
+      "quality_gates": {
+        "LITERATURE_REVIEW": ["comprehensive_survey", "gap_identified"],
+        "HYPOTHESIS": ["hypothesis_testable", "research_questions_defined"],
+        "METHODOLOGY": ["methodology_sound", "baselines_identified"],
+        "IMPLEMENTATION": ["implementation_reproducible", "code_evidence"],
+        "EVALUATION": ["results_statistically_valid", "reproducibility_checklist"],
+        "ANALYSIS": ["claim_evidence_map_complete", "limitations_acknowledged"],
+        "WRITING": ["paper_format_valid", "citations_complete"],
+        "REVISION": ["internal_peer_review_pass", "no_plagiarism"]
+      },
+      "evidence_requirements": {
+        "minimum_checkpoints": 5,
+        "source_quality_required": true,
+        "claim_evidence_map_required": true,
+        "methodology_reproducibility_required": true
+      },
+      "likely_blockers": [
+        "Results don't support hypothesis",
+        "Methodology challenged by reviewer",
+        "Missing comparison with recent work",
+        "Statistical validity questions"
+      ],
+      "minimum_safe_next_rung": "HYPOTHESIS validated + IMPLEMENTATION started"
+    },
+    "LINUX_DISTRO_FOUNDATION": {
+      "description": "Reproducible Linux distro foundation (not full OS build)",
+      "target": "Distro foundation (rootfs, package manager, boot path)",
+      "stages": [
+        {"id": "SPECIFICATION", "objective": "Define distro goals, architecture, package format"},
+        {"id": "ROOTFS", "objective": "Create reproducible rootfs with base packages"},
+        {"id": "PACKAGE_MANAGER", "objective": "Implement package manager core"},
+        {"id": "BOOT_PATH", "objective": "Define and document boot path"},
+        {"id": "SECURITY_UPDATES", "objective": "Security update mechanism"},
+        {"id": "RELEASE_ENGINEERING", "objective": "Release build process and signing"},
+        {"id": "DOCUMENTATION", "objective": "User and developer documentation"}
+      ],
+      "quality_gates": {
+        "SPECIFICATION": ["spec_document_complete", "architecture_reviewed"],
+        "ROOTFS": ["rootfs_reproducible", "base_packages_verified"],
+        "PACKAGE_MANAGER": ["install_remove_upgrade_work", "dependency_resolution"],
+        "BOOT_PATH": ["boot_path_documented", "init_system_functional"],
+        "SECURITY_UPDATES": ["security_update_mechanism", "vulnerability_response"],
+        "RELEASE_ENGINEERING": ["reproducible_build", "signing_verified"],
+        "DOCUMENTATION": ["user_docs", "dev_docs", "api_docs"]
+      },
+      "evidence_requirements": {
+        "minimum_checkpoints": 5,
+        "reproducibility_evidence_required": true,
+        "boot_path_verification_required": true,
+        "package_manager_tests_required": true
+      },
+      "likely_blockers": [
+        "Package dependency resolution complexity",
+        "Init system choice conflicts",
+        "Reproducibility issues with build",
+        "Security vulnerability in base system"
+      ],
+      "minimum_safe_next_rung": "SPECIFICATION approved + ROOTFS start"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "jobs": [
+    {
+      "id": "2e8463c3e57f",
+      "name": "ILMA Daily Optimization",
+      "schedule": "0 9 * * *",
+      "enabled": true,
+      "prompt": "Run ILMA comprehensive optimization...",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "enabled_toolsets": [
+        "terminal",
+        "file",
+        "web"
+      ],
+      "workdir": "/root/.hermes/profiles/ilma",
+      "no_agent": false,
+      "created_at": "2026-05-10T09:00:00Z",
+      "last_run": null,
+      "last_error": null,
+      "status": "pending"
+    },
+    {
+      "id": "a115de75d3ef",
+      "name": "ILMA Hourly Optimizer",
+      "schedule": "0 * * * *",
+      "enabled": false,
+      "prompt": "Run comprehensive ILMA system optimization \u2014 Hermes update, capability scan, auto-wire, workflow/pipeline E2E check, wiring verification, health check, self-improvement cycle, git sync.\n\nExecute:\n```\ncd /root/.hermes/profiles/ilma && python3 ilma_optimizer_daemon.py\n```\n\nThe daemon handles all 8 steps internally. Report only the final summary output.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "enabled_toolsets": [
+        "terminal",
+        "file",
+        "web"
+      ],
+      "workdir": "/root/.hermes/profiles/ilma",
+      "no_agent": true,
+      "created_at": "2026-05-10T11:00:00Z",
+      "last_run": null,
+      "last_error": null,
+      "status": "pending",
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "next_run_at": "2026-06-06T05:03:56.304295+07:00",
+      "script": "python3 ilma_optimizer_daemon.py"
+    },
+    {
+      "id": "bf9ad9925449",
+      "name": "ILMA Model DB Sync (safe-build)",
+      "schedule": "0 0,12 * * *",
+      "enabled": true,
+      "prompt": "Run DB sync.",
+      "skills": [],
+      "no_agent": true,
+      "script": "bash scripts/ilma_safe_build_and_push.sh",
+      "workdir": "/root/.hermes/profiles/ilma",
+      "created_at": "2026-06-04T22:00:00Z",
+      "last_run": null,
+      "last_error": null,
+      "status": "pending",
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "next_run_at": "2026-06-06T14:10:59.326862+07:00",
+      "skill": null
+    }
+  ],
+  "updated_at": "2026-06-17T06:30:31.770341+07:00"
+}

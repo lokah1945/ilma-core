@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "model_enrichment",
+  "description": "Enrichment metadata for each model. Derived from model_intelligence + master_json.",
+  "type": "object",
+  "required": ["provider", "model_id", "enriched_at", "enrichment_version", "provenance"],
+  "properties": {
+    "provider":      { "type": "string", "minLength": 1 },
+    "model_id":      { "type": "string", "minLength": 1 },
+    "enriched_at":   { "type": ["string", "null"], "format": "date-time" },
+    "enrichment_version": { "type": ["string", "null"] },
+    "enrichment_source":  { "type": ["string", "null"] },
+    "enrichment_sources": { "type": ["array", "null"], "items": { "type": "string" } },
+    "provenance":    { "type": ["string", "null"] },
+    "composite_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "quality_score":   { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "trust_score":     { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "score_tier":      { "type": ["string", "null"], "enum": ["S", "A", "B", "C", "D", null] },
+    "capabilities":    { "type": ["array", "null"], "items": { "type": "string" } },
+    "specialization":  { "type": ["string", "null"] },
+    "recommended_use_cases": { "type": ["array", "null"], "items": { "type": "string" } },
+    "context_window":  { "type": ["integer", "null"], "minimum": 0 },
+    "is_free":         { "type": ["boolean", "null"] },
+    "free_tier":       { "type": ["boolean", "null"] },
+    "last_verified":   { "type": ["string", "null"], "format": "date-time" },
+    "description":     { "type": ["string", "null"] },
+    "pricing":         { "type": ["object", "null"] },
+    "benchmarks":      { "type": ["object", "null"] },
+    "model_status":    { "type": ["object", "null"] }
+  }
+}

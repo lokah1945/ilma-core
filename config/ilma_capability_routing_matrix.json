@@ -1,0 +1,557 @@
+{
+  "version": "1.0",
+  "created": "2026-05-10T16:05:00Z",
+  "description": "ILMA Capability Routing Matrix \u2014 maps capabilities to workflows, tools, skills, and evidence paths",
+  "capability_to_workflow_map": {
+    "code_analysis": {
+      "workflows": [
+        "coding_workflow",
+        "audit_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "search"
+      ],
+      "skills": [
+        "ilma-python-patterns",
+        "ilma-code-quality"
+      ],
+      "input": "file_path or code_snippet",
+      "output": "analysis_report",
+      "judge_rubric": "accuracy + patterns_found + no_hallucination",
+      "evidence_id": "evidence_ilma_capability_code_analysis_001",
+      "fallback": "manual_code_review",
+      "status": "VERIFIED"
+    },
+    "coding": {
+      "workflows": [
+        "coding_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file"
+      ],
+      "skills": [
+        "ilma-python-patterns",
+        "ilma-refactor-cleaner"
+      ],
+      "input": "task_description + context",
+      "output": "implemented_code",
+      "judge_rubric": "correctness + testable + no_security_issues",
+      "evidence_id": "evidence_ilma_capability_coding_001",
+      "fallback": "decline_or_template",
+      "status": "VERIFIED"
+    },
+    "writing": {
+      "workflows": [
+        "writing_workflow"
+      ],
+      "tools": [
+        "file"
+      ],
+      "skills": [
+        "ilma-writing"
+      ],
+      "input": "topic + style + audience",
+      "output": "written_content",
+      "judge_rubric": "clarity + coherence + evidence_backed",
+      "evidence_id": "evidence_ilma_capability_writing_001",
+      "fallback": "outline_only",
+      "status": "VERIFIED"
+    },
+    "research": {
+      "workflows": [
+        "research_workflow"
+      ],
+      "tools": [
+        "web",
+        "search"
+      ],
+      "skills": [
+        "ilma-research",
+        "arxiv"
+      ],
+      "input": "research_question",
+      "output": "research_report",
+      "judge_rubric": "sources_credible + evidence_grounded + citations",
+      "evidence_id": "evidence_ilma_capability_research_001",
+      "fallback": "limited_sources_note",
+      "status": "VERIFIED"
+    },
+    "data_analysis": {
+      "workflows": [
+        "research_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file"
+      ],
+      "skills": [
+        "ilma-data-analysis"
+      ],
+      "input": "data_source + query",
+      "output": "analysis_results",
+      "judge_rubric": "correct_stats + proper_interpretation + no_false_claims",
+      "evidence_id": "evidence_ilma_capability_data_analysis_001",
+      "fallback": "partial_analysis_with_limitations",
+      "status": "VERIFIED"
+    },
+    "networking": {
+      "workflows": [
+        "audit_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "search"
+      ],
+      "skills": [
+        "ilma-network-security"
+      ],
+      "input": "network_query",
+      "output": "network_info_or_error_report",
+      "judge_rubric": "accuracy + security_conscious + no_unsafe_ops",
+      "evidence_id": "evidence_ilma_capability_networking_001",
+      "fallback": "do_not_attempt",
+      "status": "VERIFIED"
+    },
+    "database": {
+      "workflows": [
+        "coding_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file"
+      ],
+      "skills": [
+        "ilma-database-patterns"
+      ],
+      "input": "db_query_or_task",
+      "output": "query_result_or_schema",
+      "judge_rubric": "syntax_correct + no_injection + safe_query",
+      "evidence_id": "evidence_ilma_capability_database_001",
+      "fallback": "decline_query",
+      "status": "VERIFIED"
+    },
+    "api_integration": {
+      "workflows": [
+        "coding_workflow",
+        "multi_mission_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "web"
+      ],
+      "skills": [
+        "ilma-api-integration"
+      ],
+      "input": "api_spec + task",
+      "output": "integration_code",
+      "judge_rubric": "correct_usage + no_credential_exposure + error_handled",
+      "evidence_id": "evidence_ilma_capability_api_integration_001",
+      "fallback": "mock_implementation",
+      "status": "VERIFIED"
+    },
+    "messaging": {
+      "workflows": [
+        "multi_mission_workflow"
+      ],
+      "tools": [
+        "send_message"
+      ],
+      "skills": [],
+      "input": "message + target",
+      "output": "delivery_confirmation",
+      "judge_rubric": "correct_target + no_spam + sender_verified",
+      "evidence_id": "evidence_ilma_capability_messaging_001",
+      "fallback": "log_intent_defer",
+      "status": "VERIFIED"
+    },
+    "authentication": {
+      "workflows": [
+        "coding_workflow",
+        "audit_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file"
+      ],
+      "skills": [
+        "ilma-auth-patterns"
+      ],
+      "input": "auth_task",
+      "output": "implementation_or_explanation",
+      "judge_rubric": "secure_by_design + no_hardcoded_secrets",
+      "evidence_id": "evidence_ilma_capability_authentication_001",
+      "fallback": "decline_with_explanation",
+      "status": "VERIFIED"
+    },
+    "external_api": {
+      "workflows": [
+        "coding_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file"
+      ],
+      "skills": [
+        "ilma-api-design"
+      ],
+      "input": "api_task",
+      "output": "api_implementation",
+      "judge_rubric": "correct_spec + stable + documented",
+      "evidence_id": "evidence_ilma_capability_external_api_001",
+      "fallback": "decline",
+      "status": "VERIFIED"
+    },
+    "self_improve": {
+      "workflows": [
+        "auto_learning_workflow"
+      ],
+      "tools": [
+        "file",
+        "terminal",
+        "search"
+      ],
+      "skills": [
+        "ilma-self-improvement"
+      ],
+      "input": "optimization_target",
+      "output": "patch + artifact + trace",
+      "judge_rubric": "lesson_used + artifact_improved + no_regression + safety_honored",
+      "evidence_id": "evidence_ilma_capability_self_improve_001",
+      "fallback": "abort_and_report",
+      "status": "VERIFIED"
+    },
+    "learning": {
+      "workflows": [
+        "auto_learning_workflow"
+      ],
+      "tools": [
+        "file",
+        "terminal"
+      ],
+      "skills": [
+        "ilma-learning-engine"
+      ],
+      "input": "task_result + context",
+      "output": "lesson_saved",
+      "judge_rubric": "lesson_stored + retrieval_works + reuse_tracked",
+      "evidence_id": "evidence_ilma_capability_learning_001",
+      "fallback": "log_failure",
+      "status": "VERIFIED"
+    },
+    "security_audit": {
+      "workflows": [
+        "audit_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "search"
+      ],
+      "skills": [
+        "ilma-security-audit",
+        "security"
+      ],
+      "input": "target_to_audit",
+      "output": "audit_report",
+      "judge_rubric": "thorough + evidence_backed + no_false_positives + safe",
+      "evidence_id": "evidence_ilma_capability_security_audit_001",
+      "fallback": "limited_audit",
+      "status": "VERIFIED"
+    },
+    "code_review": {
+      "workflows": [
+        "audit_workflow",
+        "coding_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "search"
+      ],
+      "skills": [
+        "ilma-code-review"
+      ],
+      "input": "code_to_review",
+      "output": "review_report",
+      "judge_rubric": "constructive + specific + actionable",
+      "evidence_id": "evidence_ilma_capability_code_review_001",
+      "fallback": "basic_syntax_check",
+      "status": "VERIFIED"
+    },
+    "planning": {
+      "workflows": [
+        "planning_workflow"
+      ],
+      "tools": [
+        "file",
+        "memory"
+      ],
+      "skills": [
+        "ilma-planning"
+      ],
+      "input": "goal + constraints",
+      "output": "plan_with_tasks",
+      "judge_rubric": "bite_sized + actionable + rollback_available",
+      "evidence_id": "evidence_ilma_capability_planning_001",
+      "fallback": "partial_plan_with_gaps",
+      "status": "VERIFIED"
+    },
+    "problem_solve": {
+      "workflows": [
+        "planning_workflow",
+        "coding_workflow"
+      ],
+      "tools": [
+        "terminal",
+        "file",
+        "search"
+      ],
+      "skills": [
+        "ilma-problem-solve"
+      ],
+      "input": "problem_statement",
+      "output": "solution_or_path",
+      "judge_rubric": "practical + tested + safe",
+      "evidence_id": "evidence_ilma_capability_problem_solve_001",
+      "fallback": "unknown_with_research_path",
+      "status": "VERIFIED"
+    },
+    "quick_answer": {
+      "workflows": [
+        "simple_answer_workflow"
+      ],
+      "tools": [
+        "memory",
+        "search"
+      ],
+      "skills": [
+        "ilma-quick-answer"
+      ],
+      "input": "question",
+      "output": "answer",
+      "judge_rubric": "accuracy + brevity + no_hallucination",
+      "evidence_id": "evidence_ilma_capability_quick_answer_001",
+      "fallback": "do_not_know",
+      "status": "VERIFIED"
+    },
+    "orchestration": {
+      "workflows": [
+        "multi_mission_workflow"
+      ],
+      "tools": [
+        "delegate_task",
+        "terminal"
+      ],
+      "skills": [
+        "ilma-master-orchestrator"
+      ],
+      "input": "multi_task_request",
+      "output": "coordinated_results",
+      "judge_rubric": "coverage + coordination + no_gaps",
+      "evidence_id": "evidence_ilma_capability_orchestration_001",
+      "fallback": "single_task_fallback",
+      "status": "VERIFIED"
+    },
+    "documentation": {
+      "workflows": [
+        "writing_workflow"
+      ],
+      "tools": [
+        "file"
+      ],
+      "skills": [
+        "ilma-documentation"
+      ],
+      "input": "topic + format",
+      "output": "document",
+      "judge_rubric": "accurate + complete + readable",
+      "evidence_id": "evidence_ilma_capability_documentation_001",
+      "fallback": "basic_readme",
+      "status": "VERIFIED"
+    },
+    "design_md": {
+      "workflows": [
+        "artifact_workflow"
+      ],
+      "tools": [
+        "file"
+      ],
+      "skills": [
+        "design-md"
+      ],
+      "input": "design_spec",
+      "output": "design_document",
+      "judge_rubric": "standard_compliant + clear + actionable",
+      "evidence_id": "evidence_ilma_capability_design_md_001",
+      "fallback": "markdown_template",
+      "status": "VERIFIED"
+    },
+    "powerpoint": {
+      "workflows": [
+        "artifact_workflow"
+      ],
+      "tools": [
+        "file"
+      ],
+      "skills": [
+        "powerpoint"
+      ],
+      "input": "content + layout",
+      "output": "pptx_file",
+      "judge_rubric": "functional + well_formatted + no_corruption",
+      "evidence_id": "evidence_ilma_capability_powerpoint_001",
+      "fallback": "text_outline",
+      "status": "VERIFIED"
+    },
+    "safety_guard": {
+      "workflows": [
+        "safety_explanation_workflow"
+      ],
+      "tools": [],
+      "skills": [],
+      "input": "unsafe_request",
+      "output": "safety_explanation",
+      "judge_rubric": "safety_explained + not_executed + helpful",
+      "evidence_id": "evidence_ilma_capability_safety_guard_001",
+      "fallback": "default_refuse",
+      "status": "VERIFIED"
+    },
+    "qwen_chat": {
+      "description": "Qwen Chat via Playwright bridge to chat.qwen.ai",
+      "workflow": "qwen_chat_workflow",
+      "tools": [
+        "bridge_qwen.QWenBridge.chat",
+        "bridge_qwen.QWenBridge.deep_research",
+        "bridge_qwen.QWenBridge.create_image"
+      ],
+      "skills": [
+        "ilma-qwen-bridge"
+      ],
+      "models": [
+        "qwen3.6-plus (1M context, flagship)",
+        "qwen3.6-max-preview (deep research)",
+        "qwen3-coder (coding)",
+        "qwen3.5-omni-plus (multimodal)",
+        "qwen3-max (1M context)"
+      ],
+      "capabilities": [
+        "vision",
+        "thinking",
+        "search",
+        "document",
+        "video",
+        "audio",
+        "moe"
+      ],
+      "stateless_mode": true,
+      "free_tier": true
+    },
+    "qwen_deep_research": {
+      "description": "Deep research using Qwen3.6-max-preview with thinking mode",
+      "workflow": "qwen_deep_research_workflow",
+      "tools": [
+        "bridge_qwen.QWenBridge.deep_research"
+      ],
+      "skills": [
+        "ilma-qwen-bridge"
+      ],
+      "models": [
+        "qwen3.6-max-preview"
+      ],
+      "capabilities": [
+        "thinking",
+        "document"
+      ],
+      "thinking_mode": "Thinking",
+      "free_tier": true
+    },
+    "qwen_coding": {
+      "description": "Coding using Qwen3-Coder specialized model",
+      "workflow": "qwen_coding_workflow",
+      "tools": [
+        "bridge_qwen.QWenBridge.chat"
+      ],
+      "skills": [
+        "ilma-qwen-bridge"
+      ],
+      "models": [
+        "qwen3-coder"
+      ],
+      "capabilities": [
+        "vision"
+      ],
+      "preferred_for": [
+        "coding",
+        "programming",
+        "debugging"
+      ],
+      "free_tier": true
+    }
+  },
+  "workflow_capability_priority": {
+    "coding_workflow": [
+      "coding",
+      "code_analysis",
+      "testing",
+      "code_review"
+    ],
+    "writing_workflow": [
+      "writing",
+      "documentation"
+    ],
+    "research_workflow": [
+      "research",
+      "data_analysis"
+    ],
+    "audit_workflow": [
+      "code_review",
+      "security_audit",
+      "self_audit"
+    ],
+    "planning_workflow": [
+      "planning",
+      "problem_solve"
+    ],
+    "auto_learning_workflow": [
+      "self_improve",
+      "learning"
+    ],
+    "multi_mission_workflow": [
+      "orchestration",
+      "messaging"
+    ],
+    "artifact_workflow": [
+      "design_md",
+      "powerpoint"
+    ],
+    "simple_answer_workflow": [
+      "quick_answer"
+    ],
+    "safety_explanation_workflow": [
+      "safety_guard"
+    ]
+  },
+  "routing_rules": {
+    "if_task_contains_coding_keywords": "route to coding_workflow",
+    "if_task_contains_writing_keywords": "route to writing_workflow",
+    "if_task_contains_research_keywords": "route to research_workflow",
+    "if_task_contains_audit_keywords": "route to audit_workflow",
+    "if_task_contains_plan_keywords": "route to planning_workflow",
+    "if_task_is_about_ILMA_internal": "route to auto_learning_workflow",
+    "if_task_contains_multi_keywords": "route to multi_mission_workflow",
+    "if_task_contains_slide_pdf_keywords": "route to artifact_workflow",
+    "if_task_is_simple_fact": "route to simple_answer_workflow",
+    "if_task_contains_unsafe_keywords": "route to safety_explanation_workflow",
+    "if_no_match": "route to planning_workflow for manual classification"
+  },
+  "confidence_thresholds": {
+    "high_confidence": 0.8,
+    "medium_confidence": 0.5,
+    "low_confidence": 0.3,
+    "reject_threshold": 0.2
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "contract_version": "1.0.0",
+  "contract_date": "2026-05-10",
+  "contract_name": "ILMA Limited Internal Auto-Learning Safety Contract",
+  "status": "ACTIVE",
+
+  "default_state": "IDLE",
+  "explicit_owner_command_required": true,
+  "always_on": false,
+
+  "max_duration_without_reapproval_minutes": 120,
+  "checkpoint_interval_minutes": 10,
+  "report_interval_minutes": 15,
+
+  "allowed_scopes": [
+    "registry_truth_audit",
+    "evidence_hardening",
+    "documentation_consistency",
+    "runner_count_truth",
+    "status_semantics_validation",
+    "lesson_memory_reuse",
+    "safe_refactor_plan",
+    "test_coverage_gap_scan",
+    "autonomous_evolution_reliability",
+    "security_scope_review",
+    "test_expansion",
+    "safe_refactor",
+    "runner_cleanup"
+  ],
+
+  "forbidden_scopes": [
+    "dependency_install",
+    "production_deployment",
+    "destructive_delete",
+    "os_build",
+    "external_publish",
+    "credential_use",
+    "live_api_posting",
+    "risky_service_move",
+    "mass_rewrite"
+  ],
+
+  "stop_conditions": [
+    {"condition": "owner_stop_command", "action": "STOP", "state": "STOPPED"},
+    {"condition": "max_consecutive_failures", "action": "BLOCKED_SAFE", "state": "BLOCKED_SAFE", "threshold": 3},
+    {"condition": "forbidden_action_requested", "action": "BLOCKED_SAFE", "state": "BLOCKED_SAFE"},
+    {"condition": "requires_confirmation_unresolved", "action": "BLOCKED_SAFE", "state": "BLOCKED_SAFE"},
+    {"condition": "duration_exceeded", "action": "STOP", "state": "COMPLETED"},
+    {"condition": "crash_exception", "action": "ERROR", "state": "ERROR"},
+    {"condition": "no_trace_produced", "action": "ERROR", "state": "PARTIAL"}
+  ],
+
+  "confirmation_required_conditions": [
+    {
+      "condition": "forbidden_action_in_positive_context",
+      "description": "Command contains forbidden action without negation (jangan/don't/no)",
+      "action": "BLOCKED_SAFE_PENDING_CONFIRMATION",
+      "auto_resolve": false
+    },
+    {
+      "condition": "duration_exceeds_120_minutes",
+      "description": "Duration > 120 minutes requires owner re-approval",
+      "action": "BLOCKED_SAFE_PENDING_CONFIRMATION",
+      "auto_resolve": false
+    },
+    {
+      "condition": "ambiguous_command",
+      "description": "Command confidence < 0.7",
+      "action": "BLOCKED_SAFE_PENDING_CONFIRMATION",
+      "auto_resolve": false
+    }
+  ],
+
+  "negative_patterns_for_forbidden": [
+    "\\bjangan\\b", "\\bjanganlah\\b",
+    "\\bdon't\\b", "\\bdo\\s*not\\b",
+    "\\bno\\b", "\\bnot\\b",
+    "\\btidak\\b", "\\btidaklah\\b",
+    "\\bwithout\\b", "\\bavoid\\b",
+    "\\bforbidden\\b", "\\bblocked\\b",
+    "\\bstop\\b", "\\bhentikan\\b"
+  ],
+
+  "allowed_statuses": [
+    "IDLE",
+    "ARMED",
+    "RUNNING",
+    "PAUSED",
+    "COMPLETED",
+    "COMPLETED_WITH_WARN",
+    "BLOCKED_SAFE",
+    "PARTIAL",
+    "FAILED",
+    "ERROR",
+    "STOPPED"
+  ],
+
+  "trace_schema": {
+    "required_fields": [
+      "session_id", "trigger", "start_time", "run_type",
+      "active_scope", "forbidden_scope", "requires_confirmation",
+      "action_results", "final_verdict", "exit_code",
+      "no_crash", "auto_learning_always_on", "owner_triggered",
+      "external_publish_in_scope", "external_publish_in_forbidden",
+      "stop_reason", "checkpoints", "lessons_stored", "lessons_retrieved"
+    ],
+    "optional_fields": [
+      "deadline", "simulated_duration_min", "actual_duration_sec",
+      "errors", "completed_with_warn", "trace_path"
+    ]
+  },
+
+  "rollback_policy": {
+    "enabled": true,
+    "checkpoint_before_action": true,
+    "max_checkpoints": 10,
+    "rollback_on_error": true,
+    "preserve_trace_on_rollback": true
+  },
+
+  "evidence_policy": {
+    "required_for_all_actions": [
+      "artifact_path", "judge_result", "status", "lesson_decision", "trace_entry"
+    ],
+    "artifact_validation": "must_exist_as_real_file",
+    "judge_validation": "score_and_status_must_be_recorded",
+    "lesson_validation": "event_type_and_root_cause_required"
+  },
+
+  "capability_upgrade_policy": {
+    "require_behavioral_evidence": true,
+    "require_test_proof": true,
+    "require_judge_evaluation": true,
+    "no_implicit_upgrade": true,
+    "no_claim_without_confirmation": true
+  },
+
+  "no_false_claim_policy": {
+    "real_time_vs_simulated": "must_be_explicitly_stated",
+    "exit_code_truth": "exit_code_0_only_if_no_exception",
+    "scope_truth": "external_publish_must_not_appear_in_active_scope_when_negated",
+    "confirmation_truth": "requires_confirmation_must_reflect_actual_need",
+    "status_truth": "COMPLETED_only_if_exit_code_0_and_no_error",
+    "always_on": "must_always_be_false",
+    "production_claim": "never_without_explicit_approval"
+  },
+
+  "owner_command_interface": {
+    "commands": ["start", "stop", "pause", "resume", "status", "trace", "checkpoint", "cancel", "help"],
+    "start_requires_explicit_trigger": true,
+    "status_never_starts_run": true,
+    "stop_always_available": true,
+    "invalid_command_returns_blocked_or_invalid": true
+  },
+
+  "security_requirements": {
+    "no_shell_injection": true,
+    "no_eval_exec": true,
+    "no_hardcoded_secrets": true,
+    "no_credential_logging": true,
+    "no_unsafe_path_write": true,
+    "no_broad_delete": true,
+    "no_dependency_install": true,
+    "no_external_publish": true,
+    "no_production_deploy": true
+  },
+
+  "test_requirements": {
+    "weak_verified_max": 0,
+    "evolution_gate_min": 38,
+    "project_tests_min": 105,
+    "command_interface_tests": "all_commands_tested",
+    "trigger_parser_tests": "positive_and_negative_forbidden_tested",
+    "session_manager_tests": "create_session_with_owner_command_tested"
+  },
+
+  "readiness_criteria": {
+    "for_READY_FOR_LIMITED_INTERNAL_AUTOLEARNING": [
+      "command_interface_PASS",
+      "readiness_harness_PASS",
+      "canary_run_exit_code_0",
+      "no_ERROR",
+      "no_FAILED",
+      "scope_enforcement_PASS",
+      "confirmation_gate_PASS",
+      "lesson_memory_behavior_PASS_or_PARTIAL_with_non_blocking_reason",
+      "trace_valid",
+      "security_clean",
+      "tests_pass",
+      "weak_verified_0",
+      "no_false_real_time_claim"
+    ]
+  },
+
+  "forbidden_claims": [
+    "production autonomous agent",
+    "always-on auto-learning",
+    "universal self-improvement",
+    "real-time 120-minute completed unless actually run",
+    "1000-file readiness",
+    "production deployment",
+    "OS build readiness",
+    "publishable research readiness"
+  ],
+
+  "allowed_claims": [
+    "limited internal auto-learning windows under explicit owner command",
+    "Phase 48D safety contract compliant",
+    "owner-triggered only, not always-on",
+    "Actor-Critic/Judge/Reflection loops operational",
+    "lesson memory persistence and retrieval verified",
+    "trace export and checkpoint system operational",
+    "can be paused/stopped safely"
+  ]
+}

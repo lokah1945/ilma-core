@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ILMA Extreme Mission Loop State Schema",
+  "description": "Schema for ILMA extreme mission loop controller state",
+  "type": "object",
+  "required": ["mission_id", "target_type", "stages", "tasks", "status"],
+  "properties": {
+    "mission_id": {
+      "type": "string",
+      "description": "Unique mission identifier (UUID prefix, 8 chars)"
+    },
+    "goal": {
+      "type": "string",
+      "description": "Mission goal description"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": ["LONGFORM", "CODEBASE", "RESEARCH", "LINUX_DISTRO", "GENERAL"],
+      "description": "Type of extreme goal"
+    },
+    "constraints": {
+      "type": "object",
+      "description": "Mission constraints (budget, iterations, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "STAGES_COMPLETE", "MISSION_COMPLETE", "FAILED", "ROLLED_BACK"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "stages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["objective", "status"],
+        "properties": {
+          "objective": {"type": "string"},
+          "dependencies": {"type": "array", "items": {"type": "string"}},
+          "status": {"type": "string", "enum": ["PENDING", "ACTIVE", "COMPLETED", "FAILED"]},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["stage_id", "description", "status"],
+        "properties": {
+          "stage_id": {"type": "string"},
+          "description": {"type": "string"},
+          "acceptance_criteria": {"type": "array", "items": {"type": "string"}},
+          "status": {"type": "string", "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "BLOCKED"]},
+          "evidence_id": {"type": ["string", "null"]},
+          "dependencies": {"type": "array", "items": {"type": "string"}},
+          "created_at": {"type": "string", "format": "date-time"},
+          "completed_at": {"type": ["string", "null"], "format": "date-time"}
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Task dependency graph"
+    },
+    "checkpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "timestamp"],
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"},
+          "stage_states": {"type": "object"},
+          "mission_status": {"type": "string"},
+          "current_stage": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "All evidence IDs collected for this mission"
+    },
+    "sub_agent_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["reviewer", "result", "findings"],
+        "properties": {
+          "reviewer": {"type": "string"},
+          "result": {"type": "string", "enum": ["PASS", "FAIL", "PARTIAL"]},
+          "findings": {"type": "array", "items": {"type": "string"}},
+          "scope_limitations": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "external_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url", "attribution", "claim"],
+        "properties": {
+          "url": {"type": "string", "format": "uri"},
+          "attribution": {"type": "string"},
+          "claim": {"type": "string"},
+          "date": {"type": "string", "format": "date"}
+        }
+      }
+    },
+    "risk_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "event": {"type": "string"},
+          "risk": {"type": "string"},
+          "severity": {"type": "string"},
+          "mitigation": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "current_stage": {"type": ["string", "null"]},
+    "completed_stages": {"type": "array", "items": {"type": "string"}}
+  }
+}

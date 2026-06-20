@@ -1,0 +1,401 @@
+{
+  "mapping": [
+    {
+      "capability": "search",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_free_search"
+    },
+    {
+      "capability": "research",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_paper_research_pipeline"
+    },
+    {
+      "capability": "browser_automation",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_browser_automation"
+    },
+    {
+      "capability": "coding",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_super_coding_command_center"
+    },
+    {
+      "capability": "debugging",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "meta_cognition",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_meta_cognition"
+    },
+    {
+      "capability": "intuition_engine",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_intuition_engine"
+    },
+    {
+      "capability": "creative_synthesis",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_creative_synthesis"
+    },
+    {
+      "capability": "indonesian_nlp",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_indonesian_nlp"
+    },
+    {
+      "capability": "writing_blog",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "writing_script",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_upgrade_scripts"
+    },
+    {
+      "capability": "writing_novel",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "file_operations",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "skill_management",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_batch_upgrade_skills"
+    },
+    {
+      "capability": "api_integration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_external_api_client"
+    },
+    {
+      "capability": "database_ops",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_database_ops"
+    },
+    {
+      "capability": "cloud_ops",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_database_ops"
+    },
+    {
+      "capability": "networking",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "failure_recovery",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_auto_recovery"
+    },
+    {
+      "capability": "runtime_benchmarking",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "documentation",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "skill_execution",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_batch_upgrade_skills"
+    },
+    {
+      "capability": "extreme_scale_orchestration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_extreme_scale_qa"
+    },
+    {
+      "capability": "longform_writing",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_longform_orchestrator"
+    },
+    {
+      "capability": "massive_codebase_orchestration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_codebase_orchestrator"
+    },
+    {
+      "capability": "paper_grade_research",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_paper_research_pipeline"
+    },
+    {
+      "capability": "mission_state_resume",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_mission_state_manager"
+    },
+    {
+      "capability": "continuity_checking",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_continuity_checker"
+    },
+    {
+      "capability": "contradiction_detection",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "extreme_scale_qa",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_extreme_scale_qa"
+    },
+    {
+      "capability": "super_heavy_coding_readiness",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_super_coding_command_center"
+    },
+    {
+      "capability": "long_context_project_management",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_longform_orchestrator"
+    },
+    {
+      "capability": "felo_superagent_multiturn",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_realtime_search",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_knowledge_base",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_web_fetch",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_youtube_subtitles",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_slides_generation",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_mindmap_generation",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_content_to_slides",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_twitter_writer",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "felo_x_search",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "codebase_250file_execution",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_codebase_orchestrator"
+    },
+    {
+      "capability": "codebase_250file_planning",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_codebase_orchestrator"
+    },
+    {
+      "capability": "integration_testing_v2",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "static_security_review",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_security"
+    },
+    {
+      "capability": "scale_sanity_v2",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_auto_scale"
+    },
+    {
+      "capability": "kanban_mission_sync",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_mission_state_manager"
+    },
+    {
+      "capability": "effective_runtime_budget_audit",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_decision_audit"
+    },
+    {
+      "capability": "extreme_codebase_engineering",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_extreme_scale_qa"
+    },
+    {
+      "capability": "kanban_integration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "goal_ralph_loop",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_abstract_goal_translator"
+    },
+    {
+      "capability": "cron_no_agent",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_cron_weekly"
+    },
+    {
+      "capability": "full_autonomy",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_crons_full"
+    },
+    {
+      "capability": "config_migration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_config_validator"
+    },
+    {
+      "capability": "context_refs",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "acp_editor_integration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "api_server_openai",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_external_api_client"
+    },
+    {
+      "capability": "batch_processing_rl",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_batch_upgrade_skills"
+    },
+    {
+      "capability": "event_hooks_gateway",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_event_sourcing"
+    },
+    {
+      "capability": "checkpoints_rollback",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "memory_providers_external",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_memory_persistence"
+    },
+    {
+      "capability": "mcp_integration",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_felo_integration"
+    },
+    {
+      "capability": "wal_protocol",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_wal_automation"
+    },
+    {
+      "capability": "working_buffer",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "compaction_recovery",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_auto_recovery"
+    },
+    {
+      "capability": "self_improvement_system",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_self_diagnostic"
+    },
+    {
+      "capability": "security_hardening",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_security"
+    },
+    {
+      "capability": "free_research_pipeline",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_free_research_pipeline"
+    },
+    {
+      "capability": "wal_automation",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_wal_automation"
+    },
+    {
+      "capability": "self_improve_loop",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_self_improve_loop"
+    },
+    {
+      "capability": "capability_health_dashboard",
+      "mapping_type": "INDIRECT_MATCH",
+      "matched_script": "ilma_capability_health_dashboard"
+    },
+    {
+      "capability": "phase17_350file_execution",
+      "mapping_type": "MISSING_SCRIPT",
+      "matched_script": null
+    },
+    {
+      "capability": "ten_level_verification",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_memory_persistence"
+    },
+    {
+      "capability": "ilma_super_coding_command_center",
+      "mapping_type": "DIRECT_MATCH",
+      "matched_script": "ilma_super_coding_command_center"
+    },
+    {
+      "capability": "ilma_agent_civilization",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_agent_registry"
+    },
+    {
+      "capability": "ilma_self_improvement",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_self_diagnostic"
+    },
+    {
+      "capability": "ilma_main_entry",
+      "mapping_type": "COMPONENT_ONLY",
+      "matched_script": "ilma_main"
+    }
+  ],
+  "summary": {
+    "INDIRECT_MATCH": 14,
+    "MISSING_SCRIPT": 12,
+    "COMPONENT_ONLY": 51,
+    "DIRECT_MATCH": 1
+  },
+  "total": 78
+}

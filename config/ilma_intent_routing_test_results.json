@@ -1,0 +1,79 @@
+{
+  "test_date": "2026-05-07T20:57:00",
+  "test_type": "8-intent routing test",
+  "orchestrator": "ilma_intelligent_orchestrator.py",
+  "total_routes": 28,
+  "results": [
+    {
+      "test": "search latest AI agent",
+      "expected": "research",
+      "actual": "research",
+      "handler": "skill",
+      "skill": "ilma-research",
+      "status": "PASS"
+    },
+    {
+      "test": "riset machine learning",
+      "expected": "research",
+      "actual": "research",
+      "handler": "skill",
+      "skill": "ilma-research",
+      "status": "PASS"
+    },
+    {
+      "test": "tulis script automation",
+      "expected": "writing",
+      "actual": "writing",
+      "handler": "skill",
+      "skill": "ilma-writing",
+      "status": "PASS"
+    },
+    {
+      "test": "debug error ini",
+      "expected": "debug",
+      "actual": "debug",
+      "handler": "skill",
+      "skill": "ilma-debug",
+      "status": "PASS"
+    },
+    {
+      "test": "cari memory tentang project",
+      "expected": "memory",
+      "actual": "research",
+      "handler": "skill",
+      "skill": "ilma-research",
+      "status": "PARTIAL"
+    },
+    {
+      "test": "jalankan workflow verification",
+      "expected": "workflow_ecc",
+      "actual": "workflow_ecc",
+      "handler": "script",
+      "script": "ilma_workflow_ecc.py",
+      "status": "PASS"
+    },
+    {
+      "test": "tool ini gagal cari fallback",
+      "expected": "failure_recovery",
+      "actual": "failure_recovery",
+      "handler": "skill",
+      "skill": "ilma-auto-recovery",
+      "status": "PASS"
+    },
+    {
+      "test": "code review modul ini",
+      "expected": "code_review",
+      "actual": "code_review",
+      "handler": "skill",
+      "skill": "ilma-code-review",
+      "status": "PASS"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "pass": 7,
+    "partial": 1,
+    "fail": 0,
+    "pass_rate": "87.5%"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "llm_providers",
+  "description": "Tier 1 SOT — API credentials per key. FROZEN from system mutation (only admin/Bos can add/delete records). Each (provider, account_email) tuple is a separate record; multiple records per provider is allowed by design (parallel keys for capacity). NOT a duplicate-detection target.",
+  "type": "object",
+  "required": [
+    "provider",
+    "account_email",
+    "api_key"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "FK to providers.provider"
+    },
+    "account_email": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Account identifier — email, 'owner', or 'email/key_type' for openrouter"
+    },
+    "api_key": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Actual API key (masked in some contexts)"
+    },
+    "key_status": {
+      "type": "string",
+      "enum": [
+        "QUOTA_EXCEEDED",
+        "INVALID",
+        "SERVER_ERROR",
+        "TIMEOUT",
+        "VALID",
+        "UNVERIFIED"
+      ]
+    },
+    "key_purpose": {
+      "type": "string",
+      "description": "Role of this key. SINGLE-PURPOSE providers use one key for everything. MULTI-PURPOSE providers (notably openrouter) have separate keys for different surfaces:\n- 'inference' — call/invoke models\n- 'provisioning' — listing/management/admin\n- 'primary' / 'secondary' / 'experimental' — paralel keys for capacity\nMisusing the wrong key on the wrong surface yields auth failure or wrong data.",
+      "enum": [
+        "inference",
+        "provisioning",
+        "primary",
+        "secondary",
+        "experimental",
+        "backup",
+        null
+      ]
+    },
+    "account_status": {
+      "type": "string",
+      "description": "Optional — account-level status note"
+    },
+    "added": {"type": ["string", "null"]},
+    "added_by": {"type": ["string", "null"]}
+  },
+  "_migration_note_2026_06_19": "llm_providers schema was simplified from a 23-field configuration blob to a 9-field credential store. Pre-migration fields (auth_format, base_url, free_tier, endpoints, payload_format, etc.) are now consolidated in providers collection (Tier 2) and should no longer be stored here."
+}

@@ -1,0 +1,2674 @@
+{
+  "schema_version": "1.1",
+  "description": "ILMA Capability Registry v1.1",
+  "last_updated": "2026-06-01T22:45:29",
+  "capabilities": {
+    "production_entrypoint": {
+      "description": "scripts/ilma.py run command",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma.py",
+      "test_path": "scripts/ilma.py",
+      "evidence_id": "cap_production_entrypoint_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "model_router": {
+      "description": "ilma_model_router.py direct cloud routing",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_model_router.py",
+      "test_path": "ilma_model_router.py",
+      "evidence_id": "router_benchmark_sensitivity_001",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11T15:05:51.670471",
+      "caveat": "Only 22 models benchmarked (DRY_RUN)",
+      "blocker": "",
+      "next_verification_step": "",
+      "detail": "Router uses provider DB + spec_db + benchmark_database.json. Benchmark score (15% weight) contributes to final_route_score. is_model_allowed blocks paid models. get_best_model returns benchmark_score + benchmark_evidence.",
+      "category": "GENERAL"
+    },
+    "model_specialization_db": {
+      "description": "Model specialization database with 16 task categories",
+      "status": "VERIFIED",
+      "implementation_path": "model_specialization_database.json + ilma_spec_db_measured.py",
+      "test_path": "model_specialization_database.json",
+      "evidence_id": "specialization_caveat_001",
+      "evidence_type": "MEASURED_AA",
+      "last_verified": "2026-06-01T18:19:54",
+      "caveat": "Re-scored from REAL signals (AA benchmark + callability + latency). 15/16 categories MEASURED_AA.",
+      "blocker": "",
+      "next_verification_step": "",
+      "detail": "1088 models, 3264 INFERRED specialization scores. All scores are INFERRED, not measured. Router applies 0.05 penalty for missing evidence.",
+      "category": "GENERAL"
+    },
+    "free_model_only": {
+      "description": "FREE_MODEL_ONLY enforcement blocking paid models",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_model_router.py",
+      "test_path": "ilma_model_router.py",
+      "evidence_id": "cap_free_model_only_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "evidence_ledger": {
+      "description": "36 evidence records tracking claims",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_evidence_ledger.json",
+      "test_path": "ilma_evidence_ledger.json",
+      "evidence_id": "cap_evidence_ledger_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "safety_contract": {
+      "description": "Safety contract validation for task execution",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma.py",
+      "test_path": "scripts/ilma.py",
+      "evidence_id": "cap_safety_contract_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "task_entrypoint": {
+      "description": "run_task_with_evolution actor",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_task_entrypoint.py",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_task_entrypoint_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "judge_v4": {
+      "description": "Judge v4 critic with 7 FAIL criteria",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_judge_system.py",
+      "test_path": "scripts/ilma_judge_system.py",
+      "evidence_id": "cap_judge_v4_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "codex_thinking_engine": {
+      "status": "VERIFIED",
+      "evidence_id": "cap_codex_thinking_v1",
+      "evidence_type": "LIVE_TEST",
+      "last_verified": "2026-05-25T10:15:00",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "report_generator": {
+      "description": "Final report generator markdown+JSON",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_task_entrypoint.py",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_report_generator_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "lesson_memory": {
+      "description": "Lesson retrieval and reuse",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_task_entrypoint.py",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_lesson_memory_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "MEMORY"
+    },
+    "route_tool_selector": {
+      "description": "Runtime router selecting tools/skills",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_task_entrypoint.py",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_route_tool_selector_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "checkpoint_recovery": {
+      "description": "Checkpoint save and resume",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_autonomous_evolution_orchestrator.py",
+      "test_path": "scripts/ilma_autonomous_evolution_orchestrator.py",
+      "evidence_id": "cap_checkpoint_recovery_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "parallel_execution": {
+      "description": "368-job parallel executor",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_phase_opt.py",
+      "test_path": "scripts/ilma_phase_opt.py",
+      "evidence_id": "cap_parallel_execution_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "cloud_ai_direct": {
+      "description": "Direct cloud AI via model router (no Hermes sub-agents)",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_model_router.py",
+      "test_path": "ilma_model_router.py",
+      "evidence_id": "prov_db_audit_001",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11T15:05:51.670479",
+      "caveat": "Benchmark only DRY_RUN_BENCHMARKED, not LIVE_BENCHMARKED",
+      "blocker": "",
+      "next_verification_step": "",
+      "detail": "Provider DB (16 providers, 1158 models) + spec_db (1088 models, 239 free) + benchmark DB (22 models DRY_RUN). Schema validated. Router uses it. Sub-agent uses router.",
+      "category": "GENERAL"
+    },
+    "role_based_subagent": {
+      "description": "Role-based sub-agents using direct cloud models",
+      "status": "VERIFIED",
+      "implementation_path": "model_specialization_database.json",
+      "test_path": "model_specialization_database.json",
+      "evidence_id": "subagent_routing_001",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11T15:05:51.670475",
+      "caveat": "Sub-agent orchestration/management not separate component, but routing is database-backed",
+      "blocker": "",
+      "next_verification_step": "",
+      "detail": "5 sub-agent roles all route via database-backed router. Sub-agents get model_id, provider, benchmark_score, benchmark_evidence. No hardcoded model IDs.",
+      "category": "GENERAL"
+    },
+    "massive_subagent_acceleration": {
+      "description": "Massive sub-agent fan-out mode",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_massive_subagent.py (fan_out, bounded concurrency, free-only)",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_massive_subagent_acceleration_v1",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T18:19:54",
+      "caveat": "Verified: 6/6 concurrent LLM subagents in 5.9s, failure isolation + retry/fallback.",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "longform_writing_1000plus": {
+      "description": "1000+ page long-form writing pipeline",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_longform_generator.py (sequential+parallel) + scripts/ilma_longform_orchestrator.py",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_longform_writing_1000plus_v1",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T18:19:54",
+      "caveat": "Verified: real chapter generation, continuity, resumable, parallel mode (4ch/82s); coherent quality; projects to 1000+ pages.",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "CREATIVE"
+    },
+    "playwright_browser": {
+      "description": "Playwright browser automation interface",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_free_search.py",
+      "test_path": "scripts/ilma_free_search.py",
+      "evidence_id": "cap_playwright_browser_v1",
+      "evidence_type": "RUNTIME_PROBE",
+      "last_verified": "2026-06-01T18:25:56",
+      "caveat": "Verified: ilma-chrome@lokah2150 active, CDP HeadlessChrome 147 responding on :9222.",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "OPERATIONAL"
+    },
+    "model_benchmark_runner": {
+      "description": "Model benchmark runner for specialization",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_evidence_ledger.json",
+      "test_path": "ilma_evidence_ledger.json",
+      "evidence_id": "benchmark_evidence_reclassification_001",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T18:25:56",
+      "caveat": "Verified: latency_bench + callability_validator run in daily optimizer model_pipeline.",
+      "blocker": "",
+      "next_verification_step": "",
+      "detail": "20 PASSIVE_PROVIDER_BENCHMARKED + 22 DRY_RUN_BENCHMARKED + 1116 NO_BENCHMARK. Router uses evidence-aware scoring.",
+      "category": "GENERAL"
+    },
+    "search_pipeline": {
+      "description": "Search router and web search adapter",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_free_search.py",
+      "test_path": "scripts/ilma_free_search.py",
+      "evidence_id": "cap_search_pipeline_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "research_pipeline": {
+      "description": "Research planner and synthesizer",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_free_search.py",
+      "test_path": "scripts/ilma_free_search.py",
+      "evidence_id": "cap_research_pipeline_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "COGNITIVE"
+    },
+    "recovery_manager": {
+      "description": "Recovery manager for failed tasks",
+      "status": "VERIFIED",
+      "implementation_path": "scripts/ilma_task_entrypoint.py",
+      "test_path": "scripts/ilma_task_entrypoint.py",
+      "evidence_id": "cap_recovery_manager_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "capability_registry": {
+      "description": "This capability registry",
+      "status": "VERIFIED",
+      "implementation_path": "capability_registry.json",
+      "test_path": "capability_registry.json",
+      "evidence_id": "cap_capability_registry_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "unified_service_manifest": {
+      "description": "Unified service manifest",
+      "status": "VERIFIED",
+      "implementation_path": "docs/ILMA_DUPLICATE_MODULES_CLASSIFICATION.md",
+      "test_path": "docs/ILMA_DUPLICATE_MODULES_CLASSIFICATION.md",
+      "evidence_id": "cap_unified_service_manifest_v1",
+      "evidence_type": "SOURCE_PLACEHOLDER",
+      "last_verified": "2026-05-11",
+      "caveat": "",
+      "blocker": "",
+      "next_verification_step": "",
+      "category": "GENERAL"
+    },
+    "passive_benchmark_refresh_scheduler": {
+      "status": "VERIFIED",
+      "last_verified": "2026-05-11T16:45:10.647847",
+      "evidence_id": "passive_benchmark_daily_cron_001",
+      "detail": "Cron installed at /etc/cron.d/ilma-passive-benchmark-refresh. Daily 03:00 WIB. Dry-run and validate-only modes pass.",
+      "caveat": "Live refresh blocked - OPENROUTER_API_KEY not present. Cached data used.",
+      "category": "GENERAL"
+    },
+    "provider_intelligence_refresh": {
+      "status": "VERIFIED",
+      "last_verified": "2026-05-11T16:45:10.647879",
+      "evidence_id": "openrouter_daily_metadata_refresh_001",
+      "detail": "OpenRouter metadata: 1158 models, 16 providers, cached. Live refresh when key available.",
+      "caveat": "LIVE_REFRESH_BLOCKED - no API key",
+      "category": "GENERAL"
+    },
+    "benchmark_source_refresh": {
+      "status": "VERIFIED",
+      "last_verified": "2026-05-11T16:45:10.647884",
+      "evidence_id": "artificial_analysis_passive_refresh_001",
+      "detail": "Artificial Analysis: 20 PASSIVE_PROVIDER_BENCHMARKED records, 9 days old, FRESH.",
+      "caveat": "Third-party benchmark, attribution required per AA terms.",
+      "category": "GENERAL"
+    },
+    "provider_aware_router": {
+      "status": "VERIFIED",
+      "last_verified": "2026-05-11T16:45:10.647887",
+      "evidence_id": "passive_benchmark_refresh_script_001",
+      "detail": "Router validated: 16-category routing, FREE_ONLY, main model unchanged.",
+      "caveat": "Benchmark evidence levels: PASSIVE_PROVIDER_BENCHMARKED=1.0, DRY_RUN=0.3",
+      "category": "GENERAL"
+    },
+    "subagent_cloud_routing": {
+      "status": "VERIFIED",
+      "last_verified": "2026-05-11T16:45:10.647891",
+      "evidence_id": "passive_benchmark_refresh_script_001",
+      "detail": "Sub-agent route test: Planner/Research/Coding/Judge/CheapParallel all route via DB with FREE_ONLY.",
+      "caveat": "1158 models, 239 free usable, 892 paid blocked",
+      "category": "GENERAL"
+    },
+    "nvidia_nim_thinking_engine": {
+      "status": "verified",
+      "provider": "nvidia-nim",
+      "models": [
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+        "nvidia/nemotron-content-safety-reasoning-4b",
+        "nvidia/llama-3.3-nemotron-super-49b-v1",
+        "qwen/qwen3.5-397b-a17b",
+        "meta/llama-4-maverick-17b-128e-instruct"
+      ],
+      "capabilities": [
+        "thinking",
+        "reasoning",
+        "math",
+        "proof"
+      ],
+      "default_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "evidence_id": "nvidia-thinking-live-test-20260525",
+      "last_verified": "2026-05-25",
+      "category": "GENERAL"
+    },
+    "nvidia_nim_vision_engine": {
+      "status": "verified",
+      "provider": "nvidia-nim",
+      "models": [
+        "meta/llama-3.2-11b-vision-instruct",
+        "meta/llama-3.2-1b-vision-instruct",
+        "meta/llama-3.2-3b-vision-instruct",
+        "meta/llama-3.2-90b-vision-instruct",
+        "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+        "nvidia/nemotron-nano-12b-v2-vl",
+        "microsoft/phi-4-multimodal-instruct",
+        "microsoft/kosmos-2"
+      ],
+      "capabilities": [
+        "vision",
+        "image_understanding",
+        " multimodal"
+      ],
+      "default_model": "meta/llama-3.2-90b-vision-instruct",
+      "evidence_id": "nvidia-vision-live-test-20260525",
+      "last_verified": "2026-05-25",
+      "category": "GENERAL"
+    },
+    "nvidia_nim_fast_engine": {
+      "status": "verified",
+      "provider": "nvidia-nim",
+      "models": [
+        "deepseek-ai/deepseek-v4-flash",
+        "google/gemma-2-2b-it"
+      ],
+      "capabilities": [
+        "fast",
+        "general",
+        "chat"
+      ],
+      "default_model": "deepseek-ai/deepseek-v4-flash",
+      "evidence_id": "nvidia-fast-live-test-20260525",
+      "last_verified": "2026-05-25",
+      "category": "GENERAL"
+    },
+    "nvidia_nim_coding_engine": {
+      "status": "VERIFIED",
+      "provider": "nvidia-nim",
+      "models": [
+        "qwen/qwen3.5-397b-a17b",
+        "meta/llama-4-maverick-17b-128e-instruct"
+      ],
+      "capabilities": [
+        "coding",
+        "instruct",
+        "thinking"
+      ],
+      "default_model": "qwen/qwen3.5-397b-a17b",
+      "note": "Large models - may be slow or rate-limited",
+      "evidence_id": "nvidia-coding-test-20260525",
+      "last_verified": "2026-06-01T18:25:56",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "caveat": "Verified: qwen3-coder-480b via NVIDIA NIM generated valid Python code.",
+      "category": "EXECUTIVE"
+    },
+    "image_generation": {
+      "status": "verified",
+      "provider": "xai",
+      "model": "grok-imagine-image",
+      "endpoint": "https://api.x.ai/v1/images/generations",
+      "capabilities": [
+        "text-to-image",
+        "blog_featured_images",
+        "article_illustrations",
+        "thumbnail_generation",
+        "social_media_images",
+        "abstract_art"
+      ],
+      "aspect_ratios": [
+        "landscape",
+        "portrait",
+        "square"
+      ],
+      "styles": [
+        "natural",
+        "vivid"
+      ],
+      "evidence_id": "xai-image-gen-20260525",
+      "last_verified": "2026-05-25",
+      "category": "GENERAL"
+    },
+    "research_grounded_writing": {
+      "description": "Research-grounded structured writing (paper/blog/book/novel) with citations, methodology, multi-format export",
+      "status": "VERIFIED",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T19:48:47",
+      "implementation_path": "ilma_scriptorium.py + ilma_research_engine.py(+tavily) + ilma_citation_manager.py + ilma_doc_exporter.py + ilma_writing_templates.py + ilma_project_registry.py",
+      "caveat": "Verified E2E: blog 11src/26claims/6sec/2249w -> MD+DOCX+PDF(7pg) with inline [n] citations + bibliography. Wired into ECC (WRITING task type) + runtime_wiring LAYER_3. Tavily primary search + relevance filter.",
+      "category": "COGNITIVE"
+    },
+    "research_engine": {
+      "description": "Perplexica-style research engine: multi-source search/crawl + A/B/C source grading + claim->source binding -> research manifest",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_research_engine.py + scripts/ilma_free_research_pipeline.py",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T19:21:27",
+      "caveat": "Verified: 20 graded sources + 22 claims in 44s on live web.",
+      "category": "COGNITIVE"
+    },
+    "citation_manager": {
+      "description": "Citation + bibliography manager (IEEE/APA/MLA/Chicago/links, per doc-type), claim->[n] binding",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_citation_manager.py",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T19:21:27",
+      "caveat": "Verified: numbered citations + formatted references.",
+      "category": "GENERAL"
+    },
+    "document_exporter": {
+      "description": "Markdown -> DOCX/PDF/HTML export with headings, figures, citations",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_doc_exporter.py",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T19:21:27",
+      "caveat": "Verified: DOCX/PDF/HTML/MD all generated (python-docx, reportlab, markdown installed).",
+      "category": "GENERAL"
+    },
+    "project_registry": {
+      "description": "Global project metadata mapping + tidy storage (/root/project/external|internal/<slug>/), active-project tracking, status lifecycle",
+      "status": "VERIFIED",
+      "implementation_path": "ilma_project_registry.py + /root/project/registry.json",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T19:21:27",
+      "caveat": "Verified: creates structured project dirs, global registry, status transitions; integrated into Scriptorium.",
+      "category": "GENERAL"
+    },
+    "perplexica_vane_research": {
+      "description": "Perplexica-Vane agentic web research (SearXNG + reason->search->synthesize) with free NVIDIA NIM models",
+      "status": "VERIFIED",
+      "evidence_type": "BEHAVIORAL_TEST",
+      "last_verified": "2026-06-01T22:45:29",
+      "implementation_path": "ilma_vane_adapter.py + docker openclaw-vane-search:3030 (NVIDIA-NIM free + Transformers embeddings + SearXNG)",
+      "caveat": "Verified: live agentic research, 755-char grounded answer via qwen3.5-397b free in 12s. Auto-mode detection (academic/discussions/deep). Fallback to Tavily research engine. Free-only.",
+      "category": "COGNITIVE"
+    }
+  },
+  "models": {
+      "display_name": "GPT-5.5",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817364"
+    },
+      "display_name": "GPT-5.4",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817380"
+    },
+      "display_name": "GPT-5.3",
+      "provider": "openai",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817386"
+    },
+      "display_name": "GPT-5.1",
+      "provider": "openai",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817391"
+    },
+      "display_name": "GPT-5",
+      "provider": "openai",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817397"
+    },
+      "display_name": "GPT-4o",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817402"
+    },
+      "display_name": "GPT-4o Mini",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817407"
+    },
+      "display_name": "Grok 4",
+      "provider": "xai",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817417"
+    },
+      "display_name": "Grok",
+      "provider": "xai",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817423"
+    },
+      "display_name": "Claude Sonnet 4.6",
+      "provider": "anthropic",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 200000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817428"
+    },
+      "display_name": "Claude Opus 4.7",
+      "provider": "anthropic",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 200000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817433"
+    },
+      "display_name": "Claude Opus 4.6",
+      "provider": "anthropic",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 200000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817438"
+    },
+      "display_name": "Claude Opus 4.5",
+      "provider": "anthropic",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 200000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817442"
+    },
+      "display_name": "Claude Opus 4.1",
+      "provider": "anthropic",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 200000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817447"
+    },
+      "display_name": "DeepSeek V4 Pro",
+      "provider": "deepseek",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817451"
+    },
+      "display_name": "DeepSeek V4 Flash",
+      "provider": "deepseek",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817455"
+    },
+      "display_name": "DeepSeek",
+      "provider": "deepseek",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817482"
+    },
+      "display_name": "Gemini 3.1 Pro",
+      "provider": "google",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 1000000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817489"
+    },
+      "display_name": "Gemini 3 Pro",
+      "provider": "google",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817494"
+    },
+      "display_name": "Gemini",
+      "provider": "google",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817499"
+    },
+      "display_name": "Qwen 3 Max",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817503"
+    },
+      "display_name": "Llama 3.3",
+      "provider": "meta",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817508"
+    },
+      "display_name": "DeepInfra Kimi K2",
+      "provider": "unknown",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 128000,
+      "has_thinking": false,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817512"
+    },
+      "display_name": "Qwen3.6 Plus",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "vision",
+        "thinking",
+        "search",
+        "document",
+        "video",
+        "audio"
+      ],
+      "context_length": 1000000,
+      "has_thinking": true,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817516"
+    },
+      "display_name": "Qwen3.6 Max Preview",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "vision",
+        "thinking",
+        "search",
+        "document",
+        "video",
+        "audio"
+      ],
+      "context_length": 1000000,
+      "has_thinking": true,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817521"
+    },
+      "display_name": "Qwen3.6 27B",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817525"
+    },
+      "display_name": "Qwen3.6 35B A3B",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "vision",
+        "moe"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817530"
+    },
+      "display_name": "Qwen3.6 Omni Plus",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "multimodal"
+      ],
+      "context_length": 1000000,
+      "has_thinking": true,
+      "specialization": "multimodal",
+      "synced_at": "2026-05-18T01:40:53.817534"
+    },
+      "display_name": "Qwen3.5 Plus",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "thinking",
+        "search"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "reasoning",
+      "synced_at": "2026-05-18T01:40:53.817538"
+    },
+      "display_name": "Qwen3.5 Max Preview",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "thinking",
+        "search"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "reasoning",
+      "synced_at": "2026-05-18T01:40:53.817543"
+    },
+      "display_name": "Qwen3.5 Flash",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "fast"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "fast",
+      "synced_at": "2026-05-18T01:40:53.817547"
+    },
+      "display_name": "Qwen3.5 Omni Plus",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "multimodal"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "multimodal",
+      "synced_at": "2026-05-18T01:40:53.817551"
+    },
+      "display_name": "Qwen3.5 Omni Flash",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "multimodal",
+        "fast"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "fast",
+      "synced_at": "2026-05-18T01:40:53.817556"
+    },
+      "display_name": "Qwen3.5 397B A17B (MoE)",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "moe"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817560"
+    },
+      "display_name": "Qwen3.5 122B A10B (MoE)",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "moe"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817565"
+    },
+      "display_name": "Qwen3.5 27B",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817569"
+    },
+      "display_name": "Qwen3.5 35B A3B",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "moe"
+      ],
+      "context_length": 262144,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817573"
+    },
+      "display_name": "Qwen3 Max",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "thinking",
+        "search"
+      ],
+      "context_length": 1000000,
+      "has_thinking": true,
+      "specialization": "reasoning",
+      "synced_at": "2026-05-18T01:40:53.817577"
+    },
+      "display_name": "Qwen3",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817582"
+    },
+      "display_name": "Qwen3 Coder",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "coding"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.817586"
+    },
+      "display_name": "Qwen3 Vision-Language 235B A22B",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.817590"
+    },
+      "display_name": "Qwen3 Omni Flash",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat",
+        "multimodal",
+        "fast"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "fast",
+      "synced_at": "2026-05-18T01:40:53.817594"
+    },
+      "display_name": "Qwen3 235B A22B 2507",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817598"
+    },
+      "display_name": "Qwen2.5 Max",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817603"
+    },
+      "display_name": "Qwen2.5",
+      "provider": "alibaba",
+      "capabilities": [
+        "chat"
+      ],
+      "context_length": 131072,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817607"
+    },
+      "display_name": "amazon.nova-pro-v1:0",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817611"
+    },
+      "display_name": "claude-3-5-sonnet-20241022",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817615"
+    },
+      "display_name": "claude-3-7-sonnet-20250219",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817620"
+    },
+      "display_name": "claude-3-7-sonnet-20250219-thinking-32k",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817624"
+    },
+      "display_name": "claude-haiku-4-5-20251001",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817628"
+    },
+      "display_name": "claude-sonnet-4-20250514",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817633"
+    },
+      "display_name": "claude-sonnet-4-20250514-thinking-32k",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817637"
+    },
+      "display_name": "claude-sonnet-4-5-20250929",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817641"
+    },
+      "display_name": "claude-sonnet-4-5-20250929-thinking-32k",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817645"
+    },
+      "display_name": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817650"
+    },
+      "display_name": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817654"
+    },
+      "display_name": "deepseek-v4-flash-thinking",
+      "provider": "deepseek",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817658"
+    },
+      "display_name": "deepseek-v4-pro",
+      "provider": "deepseek",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817663"
+    },
+      "display_name": "deepseek-v4-pro-thinking",
+      "provider": "deepseek",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817667"
+    },
+      "display_name": "dola-seed-2.0-preview-text",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817671"
+    },
+      "display_name": "dola-seed-2.0-preview-vision",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817676"
+    },
+      "display_name": "ernie-5.0-0110",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817680"
+    },
+      "display_name": "ernie-5.0-preview-1220",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817684"
+    },
+      "display_name": "ernie-5.1-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817688"
+    },
+      "display_name": "find ",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817693"
+    },
+      "display_name": "gemini-2.0-flash-001",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817697"
+    },
+      "display_name": "gemini-2.5-flash",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817701"
+    },
+      "display_name": "gemini-2.5-pro",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817705"
+    },
+      "display_name": "gemini-3-flash",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817710"
+    },
+      "display_name": "gemini-3-flash (thinking-minimal)",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817714"
+    },
+      "display_name": "gemini-3.1-flash-lite-preview",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817718"
+    },
+      "display_name": "gemini-3.1-pro-preview",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817723"
+    },
+      "display_name": "gemma-3-27b-it",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817727"
+    },
+      "display_name": "gemma-3n-e4b-it",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817731"
+    },
+      "display_name": "gemma-4-26b-a4b",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817735"
+    },
+      "display_name": "gemma-4-31b",
+      "provider": "google",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817739"
+    },
+      "display_name": "glm-4.7",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817744"
+    },
+      "display_name": "glm-4.7-flash",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817748"
+    },
+      "display_name": "glm-5",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817752"
+    },
+      "display_name": "glm-5.1",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817756"
+    },
+      "display_name": "glm-5v-turbo",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817760"
+    },
+      "display_name": "gpt-4.1-2025-04-14",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817764"
+    },
+      "display_name": "gpt-4.1-mini-2025-04-14",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817768"
+    },
+      "display_name": "gpt-5-chat",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817773"
+    },
+      "display_name": "gpt-5-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817777"
+    },
+      "display_name": "gpt-5-high-new-system-prompt",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817781"
+    },
+      "display_name": "gpt-5-mini-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817785"
+    },
+      "display_name": "gpt-5-nano-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817789"
+    },
+      "display_name": "gpt-5.1",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817793"
+    },
+      "display_name": "gpt-5.1-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817798"
+    },
+      "display_name": "gpt-5.2",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817802"
+    },
+      "display_name": "gpt-5.2-chat-latest",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817806"
+    },
+      "display_name": "gpt-5.2-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817810"
+    },
+      "display_name": "gpt-5.3-chat-latest",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817814"
+    },
+      "display_name": "gpt-5.4-mini-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817819"
+    },
+      "display_name": "gpt-5.4-nano-high",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817823"
+    },
+      "display_name": "gpt-5.5-instant",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817827"
+    },
+      "display_name": "gpt-oss-120b",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817831"
+    },
+      "display_name": "gpt-oss-20b",
+      "provider": "openai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817836"
+    },
+      "display_name": "granite-4.1-8b",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817840"
+    },
+      "display_name": "grok-3-mini-beta",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817844"
+    },
+      "display_name": "grok-3-mini-high",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817848"
+    },
+      "display_name": "grok-4-0709",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817852"
+    },
+      "display_name": "grok-4-1-fast-non-reasoning",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817857"
+    },
+      "display_name": "grok-4-1-fast-reasoning",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817861"
+    },
+      "display_name": "grok-4-fast-chat",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817865"
+    },
+      "display_name": "grok-4-fast-reasoning",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817869"
+    },
+      "display_name": "grok-4.1",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817873"
+    },
+      "display_name": "grok-4.1-thinking",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817877"
+    },
+      "display_name": "grok-4.20-beta-0309-reasoning",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817882"
+    },
+      "display_name": "grok-4.20-beta1",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817886"
+    },
+      "display_name": "grok-4.20-multi-agent-beta-0309",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817890"
+    },
+      "display_name": "grok-4.3",
+      "provider": "xai",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817895"
+    },
+      "display_name": "hunyuan-hy3-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817899"
+    },
+      "display_name": "hunyuan-t1-20250711",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817903"
+    },
+      "display_name": "hunyuan-vision-1.5-thinking",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817907"
+    },
+      "display_name": "ibm-granite-h-small",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817912"
+    },
+      "display_name": "intellect-3",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817916"
+    },
+      "display_name": "kimi-k2-0711-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817920"
+    },
+      "display_name": "kimi-k2-0905-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817924"
+    },
+      "display_name": "kimi-k2-thinking-turbo",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817928"
+    },
+      "display_name": "kimi-k2.5-instant",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817933"
+    },
+      "display_name": "kimi-k2.5-thinking",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817937"
+    },
+      "display_name": "kimi-k2.6",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817941"
+    },
+      "display_name": "Leaderboard",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817945"
+    },
+      "display_name": "ling-2.5-1t",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817950"
+    },
+      "display_name": "ling-flash-2.0",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817954"
+    },
+      "display_name": "llama-3.3-70b-instruct",
+      "provider": "meta",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817958"
+    },
+      "display_name": "longcat-flash-chat",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817962"
+    },
+      "display_name": "longcat-flash-chat-2602-exp",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817967"
+    },
+      "display_name": "looking ",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817971"
+    },
+      "display_name": "mercury",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817975"
+    },
+      "display_name": "mercury-2",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817979"
+    },
+      "display_name": "mimo-v2-flash",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817984"
+    },
+      "display_name": "mimo-v2-flash (thinking)",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817988"
+    },
+      "display_name": "mimo-v2-omni",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817992"
+    },
+      "display_name": "mimo-v2-pro",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.817996"
+    },
+      "display_name": "mimo-v2.5",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818000"
+    },
+      "display_name": "mimo-v2.5-pro",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818005"
+    },
+      "display_name": "minimax-m1",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818009"
+    },
+      "display_name": "minimax-m2",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818013"
+    },
+      "display_name": "minimax-m2-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818017"
+    },
+      "display_name": "minimax-m2.1-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818021"
+    },
+      "display_name": "minimax-m2.5",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818025"
+    },
+      "display_name": "minimax-m2.7",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818030"
+    },
+      "display_name": "mistral-large-3",
+      "provider": "mistral",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818034"
+    },
+      "display_name": "mistral-medium-2505",
+      "provider": "mistral",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818038"
+    },
+      "display_name": "mistral-medium-2508",
+      "provider": "mistral",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818042"
+    },
+      "display_name": "mistral-small-2506",
+      "provider": "mistral",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818047"
+    },
+      "display_name": "mistral-small-2603",
+      "provider": "mistral",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818051"
+    },
+      "display_name": "mistral-small-3.1-24b-instruct-2503",
+      "provider": "mistral",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818055"
+    },
+      "display_name": "molmo-2-8b",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818059"
+    },
+      "display_name": "nova-2-lite",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818063"
+    },
+      "display_name": "nvidia-nemotron-3-nano-30b-a3b-bf16",
+      "provider": "nvidia",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818068"
+    },
+      "display_name": "o3-2025-04-16",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818072"
+    },
+      "display_name": "o3-mini",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818076"
+    },
+      "display_name": "o4-mini-2025-04-16",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818080"
+    },
+      "display_name": "olmo-3-32b-think",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818085"
+    },
+      "display_name": "olmo-3.1-32b-instruct",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818089"
+    },
+      "display_name": "olmo-3.1-32b-think",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818198"
+    },
+      "display_name": "page ",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818207"
+    },
+      "display_name": "qwen-vl-max-2025-08-13",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818212"
+    },
+      "display_name": "qwen3-235b-a22b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818216"
+    },
+      "display_name": "qwen3-235b-a22b-instruct-2507",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818221"
+    },
+      "display_name": "qwen3-235b-a22b-no-thinking",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818225"
+    },
+      "display_name": "qwen3-235b-a22b-thinking-2507",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818230"
+    },
+      "display_name": "qwen3-30b-a3b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818234"
+    },
+      "display_name": "qwen3-30b-a3b-instruct-2507",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818238"
+    },
+      "display_name": "qwen3-coder-480b-a35b-instruct",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818243"
+    },
+      "display_name": "qwen3-max-2025-09-23",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818247"
+    },
+      "display_name": "qwen3-max-2025-09-26",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818251"
+    },
+      "display_name": "qwen3-max-preview",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818255"
+    },
+      "display_name": "qwen3-max-thinking",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818260"
+    },
+      "display_name": "qwen3-next-80b-a3b-instruct",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818264"
+    },
+      "display_name": "qwen3-next-80b-a3b-thinking",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818268"
+    },
+      "display_name": "qwen3-omni-flash",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818273"
+    },
+      "display_name": "qwen3-vl-235b-a22b-instruct",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818277"
+    },
+      "display_name": "qwen3-vl-235b-a22b-thinking",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818281"
+    },
+      "display_name": "qwen3-vl-8b-instruct",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818285"
+    },
+      "display_name": "qwen3-vl-8b-thinking",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818290"
+    },
+      "display_name": "qwen3.5-122b-a10b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818294"
+    },
+      "display_name": "qwen3.5-27b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818298"
+    },
+      "display_name": "qwen3.5-35b-a3b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818302"
+    },
+      "display_name": "qwen3.5-397b-a17b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818307"
+    },
+      "display_name": "qwen3.5-flash",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818311"
+    },
+      "display_name": "qwen3.5-max-preview",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818315"
+    },
+      "display_name": "qwen3.6-27b",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818319"
+    },
+      "display_name": "qwen3.6-max-preview",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818324"
+    },
+      "display_name": "qwen3.6-plus",
+      "provider": "alibaba",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818328"
+    },
+      "display_name": "qwq-32b",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818332"
+    },
+      "display_name": "ring-2.5-1t",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818336"
+    },
+      "display_name": "ring-flash-2.0",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818341"
+    },
+      "display_name": "Sorry",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818345"
+    },
+      "display_name": "Start ",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818349"
+    },
+      "display_name": "step-3",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818353"
+    },
+      "display_name": "step-3.5-flash",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818357"
+    },
+      "display_name": "trinity-large-preview",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818361"
+    },
+      "display_name": "trinity-large-thinking",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818365"
+    },
+      "display_name": "View ",
+      "provider": "unknown",
+      "capabilities": [
+        "[]"
+      ],
+      "context_length": 128000,
+      "has_thinking": true,
+      "specialization": "general",
+      "synced_at": "2026-05-18T01:40:53.818369"
+    },
+      "display_name": "gpt-5.5",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision",
+        "thinking",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818374"
+    },
+      "display_name": "gpt-5.4",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision",
+        "thinking",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818378"
+    },
+      "display_name": "gpt-5.4-mini",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818382"
+    },
+      "display_name": "gpt-5.3-codex",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818386"
+    },
+      "display_name": "gpt-5.3-codex-spark",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818390"
+    },
+      "display_name": "gpt-5.2",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818394"
+    },
+      "display_name": "gpt-5",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818397"
+    },
+      "display_name": "gpt-4o",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "vision"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "vision",
+      "synced_at": "2026-05-18T01:40:53.818401"
+    },
+      "display_name": "gpt-4o-mini",
+      "provider": "openai",
+      "capabilities": [
+        "chat",
+        "coding"
+      ],
+      "context_length": 200000,
+      "has_thinking": true,
+      "specialization": "coding",
+      "synced_at": "2026-05-18T01:40:53.818405"
+    }
+  },
+}

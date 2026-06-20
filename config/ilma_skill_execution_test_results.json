@@ -1,0 +1,133 @@
+{
+  "test_date": "2026-05-07T20:58:00",
+  "total_skills_tested": 10,
+  "results": [
+    {
+      "num": 1,
+      "name": "ilma-research",
+      "category": "research/search",
+      "path": "skills/ilma-research/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Metadata skill \u2014 orchestrator handles execution via skill handler"
+    },
+    {
+      "num": 2,
+      "name": "ilma-writing",
+      "category": "writing/blog",
+      "path": "skills/ilma-writing/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Metadata skill \u2014 orchestrator handles execution via skill handler"
+    },
+    {
+      "num": 3,
+      "name": "ilma-debug",
+      "category": "debug/coding",
+      "path": "skills/ilma-debug/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Metadata skill \u2014 orchestrator handles execution via skill handler"
+    },
+    {
+      "num": 4,
+      "name": "ilma-memory",
+      "category": "memory/knowledge",
+      "path": "skills/ilma-memory/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Metadata skill \u2014 orchestrator handles execution via skill handler"
+    },
+    {
+      "num": 5,
+      "name": "ilma-code-review",
+      "category": "qa/critic",
+      "path": "skills/ilma-code-review/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Metadata skill \u2014 orchestrator handles execution via skill handler"
+    },
+    {
+      "num": 6,
+      "name": "ilma-id-nlp",
+      "category": "indonesian_nlp",
+      "path": "NOT FOUND",
+      "has_skill_md": false,
+      "trigger_found": false,
+      "has_workflow": false,
+      "execution_method": "N/A",
+      "status": "BROKEN",
+      "notes": "No Indonesian NLP skill found in skills directory"
+    },
+    {
+      "num": 7,
+      "name": "ilma-playwright-stealth",
+      "category": "browser/web",
+      "path": "skills/ilma-playwright-stealth/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "browser_toolset",
+      "status": "NEEDS_LOADER",
+      "notes": "SKILL.md references browser tools but no standalone loader"
+    },
+    {
+      "num": 8,
+      "name": "ilma-documentation",
+      "category": "documentation",
+      "path": "skills/ilma-documentation/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Generic guidance in SKILL.md"
+    },
+    {
+      "num": 9,
+      "name": "ilma-auto-recovery",
+      "category": "failure_recovery",
+      "path": "skills/ilma-auto-recovery/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": false,
+      "execution_method": "orchestrator_skill_handler",
+      "status": "READABLE_ONLY",
+      "notes": "Metadata skill \u2014 referenced by failure_recovery route"
+    },
+    {
+      "num": 10,
+      "name": "dogfood",
+      "category": "browser/qa",
+      "path": "skills/dogfood/SKILL.md",
+      "has_skill_md": true,
+      "trigger_found": true,
+      "has_workflow": true,
+      "workflow_steps": "5-phase workflow (Plan, Explore, Analyze, Report, Deliver)",
+      "execution_method": "manual_browser_workflow",
+      "status": "NEEDS_LOADER",
+      "notes": "Has explicit 5-phase workflow with browser tool commands"
+    }
+  ],
+  "summary": {
+    "READABLE_ONLY": 6,
+    "NEEDS_LOADER": 2,
+    "BROKEN": 1,
+    "EXECUTION_VERIFIED": 0
+  }
+}

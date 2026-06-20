@@ -1,0 +1,80 @@
+{
+  "phase": "40",
+  "date": "2026-05-09",
+  "description": "Phase 40 Mini-Gauntlet: 4 mini-missions dogfooding ilma_extreme_mission_loop.py",
+  "missions": {
+    "LONGFORM_MINI": {
+      "goal": "Write 10-page structured mini-makalah: 'ILMA as Autonomous Coding Agent'",
+      "target_type": "LONGFORM",
+      "constraints": {
+        "max_pages": 10,
+        "min_sources": 3,
+        "no_1000_page_claim": true
+      },
+      "stages": [
+        {"id": "OUTLINE", "objective": "Create outline and chapter structure"},
+        {"id": "DRAFT", "objective": "Write structured draft sections"},
+        {"id": "QUALITY_GATE", "objective": "Run continuity and citation checks"},
+        {"id": "FINAL", "objective": "Final polish and formatting"}
+      ],
+      "quality_gates": ["continuity", "citations", "claim_ledger"],
+      "checkpoints": ["after_outline", "after_draft", "after_quality_gate"],
+      "output_dir": "test_projects/phase40_extreme_mission_dogfood/longform_mini"
+    },
+    "CODEBASE_MINI": {
+      "goal": "Build 20-file mini task planner project",
+      "target_type": "CODEBASE",
+      "constraints": {
+        "max_files": 20,
+        "stdlib_only": true,
+        "no_1000_file_claim": true
+      },
+      "stages": [
+        {"id": "ARCHITECTURE", "objective": "Define module structure and dependencies"},
+        {"id": "SCAFFOLD", "objective": "Create core modules and interfaces"},
+        {"id": "TESTS", "objective": "Write unit tests"},
+        {"id": "VALIDATION", "objective": "Compile, test, and validate"}
+      ],
+      "quality_gates": ["compile", "tests", "dependency_graph"],
+      "checkpoints": ["after_scaffold", "after_tests", "after_validation"],
+      "output_dir": "test_projects/phase40_extreme_mission_dogfood/codebase_mini"
+    },
+    "RESEARCH_MINI": {
+      "goal": "Write 8-12 source research brief on Autonomous Agent Architecture",
+      "target_type": "RESEARCH",
+      "constraints": {
+        "min_sources": 8,
+        "mode": "source_placeholder",
+        "no_live_web": true,
+        "no_publishable_claim": true
+      },
+      "stages": [
+        {"id": "SOURCES", "objective": "Compile source table with reliability scoring"},
+        {"id": "CLAIM_MAP", "objective": "Map claims to evidence sources"},
+        {"id": "REVIEW", "objective": "Internal peer review simulation"},
+        {"id": "REPORT", "objective": "Compile research brief"}
+      ],
+      "quality_gates": ["source_quality", "claim_evidence_map", "methodology", "limitations"],
+      "checkpoints": ["after_source_table", "after_claim_map", "after_review"],
+      "output_dir": "test_projects/phase40_extreme_mission_dogfood/research_mini"
+    },
+    "LINUX_DISTRO_MINI": {
+      "goal": "Create design-only plan for minimal container-based distro foundation",
+      "target_type": "LINUX_DISTRO",
+      "constraints": {
+        "design_only": true,
+        "no_build": true,
+        "no_os_claim": true
+      },
+      "stages": [
+        {"id": "BASE_SELECT", "objective": "Compare and select base distro"},
+        {"id": "ROOTFS_PLAN", "objective": "Design rootfs structure and build process"},
+        {"id": "PKG_PLAN", "objective": "Plan package management approach"},
+        {"id": "SECURITY_PLAN", "objective": "Design security update mechanism"}
+      ],
+      "quality_gates": ["rootfs_reproducibility", "package_management", "security_updates"],
+      "checkpoints": ["after_base_selection", "after_rootfs_plan", "after_security_plan"],
+      "output_dir": "test_projects/phase40_extreme_mission_dogfood/linux_distro_mini"
+    }
+  }
+}

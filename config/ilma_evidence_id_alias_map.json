@@ -1,0 +1,373 @@
+{
+  "canonical_format": "ILMA-EVID-YYYYMMDD-PHASE-CAPABILITY-NNN",
+  "version": "1.0",
+  "mappings": {
+    "2fd038fa-8c5e-499a-b181-e94892b7c2d9": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-94CAC434",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "11eee015-5254-4bc7-877f-1494e36b49ed": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-94CAC434",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "f62a0826-08d4-476c-9b2b-033bfe6e1ba9": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-F1A1FA78",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "006770e2-854f-4aae-bb0b-ca634cecf497": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-F1A1FA78",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "cc85f5c5-3bc8-4c4c-a55e-c485f814dfb9": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-2601397A",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "83bc09e1-b6f6-40cd-94c8-48a7ca5ca49a": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-2601397A",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "66c939e6-cc8c-49b0-ae34-d4dc9081d780": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-2601397A",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "b1efbd6a-d1e0-4f4d-a3e5-cfda69ee12b9": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-62BB647C",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "626d85cd-c8d4-4a08-9030-7fe4c7e533f0": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-62BB647C",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "11c78c33-6fc5-4cc6-baa2-c41452cc6d6e": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-62BB647C",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "388f8dc7-d2e1-47e4-a02f-d33ffc89e688": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-7B384753",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "42463f42-9b2a-40fa-a2cb-7b148704893b": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-7B384753",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "cb4a0b27-e8aa-428f-80b8-4c6f1bcb1a93": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-FA3C40B6",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "57b60a72-f371-4db4-82f9-8cf70dc2e05f": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-FA3C40B6",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "e0660234-a3b4-4f69-ae49-6ee29e6383f6": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-AD9FE8C3",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "22c26270-5601-401b-ad2c-43bee4101323": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-AD9FE8C3",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "725a17dc-3ff8-41bb-b7fd-3efeb4aa917d": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-AD9FE8C3",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "775f5e0e-8996-4c4b-9d13-2c7fbdb0f909": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-62FA115E",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "12770c8d-02f6-4713-8bda-1f26ce778cd8": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-62FA115E",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "7ec53a0f-6004-4176-9903-094fa0940535": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-62FA115E",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "ac3b51b4-109b-44bb-9c1f-948abd88384e": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-A6637D14",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "179f71ee-6086-4f8f-8c8d-9b9f84bb5783": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-A6637D14",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "17932e2d-b8de-43ba-9476-57c7c04d17e0": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-A6637D14",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "bf7f6e32-8a28-45b1-ae7e-3a41423ac6c6": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-0B0F7F77",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "1c9ff8df-aa57-46a6-aeaf-df5fc81b903b": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-0B0F7F77",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "93d23178-2ef1-462c-8416-e8103460f70b": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-0B0F7F77",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "101e86fe-c332-4fb9-ab9b-e76eb034b2de": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-2FC390F6",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "64b11d7a-d0d7-425d-b12a-252d52738179": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-2FC390F6",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "9872742b-a75b-4b89-aefc-7dfb20d4c895": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-F34D6D18",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "c41b8761-f320-4240-854c-af99a2f1abb3": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-F34D6D18",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "630f0c78-4b40-42f3-812c-d4684cd37ea7": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-F34D6D18",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "638068b1-8372-4d60-8545-a70b375203c7": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-A4E7CD55",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "d710ccd5-868b-4116-b076-ac7658d886a9": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-A4E7CD55",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "c1f510cb-a40e-45e8-bef1-13bc39fd623e": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-85C44DD1",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "93953508-d11d-4cdf-8e88-e9defdcb6262": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-85C44DD1",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "15bc2b80-80a1-4d94-b5b9-21728976f49f": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-85C44DD1",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "82da2f7c-c973-4771-a771-fbba9241f2af": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-1F0101CF",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "372e0d4e-4f7c-4b8b-aa28-61e448c2382b": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-1F0101CF",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "b540ec1e-6f7b-403d-9531-4fcd62f3a551": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-1F0101CF",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "7f2b9e88-10c9-4dec-91e2-dd7eefc1684d": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-9D0ABD25",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "d24be9a6-2a6f-49a4-a11b-e590335e16d2": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-9D0ABD25",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "8061dd8d-d33a-4f15-9f6f-2f11341fa177": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-8317F97B",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "4e8db795-3808-40b7-a17d-6d575354e9f7": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-8317F97B",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "72971572-d81f-4e7a-9962-241af39e1685": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-8317F97B",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "3f5446bf-4e66-4d8c-be35-6b5b90be3f2d": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-E3FA7822",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "cf408490-2b47-4673-807f-df54b39b075d": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-E3FA7822",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "40954cb4-907c-43b9-8676-9ce738643649": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-E3FA7822",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "f605f330-ba9e-476a-abd1-3d3419a8091c": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-9A2E3A85",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "6f6a1397-1218-4511-87fe-4c9e2a6b9ecb": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-9A2E3A85",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "dfb73009-e50c-4b95-be6e-920230fdec14": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-776AE570",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "9e39a470-77fd-44de-81fe-e450bca8856a": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-776AE570",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "055f8c33-0327-432b-8a55-c08b964da38d": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-776AE570",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "4d10db04-fd5e-4f11-83f9-6a293c91f9f7": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-BE70FCA5",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "79d5534f-9132-4566-b715-a42fca6d88b3": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-BE70FCA5",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "1c6a5229-b625-4057-95a6-ff84c182e81d": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-53CFC088",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "23fd215a-2db2-4928-aed5-6decc1eaf035": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-53CFC088",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "1429998f-7f97-40e2-ae1b-11e066a56e06": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-6760C518",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "ed71a2ba-fad0-4692-9287-2e31942cf8e4": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-6760C518",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "dec3ec93-0b80-48c2-9821-b859fa196111": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-C812E456",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "b21b4721-b5cf-4392-99f8-8d2cc94d2506": {
+      "canonical_alias": "ILMA-EVID-UNKNOWN-UNKNOWN-C812E456",
+      "legacy_type": "UUID_subdirectory",
+      "phase": "UNKNOWN",
+      "capability": "UNKNOWN"
+    },
+    "ILMA-EVID-20260509-P14-WORKFLOW-ECC-001": {
+      "canonical_alias": "ILMA-EVID-20260509-P14-WORKFLOW-ECC-001",
+      "legacy_type": "canonical",
+      "phase": "14C",
+      "capability": "workflow_ecc"
+    }
+  },
+  "total_mappings": 61
+}

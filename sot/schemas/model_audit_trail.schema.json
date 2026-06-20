@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "model_audit_trail",
+  "description": "Append-only audit log of all changes to model records. Written by every SOT writer.",
+  "type": "object",
+  "required": [
+    "provider",
+    "model_id",
+    "event_type",
+    "event_at",
+    "actor",
+    "source_collection",
+    "delta",
+    "evidence_id"
+  ],
+  "properties": {
+    "provider": { "type": "string", "minLength": 1 },
+    "model_id": { "type": "string", "minLength": 1 },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "model_discovered",
+        "model_updated",
+        "model_disabled",
+        "model_reenabled",
+        "model_deprecated",
+        "score_recomputed",
+        "benchmark_added",
+        "benchmark_updated",
+        "enrichment_run",
+        "materialize_run",
+        "field_corrected",
+        "policy_override",
+        "runtime_audit"
+      ]
+    },
+    "event_at": { "type": "string", "format": "date-time" },
+    "actor": {
+      "type": "string",
+      "description": "Who/what performed the action (e.g. provider_sync, sot_enricher, bos)"
+    },
+    "source_collection": {
+      "type": "string",
+      "enum": ["models", "model_benchmarks", "model_intelligence", "llm_providers", "providers", "sot_jobs"]
+    },
+    "delta": {
+      "type": "object",
+      "description": "Object describing what changed: {field: {old, new}} for updates, {model_id, ...} for new"
+    },
+    "evidence_id": {
+      "type": "string",
+      "description": "ILMA evidence ID (ILMA-EVID-YYYYMMDD-CCODE-XXXXX) for traceability"
+    },
+    "notes": { "type": "string" }
+  }
+}

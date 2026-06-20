@@ -1,0 +1,49 @@
+{
+  "external_sources": {
+    "allowed_types": [
+      "academic_paper",
+      "technical_documentation",
+      "open_source_repository",
+      "government_report",
+      "standards_document",
+      "trusted_blog",
+      "video_lecture"
+    ],
+    "attribution_required": true,
+    "attribution_format": "Author(s). Title. Source. Date. URL.",
+    "freshness_rules": {
+      "academic_paper": "Use latest version; note preprint vs peer-reviewed",
+      "technical_docs": "Check for updates; note version",
+      "open_source": "Note commit hash or release tag",
+      "web_content": "Note access date; prefer archived if possible"
+    },
+    "citation_requirements": {
+      "inline_citation": true,
+      "bibliography": true,
+      "direct_quote_notation": true
+    },
+    "anti_hallucination_checks": [
+      "Verify URL is accessible",
+      "Check claim matches source context",
+      "Flag out-of-context quotes",
+      "Note when source contradicts other sources"
+    ],
+    "source_conflict_handling": {
+      "strategy": "flag_and_prioritize",
+      "prefer": ["peer_reviewed", "government", "standards"],
+      "defer": ["unknown_blog", "unverified_claim"]
+    },
+    "reliability_scoring": {
+      "high": ["peer_reviewed", "standards", "government"],
+      "medium": ["technical_docs", "trusted_blog", "open_source"],
+      "low": ["unverified_web", "anonymous_source"],
+      "reject": ["known_misinformation", "unreachable_404"]
+    },
+    "secret_exposure_rules": {
+      "no_api_keys": true,
+      "no_credentials": true,
+      "no_personal_info": true,
+      "no_internal_urls": true
+    }
+  }
+}

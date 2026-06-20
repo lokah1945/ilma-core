@@ -1,0 +1,4 @@
+# ILMA Passive Benchmark Refresh - Daily 03:00 WIB
+CRON_TZ=Asia/Jakarta
+0 3 * * * root cd /root/.hermes/profiles/ilma && /usr/bin/python3 /root/.hermes/profiles/ilma/scripts/ilma_passive_benchmark_refresh.py --run >> /root/.hermes/profiles/ilma/logs/passive_benchmark_refresh/cron.log 2>&1
+

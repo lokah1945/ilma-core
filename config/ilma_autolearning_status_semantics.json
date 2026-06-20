@@ -1,0 +1,99 @@
+{
+  "version": "1.0",
+  "phase": "48B-CLOSE-B",
+  "date": "2026-05-10",
+  "purpose": "Define clear, unambiguous meaning of every action/status label in the ILMA autonomous learning system.",
+  "status_definitions": {
+    "COMPLETED": {
+      "description": "Action completed successfully with valid artifact. Judge verdict is PASS. No warnings. No errors.",
+      "required": ["artifact_exists", "judge_status=PASS", "no_exception"],
+      "production_ready": true
+    },
+    "COMPLETED_WITH_WARN": {
+      "description": "Action completed with valid artifact. Judge verdict is WARN. Warning is non-blocking (score >= warn_threshold). Artifact is usable.",
+      "required": ["artifact_exists", "judge_status=WARN", "judge_score >= warn_threshold", "no_exception", "warning_is_nonblocking"],
+      "production_ready": true,
+      "note": "WARN with score >= warn_threshold means artifact is acceptable with documented warning. This is valid for production readiness."
+    },
+    "BLOCKED_SAFE": {
+      "description": "Action was blocked by scope/safety boundary. Not a failure — the system correctly prevented an unsafe action.",
+      "required": ["action_blocked", "reason in ['scope_forbidden', 'safety_gated', 'requires_approval']"],
+      "production_ready": true,
+      "note": "BLOCKED_SAFE is a positive outcome — safety system worked correctly."
+    },
+    "PARTIAL": {
+      "description": "Action partially completed with some evidence gaps. Artifact exists but incomplete. Judge may have WARN or partial FAIL.",
+      "required": ["artifact_may_exist", "evidence_incomplete", "no_critical_error"],
+      "production_ready": "conditional",
+      "note": "PARTIAL is acceptable for production if gaps are documented and non-blocking."
+    },
+    "FAILED": {
+      "description": "Action failed. No valid artifact produced. Judge verdict is FAIL.",
+      "required": ["no_artifact or artifact_invalid", "judge_status=FAIL", "iteration_exhausted", "no_exception"],
+      "production_ready": false,
+      "note": "FAILED means real failure — judge rejected artifact, revision not sufficient."
+    },
+    "ERROR": {
+      "description": "Runtime exception occurred. Action did not complete normally. Must be blocking.",
+      "required": ["exception_raised", "traceback_exists", "final_status set by exception handler"],
+      "production_ready": false,
+      "note": "ERROR means system failure, not user-facing outcome. Must be fixed before production."
+    },
+    "DIRECT_EXECUTE": {
+      "description": "Task class did not require evolution loop. Executed directly.",
+      "required": ["no_evolution_loop", "artifact_produced_directly"],
+      "production_ready": true,
+      "note": "This is fine — not all tasks need the evolution loop."
+    },
+    "UNKNOWN": {
+      "description": "Status not yet determined. Should not persist to final trace.",
+      "production_ready": false
+    }
+  },
+  "status_mapping": {
+    "Judge PASS + no error": "COMPLETED",
+    "Judge WARN + score >= warn_threshold + no error": "COMPLETED_WITH_WARN",
+    "Judge WARN + score < warn_threshold + no error": "FAILED",
+    "Judge FAIL + no error": "FAILED",
+    "Artifact blocked by scope/safety": "BLOCKED_SAFE",
+    "Exception raised": "ERROR",
+    "No evolution required": "DIRECT_EXECUTE",
+    "Evidence gaps but no critical error": "PARTIAL"
+  },
+  "forbidden_mappings": {
+    "Judge WARN → ERROR": "WARN is not ERROR. ERROR means exception, not judge verdict.",
+    "WARN without artifact → COMPLETED": "Must have artifact to be COMPLETED.",
+    "IndexError in lesson storage → ERROR": "Lesson storage exception should not change action status. Action already had PASS_WITH_WARN.",
+    "reflection[] but iteration>1 → ERROR": "Must check reflections before accessing index. Do not convert index error to ERROR."
+  },
+  "session_readiness_gate_rules": {
+    "READY_FOR_120_MINUTE_PILOT": {
+      "max_ERROR": 0,
+      "max_FAILED": 0,
+      "allowed_statuses": ["COMPLETED", "COMPLETED_WITH_WARN", "BLOCKED_SAFE", "DIRECT_EXECUTE", "PARTIAL"],
+      "note": "COMPLETED_WITH_WARN allowed if WARN is non-blocking and artifact valid."
+    },
+    "READY_FOR_LIMITED_INTERNAL_USE": {
+      "max_ERROR": 0,
+      "max_FAILED": "≤1 with documented reason",
+      "allowed_statuses": ["COMPLETED", "COMPLETED_WITH_WARN", "BLOCKED_SAFE", "DIRECT_EXECUTE", "PARTIAL", "FAILED"]
+    },
+    "PARTIAL": {
+      "note": "Used when there are WARNINGS or PARTIAL outcomes that need documentation but are not fatal."
+    },
+    "NOT_READY": {
+      "condition": "Any ERROR present, or >1 FAILED, or no artifact produced for required actions"
+    }
+  },
+  "lesson_storage_rules": {
+    "rule_1": "Store lesson AFTER final_status is set and stable.",
+    "rule_2": "Check 'trace.reflections' before accessing 'trace.reflections[0]'.",
+    "rule_3": "Lesson storage exception must NOT overwrite final_status.",
+    "rule_4": "Lesson storage failure is non-fatal — log but do not change action outcome.",
+    "rule_5": "Lesson storage should run ONLY when final_status is PASS, PASS_WITH_WARN, or FAILED (not ERROR)."
+  },
+  "judge_threshold": {
+    "warn_threshold": 70,
+    "pass_threshold": 100
+  }
+}

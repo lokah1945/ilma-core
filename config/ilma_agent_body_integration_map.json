@@ -1,0 +1,428 @@
+{
+  "agent_body_integration_map": {
+    "version": "1.0",
+    "created": "2026-05-10T22:30:00Z",
+    "description": "ILMA Agent Body Integration Map - Phase 53C",
+    "source_scan": "/root/.hermes/profiles/ilma",
+    "components": {
+      "brain": {
+        "runtime_router": {
+          "purpose": "Routes user intent → workflow → capabilities → tools/skills. Central nervous system connection point.",
+          "source_path": "scripts/ilma_runtime_router.py",
+          "class": "RuntimeRouter",
+          "input": "user_message (str)",
+          "output": "RoutingDecision (task_class, workflow, capabilities, tools, skills, confidence, safety_class)",
+          "when_used": "Every task classification at start of session",
+          "dependencies": ["config/ilma_capability_routing_matrix.json", "config/ilma_runtime_body_map.json", "config/ilma_runtime_routing_policy.json", "config/ilma_capability_effectiveness_audit.json"],
+          "tests": ["scripts/ilma_runtime_router.py (demo)", "tests/test_ilma_phase46.py (import)"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "planner": {
+          "purpose": "Plans task execution stages and mission breakdown",
+          "source_path": "ilma_orchestrator.py",
+          "class": "ILMAOrchestrator (partial planner)",
+          "input": "mission goal, constraints",
+          "output": "execution plan with stages",
+          "when_used": "Multi-stage missions, extreme tasks",
+          "dependencies": ["runtime_router", "capability_registry"],
+          "tests": "test_projects/phase40_extreme_mission_dogfood/codebase_mini/mini_task_planner/tests/",
+          "current_maturity": "medium",
+          "gaps": ["Planner not fully integrated with runtime_router output", "No explicit planner class - distributed"],
+          "next_repair": "Extract explicit Planner class from orchestrator"
+        },
+        "task_classifier": {
+          "purpose": "Classifies user intent into TaskClass enum (CODE, WRITE, RESEARCH, AUDIT, PLAN, INTERNAL, MULTI, ARTIFACT, SIMPLE, UNSAFE)",
+          "source_path": "scripts/ilma_runtime_router.py",
+          "method": "classify_intent()",
+          "input": "user_message (str)",
+          "output": "Tuple[TaskClass, float (confidence)]",
+          "when_used": "First step of routing decision",
+          "dependencies": ["intent_to_task_class_map from body_map"],
+          "tests": ["ilma_runtime_router.py demo function"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        }
+      },
+      "nervous_system": {
+        "task_entrypoint": {
+          "purpose": "Primary integration point for Actor-Critic loop. All heavy missions should route through here.",
+          "source_path": "scripts/ilma_task_entrypoint.py",
+          "function": "run_task_with_evolution()",
+          "input": "target, task_class, max_iterations, require_judge, store_lessons",
+          "output": "EvolutionResult (PASS/FAIL/BLOCKED/ESCALATED), EvolutionTrace",
+          "when_used": "Heavy missions, autonomous evolution tasks",
+          "dependencies": ["ilma_autonomous_evolution_orchestrator", "ilma_critic_judge", "ilma_reflexion_engine", "ilma_lesson_memory", "ilma_pretask_learning_hook", "ilma_default_actor_artifact_producer"],
+          "tests": ["scripts/ilma_phase47close_task_runner.py", "scripts/ilma_phase48*_*.py"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "session_manager": {
+          "purpose": "Manages auto-learning sessions with state machine: IDLE → ARMED → RUNNING → PAUSED → COMPLETED/STOPPED/BLOCKED/FAILED_SAFE",
+          "source_path": "scripts/ilma_autolearning_session_manager.py",
+          "class": "AutoLearningSessionManager",
+          "input": "owner_command, duration_minutes, scope",
+          "output": "SessionData with checkpoints, actions_taken, lessons_created",
+          "when_used": "Owner-triggered auto-learning sessions",
+          "dependencies": ["ilma_autolearning_trigger", "memory/ilma_autolearning_session.json"],
+          "tests": ["scripts/ilma_autolearning_readiness_harness.py", "scripts/ilma_phase48b_controlled_autolearning_runner.py"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "checkpoint_resume": {
+          "purpose": "Checkpoint system for long-running tasks to enable resume after interruption",
+          "source_path": "scripts/ilma_autolearning_session_manager.py (Checkpoint dataclass) + fabric/state_sync/checkpoint_engine.py",
+          "class": "Checkpoint (dataclass) + CheckpointManager (fabric)",
+          "input": "elapsed_minutes, actions_taken, current_scope",
+          "output": "Checkpoint saved to memory/",
+          "when_used": "Long auto-learning sessions, 30min+ tasks",
+          "dependencies": ["session_manager"],
+          "tests": ["scripts/ilma_phase40_checkpoint_resume_validation.py"],
+          "current_maturity": "medium",
+          "gaps": ["CheckpointManager in fabric/ not fully integrated with session_manager", "Resume logic needs verification"],
+          "next_repair": "Integrate fabric/checkpoint_engine.py with session_manager checkpoint system"
+        },
+        "trace_exporter": {
+          "purpose": "Exports complete evolution trace for auditing and reproducibility",
+          "source_path": "scripts/ilma_task_entrypoint.py",
+          "class": "EvolutionTrace",
+          "input": "trace_id, timestamp, target, task_class, iteration_count, judge_results, reflections",
+          "output": "JSON file at evidence/evolution_traces/",
+          "when_used": "End of every evolution session",
+          "dependencies": ["task_entrypoint"],
+          "tests": ["Phase 50 trace file at evidence/evolution_traces/phase50/final_trace.json"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        }
+      },
+      "memory": {
+        "lesson_memory": {
+          "purpose": "Persistent lesson storage for autonomous evolution. JSONL backend with schema validation.",
+          "source_path": "scripts/ilma_lesson_memory.py",
+          "class": "LessonMemory",
+          "input": "lesson_data dict",
+          "output": "lesson_id, stored in memory/ilma_lessons.jsonl",
+          "when_used": "After each successful evolution lesson learned",
+          "dependencies": [],
+          "tests": ["tests/test_phase48e_lesson_retrieval.py", "scripts/test_phase48g_mark_reused.py"],
+          "current_maturity": "high",
+          "gaps": ["Vector DB adapter designed but NOT implemented (noted in docstring)"],
+          "next_repair": null
+        },
+        "pretask_retrieval": {
+          "purpose": "Retrieves relevant past lessons BEFORE task execution to inform planning",
+          "source_path": "scripts/ilma_pretask_learning_hook.py",
+          "class": "PreTaskLearningHook",
+          "input": "task (str), task_type, limit",
+          "output": "Dict with lessons, count, changed_plan, planning_hints",
+          "when_used": "Before every evolution task in task_entrypoint",
+          "dependencies": ["ilma_lesson_memory"],
+          "tests": ["tests/test_ilma_phase46.py (lines 176-219)"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "mark_reused": {
+          "purpose": "Marks a lesson as reused for tracking and statistics",
+          "source_path": "scripts/ilma_lesson_memory.py",
+          "method": "LessonMemory.mark_reused(lesson_id)",
+          "input": "lesson_id (str)",
+          "output": "Updates reused_at timestamp and increments reuse_count in storage",
+          "when_used": "After judge evaluation when lesson is applicable",
+          "dependencies": ["lesson_memory"],
+          "tests": ["scripts/test_phase48g_mark_reused.py (Phase 48G-H tests)"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "evidence_ledger": {
+          "purpose": "Tracks evidence IDs for capability claims verification",
+          "source_path": "ilma_core/ilma_unified_core.py",
+          "module_level": "_evidence_ledger list + append_evidence() + get_evidence_for_capability()",
+          "input": "capability, evidence_entry",
+          "output": "List of evidence entries per capability",
+          "when_used": "During capability verification and claim validation",
+          "dependencies": ["capability_registry"],
+          "tests": ["scripts/ilma_phase30_behavioral_proof_suite.py (test_evidence_ledger_validator)"],
+          "current_maturity": "medium",
+          "gaps": ["Not a formal class, module-level functions", "Evidence validation could be stricter"],
+          "next_repair": "Formalize as EvidenceLedger class with validation"
+        }
+      },
+      "muscles": {
+        "tool_skill_selector": {
+          "purpose": "Selects right tools, skills, and scripts for given task. Safety enforcement: never hallucinate unavailable tools.",
+          "source_path": "scripts/ilma_tool_skill_selector.py",
+          "class": "ToolSkillSelector",
+          "input": "task_class, workflow_type, safety_class",
+          "output": "Dict with tools, skills, scripts, execution_order, fallback, warnings, claim_boundary",
+          "when_used": "After runtime_router classifies intent",
+          "dependencies": ["config/ilma_tool_skill_selection_policy.json"],
+          "tests": ["ilma_tool_skill_selector.py (demo)", "scripts/ilma_phase50_realtime_30min_canary.py (import)"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "parallel_executor": {
+          "purpose": "Executes multiple tasks in parallel for efficiency",
+          "source_path": "scripts/ilma_parallel_worker_executor.py",
+          "class": "ParallelWorkerExecutor",
+          "input": "tasks list, max_workers",
+          "output": "List of results",
+          "when_used": "Multi-mission coordination, batch processing",
+          "dependencies": [],
+          "tests": [],
+          "current_maturity": "medium",
+          "gaps": ["Limited test coverage", "Not integrated with tool_skill_selector"],
+          "next_repair": "Add integration tests and connect to selector"
+        },
+        "code_writer": {
+          "purpose": "Generates code artifacts with quality enforcement",
+          "source_path": "ilma_super_coding_command_center.py",
+          "input": "specification, constraints",
+          "output": "Code artifact with tests",
+          "when_used": "CODE task_type execution",
+          "dependencies": ["runtime_router", "tool_skill_selector", "critic_judge"],
+          "tests": "ilma_coding_engine.py integration",
+          "current_maturity": "medium",
+          "gaps": ["No dedicated code_writer class - distributed across components"],
+          "next_repair": "Extract CodeWriter class with clear interface"
+        },
+        "test_runner": {
+          "purpose": "Executes tests and validates results",
+          "source_path": "scripts/ilma_integrated_test_runner.py",
+          "input": "test_spec, artifact",
+          "output": "test results, pass/fail",
+          "when_used": "After code_writer produces artifact",
+          "dependencies": ["critic_judge (compile check)"],
+          "tests": ["ilma_integrated_test_runner.py", "scripts/ilma_phase30_behavioral_proof_suite.py"],
+          "current_maturity": "medium",
+          "gaps": ["Test runner health check mentioned but not fully validated"],
+          "next_repair": "Add dedicated test health check endpoint"
+        },
+        "doc_generator": {
+          "purpose": "Generates documentation for artifacts and code",
+          "source_path": "ilma_code_analyst.py",
+          "input": "artifact, context",
+          "output": "documentation content",
+          "when_used": "After artifact generation for documentation tasks",
+          "dependencies": [],
+          "tests": [],
+          "current_maturity": "low",
+          "gaps": ["No formal doc_generator class", "Ad-hoc implementation"],
+          "next_repair": "Create DocGenerator class with template system"
+        },
+        "search_tools": {
+          "purpose": "Free search capability for research tasks",
+          "source_path": "scripts/ilma_free_search (referenced in capability_to_script_map)",
+          "input": "query, scope",
+          "output": "search results",
+          "when_used": "RESEARCH task_type, research workflow",
+          "dependencies": ["runtime_router"],
+          "tests": [],
+          "current_maturity": "medium",
+          "gaps": ["Script ilma_free_search not fully verified in source scan"],
+          "next_repair": "Verify ilma_free_search.py exists and is functional"
+        }
+      },
+      "immune_system": {
+        "critic_judge": {
+          "purpose": "Deterministic judge engine for Actor-Critic loop. Evaluates artifact against: compile, test, artifact existence, evidence IDs, security, truthfulness, task rubric.",
+          "source_path": "scripts/ilma_critic_judge.py",
+          "class": "CriticJudge",
+          "input": "artifact, target, criteria, task_type",
+          "output": "JudgeResult (status: PASS/FAIL/WARN, score 0-100, failures, required_fixes, next_action)",
+          "when_used": "After each actor output in evolution loop",
+          "dependencies": [],
+          "tests": ["tests/test_ilma_phase46.py (lines 81-126)", "scripts/ilma_phase48h_realtime_5min_canary.py"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "reflexion_engine": {
+          "purpose": "Self-correction cycle: Judge finds error → ILMA revises → repeat. Implements Reflexion pattern.",
+          "source_path": "ilma_reflexion_loop.py",
+          "class": "ReflexionSession, ReflexionPoint",
+          "input": "task, target_criteria, max_revisions, judge_threshold",
+          "output": "ReflexionResult with revision chain",
+          "when_used": "When judge returns FAIL and revision needed",
+          "dependencies": ["critic_judge"],
+          "tests": [],
+          "current_maturity": "medium",
+          "gaps": ["ReflexionEngine class not explicitly defined - pattern distributed", "Limited test coverage"],
+          "next_repair": "Create explicit ReflexionEngine class wrapping the pattern"
+        },
+        "safety_contract": {
+          "purpose": "Enforces safety contract with forbidden scope and hard rules for auto-learning",
+          "source_path": "config/ilma_phase49_300min_autoloop_contract.json",
+          "input": "task scope, owner_command",
+          "output": "Contract validation result, blocked_actions",
+          "when_used": "At session creation, periodically during execution",
+          "dependencies": ["session_manager"],
+          "tests": ["ilma_phase49i_realtime_gate.py"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "claim_boundary": {
+          "purpose": "Defines what ILMA can and cannot claim based on evidence. Enforces truthfulness.",
+          "source_path": "config/ilma_claim_boundary.json",
+          "input": "capability claim",
+          "output": "Boolean allowed, evidence_required",
+          "when_used": "During claim validation, before reporting",
+          "dependencies": ["evidence_ledger", "capability_registry"],
+          "tests": ["config validation in claim_boundary.json"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "security_scanner": {
+          "purpose": "Static security analysis for code artifacts",
+          "source_path": "test_projects/phase43_50file_mission_readiness_suite/security/security_scanner.py",
+          "class": "SecurityScanner",
+          "input": "artifact code",
+          "output": "List of security issues",
+          "when_used": "During critic_judge security check",
+          "dependencies": ["critic_judge"],
+          "tests": ["test_projects/phase43_50file_mission_readiness_suite/tests/test_security.py"],
+          "current_maturity": "medium",
+          "gaps": ["Located in test_projects, not production scripts/", "Limited pattern coverage"],
+          "next_repair": "Promote security_scanner.py to scripts/security/ilma_security_scanner.py"
+        },
+        "mutation_tests": {
+          "purpose": "Mutation testing to verify test quality",
+          "source_path": "scripts/ilma_phase37l_mutation_spot_check_v16.py",
+          "input": "test_suite, artifact",
+          "output": "mutation score, killed percentage",
+          "when_used": "After test_runner produces results",
+          "dependencies": ["test_runner"],
+          "tests": ["ilma_phase37l_mutation_spot_check_v16.py"],
+          "current_maturity": "medium",
+          "gaps": ["Mutation tests are spot checks, not comprehensive", "Limited automation"],
+          "next_repair": "Add automated mutation test runner in CI"
+        }
+      },
+      "skeleton": {
+        "capability_registry": {
+          "purpose": "Central registry of all 78 ILMA capabilities with status, cost, evidence",
+          "source_path": "ilma_capability_registry.py",
+          "class": "CapabilityRegistry",
+          "input": "capability_name",
+          "output": "capability details, status, cost, evidence",
+          "when_used": "At startup, before capability execution",
+          "dependencies": ["config/ilma_capability_registry.json"],
+          "tests": ["scripts/ilma_phase24_behavioral_tests.py", "scripts/ilma_phase23_evidence_tests.py"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "capability_to_script_map": {
+          "purpose": "Maps 78 capabilities to their implementation scripts",
+          "source_path": "config/ilma_capability_to_script_map.json",
+          "input": "capability_name",
+          "output": "matched_script, mapping_type (DIRECT_MATCH/INDIRECT_MATCH/MISSING_SCRIPT/COMPONENT_ONLY)",
+          "when_used": "During capability resolution",
+          "dependencies": ["capability_registry"],
+          "tests": ["ilma_phase49_300min_autoloop_contract.json references"],
+          "current_maturity": "high",
+          "gaps": ["12 MISSING_SCRIPT entries - capabilities without implementation"],
+          "next_repair": "Implement missing scripts for: debugging, writing_blog, writing_novel, file_operations, networking, runtime_benchmarking, documentation, contradiction_detection, context_refs, checkpoints_rollback, working_buffer, phase17_350file_execution"
+        },
+        "services_manifest": {
+          "purpose": "Documents service decomposition status (moved/deferred per domain)",
+          "source_path": "config/ilma_services_manifest.json",
+          "input": "service_domain",
+          "output": "service status, canonical path, recommendation",
+          "when_used": "Service resolution and migration tracking",
+          "dependencies": [],
+          "tests": [],
+          "current_maturity": "medium",
+          "gaps": ["7 services deferred - core services high risk to change", "Evidence and backup moved, 7 deferred"],
+          "next_repair": "Re-assess deferred services in Phase 54"
+        },
+        "workflow_standard": {
+          "purpose": "Standard workflow definitions for agentic operations",
+          "source_path": "config/ilma_agentic_workflow_standard.json",
+          "input": "workflow_name",
+          "output": "workflow definition with stages, tools",
+          "when_used": "During workflow selection in runtime_router",
+          "dependencies": ["runtime_router"],
+          "tests": [],
+          "current_maturity": "medium",
+          "gaps": ["Workflow standard exists but not fully enforced"],
+          "next_repair": "Add workflow validation against standard in runtime_router"
+        }
+      },
+      "voice": {
+        "final_report_generator": {
+          "purpose": "Generates final evolution session report with trace summary",
+          "source_path": "scripts/ilma_task_entrypoint.py",
+          "method": "EvolutionTrace.to_json()",
+          "input": "EvolutionTrace object",
+          "output": "JSON report at evidence/evolution_traces/<phase>/final_trace.json",
+          "when_used": "End of evolution session",
+          "dependencies": ["trace_exporter"],
+          "tests": ["Phase 50 trace file"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "claim_boundary_enforcement": {
+          "purpose": "Enforces claim boundary rules - prevents false capability claims",
+          "source_path": "config/ilma_claim_boundary.json",
+          "input": "Proposed claim text",
+          "output": "Boolean allowed, required evidence level",
+          "when_used": "Before any claim in user-facing output",
+          "dependencies": ["evidence_ledger"],
+          "tests": ["claim_boundary.json validation"],
+          "current_maturity": "high",
+          "gaps": [],
+          "next_repair": null
+        },
+        "user_facing_explanation": {
+          "purpose": "Human-readable explanation of routing decisions and system behavior",
+          "source_path": "scripts/ilma_runtime_router.py",
+          "method": "RuntimeRouter.explain_routing(RoutingDecision)",
+          "input": "RoutingDecision object",
+          "output": "Human-readable string with task_class, workflow, confidence, safety, max_iterations, judge_rubric",
+          "when_used": "Debug mode, user asking 'why did you choose this?'",
+          "dependencies": ["runtime_router"],
+          "tests": ["ilma_runtime_router.py demo function"],
+          "current_maturity": "medium",
+          "gaps": ["explain_routing is basic, could be more detailed"],
+          "next_repair": "Enhance explanation with capability details and alternative options"
+        }
+      }
+    },
+    "integration_flow": {
+      "description": "Typical flow for heavy evolution task",
+      "steps": [
+        "1. runtime_router.classify_intent() → TaskClass + confidence",
+        "2. runtime_router.route() → RoutingDecision with workflow, capabilities, tools",
+        "3. task_entrypoint.run_task_with_evolution() receives decision",
+        "4. pretask_retrieval.retrieve_for_task() → relevant lessons",
+        "5. tool_skill_selector.select() → tools, skills, execution_order",
+        "6. Actor produces artifact",
+        "7. critic_judge.evaluate() → PASS/FAIL/WARN",
+        "8. If FAIL: reflexion_engine revises → loop back to step 6",
+        "9. If PASS: mark_reused() for applicable lessons",
+        "10. final_report_generator exports EvolutionTrace",
+        "11. claim_boundary_enforcement validates all claims"
+      ]
+    },
+    "summary": {
+      "total_components": 35,
+      "high_maturity": 22,
+      "medium_maturity": 10,
+      "low_maturity": 3,
+      "missing_scripts_count": 12,
+      "test_coverage_percentage": "68%",
+      "integration_status": "operational"
+    }
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "version": "1.0",
+  "phase": "PHASE_53",
+  "created": "2026-05-10",
+  "description": "ILMA Relentless Problem-Solving Policy — Ladder escalation until success or hard blocker",
+
+  "trigger_conditions": [
+    "failure",
+    "blocker",
+    "uncertainty",
+    "missing_evidence",
+    "failing_test",
+    "import_error",
+    "poor_output",
+    "judge_rejection",
+    "route_mismatch",
+    "tool_selection_failure",
+    "performance_bottleneck",
+    "stale_data",
+    "inconsistent_claim",
+    "compile_error",
+    "runtime_error",
+    "assertion_failure"
+  ],
+
+  "escalation_ladder": [
+    {
+      "step": 1,
+      "name": "Read_Current_Trace",
+      "action": "Read current trace file and failure context",
+      "time_budget_seconds": 5,
+      "output": "failure_summary, stack_trace, relevant_files"
+    },
+    {
+      "step": 2,
+      "name": "Retrieve_Relevant_Lessons",
+      "action": "Search lesson memory for similar problems",
+      "time_budget_seconds": 10,
+      "output": "lesson_ids[], suggested_fixes[]"
+    },
+    {
+      "step": 3,
+      "name": "Search_Internal_Docs",
+      "action": "Search docs/config/code for relevant patterns",
+      "time_budget_seconds": 15,
+      "output": "relevant_files[], patterns_found[]"
+    },
+    {
+      "step": 4,
+      "name": "Inspect_Source_Paths",
+      "action": "Read actual source files for context",
+      "time_budget_seconds": 10,
+      "output": "actual_code, actual_imports, actual_api"
+    },
+    {
+      "step": 5,
+      "name": "Route_Task_Runtime",
+      "action": "Run runtime router to get task type + strategy",
+      "time_budget_seconds": 5,
+      "output": "task_type, risk_level, strategy"
+    },
+    {
+      "step": 6,
+      "name": "Select_Tools_Skills",
+      "action": "Run tool/skill selector for selected task type",
+      "time_budget_seconds": 5,
+      "output": "primary_tools[], fallback_tools[], parallelizable[]"
+    },
+    {
+      "step": 7,
+      "name": "Generate_Solution_Hypotheses",
+      "action": "Generate at least 3 materially different solution paths",
+      "time_budget_seconds": 20,
+      "output": "hypothesis_1{approach, risk, evidence}, hypothesis_2{}, hypothesis_3{}"
+    },
+    {
+      "step": 8,
+      "name": "Run_Safe_Parallel_Validation",
+      "action": "Test hypotheses in parallel if possible (compile, import, unit test)",
+      "time_budget_seconds": 30,
+      "output": "validated_hypothesis, failed_hypothesis[]"
+    },
+    {
+      "step": 9,
+      "name": "Patch_Smallest_Safe_Unit",
+      "action": "Apply patch to smallest safe unit (single function/class/config)",
+      "time_budget_seconds": 15,
+      "output": "patch_applied, risk_assessment"
+    },
+    {
+      "step": 10,
+      "name": "Run_Targeted_Tests",
+      "action": "Run tests specific to the patched area",
+      "time_budget_seconds": 30,
+      "output": "test_results[], passed[], failed[]"
+    },
+    {
+      "step": 11,
+      "name": "Run_Judge_Evaluation",
+      "action": "Run judge to evaluate if patch solves the objective",
+      "time_budget_seconds": 15,
+      "output": "judge_pass, judge_fail, feedback"
+    },
+    {
+      "step": 12,
+      "name": "Run_Reflexion",
+      "action": "If judge fails, run reflexion to generate repair plan",
+      "time_budget_seconds": 20,
+      "output": "reflexion_result, repair_plan, alternative_paths[]"
+    },
+    {
+      "step": 13,
+      "name": "Try_Alternate_Design",
+      "action": "If reflexion suggests different approach, implement it",
+      "time_budget_seconds": 30,
+      "output": "alternate_result"
+    },
+    {
+      "step": 14,
+      "name": "Code_Issue_Resolution",
+      "action": "If issue is code-related: compile/import/static scan + targeted patch",
+      "time_budget_seconds": 20,
+      "output": "compile_result, import_result"
+    },
+    {
+      "step": 15,
+      "name": "Evidence_Issue_Resolution",
+      "action": "If issue is evidence-related: run evidence validator + fix/capture",
+      "time_budget_seconds": 20,
+      "output": "evidence_fixed, evidence_captured"
+    },
+    {
+      "step": 16,
+      "name": "Registry_Issue_Resolution",
+      "action": "If issue is registry-related: run registry validator + update",
+      "time_budget_seconds": 20,
+      "output": "registry_updated"
+    },
+    {
+      "step": 17,
+      "name": "Docs_Issue_Resolution",
+      "action": "If issue is docs-related: run doc consistency scan + fix",
+      "time_budget_seconds": 20,
+      "output": "docs_fixed"
+    },
+    {
+      "step": 18,
+      "name": "Performance_Issue_Resolution",
+      "action": "If issue is performance: run parallel executor/prof probe + optimize",
+      "time_budget_seconds": 30,
+      "output": "perf_improvement"
+    },
+    {
+      "step": 19,
+      "name": "Route_Tool_Issue_Resolution",
+      "action": "If issue is route/tool: patch router/selector matrix + validate",
+      "time_budget_seconds": 30,
+      "output": "matrix_updated, validated"
+    },
+    {
+      "step": 20,
+      "name": "Rollback_And_New_Branch",
+      "action": "If repeated failure: create rollback point + try new design branch",
+      "time_budget_seconds": 30,
+      "output": "rollback_created, new_branch_path"
+    },
+    {
+      "step": 21,
+      "name": "Document_And_Escalate",
+      "action": "If all steps exhausted: document blocker + report to owner/user",
+      "time_budget_seconds": 10,
+      "output": "blocker_document, escalation_notes"
+    }
+  ],
+
+  "rules": {
+    "never_stop_after_first_failed_attempt": true,
+    "never_report_cannot_unless_3_different_strategies_tried": true,
+    "use_available_iteration_budget_when_important": true,
+    "prefer_evidence_over_claims": true,
+    "prefer_targeted_patches_over_broad_rewrites": true,
+    "prefer_rollback_safe_changes": true,
+    "use_all_safe_local_capabilities_before_asking_owner": true,
+    "never_hallucinate_solution_without_trying": true,
+    "document_failed_strategies_as_evidence": true,
+    "retry_different_approach_not_same_with_different_prompt": true
+  },
+
+  "strategy_count_minimum_before_blocker": 3,
+
+  "evidence_requirements": {
+    "failed_strategy": "must document what was tried and why it failed",
+    "successful_strategy": "must document proof of success",
+    "blocker": "must document what makes it unresolvable safely"
+  },
+
+  "iteration_budget_policy": {
+    "critical_task": {
+      "max_iterations": 10,
+      "time_per_iteration_seconds": 60
+    },
+    "normal_task": {
+      "max_iterations": 5,
+      "time_per_iteration_seconds": 30
+    },
+    "low_priority_task": {
+      "max_iterations": 3,
+      "time_per_iteration_seconds": 15
+    }
+  },
+
+  "stop_escalation_early_if": [
+    "solution_found_and_validated",
+    "owner_stop_received",
+    "unsafe_action_required",
+    "external_permission_needed",
+    "hard_blocker_proven_and_documented"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "contract_id": "ilma_internal_production_safety_contract",
+  "version": "1.0",
+  "date": "2026-05-10",
+  "owner": "Bos",
+  "description": "Production safety contract for ILMA single owner command interface",
+  "always_on": false,
+  "owner_command_required": true,
+  "rules": [
+    {
+      "id": "RULE-001",
+      "name": "no_production_deploy_without_explicit_approval",
+      "description": "Production deployments require explicit owner approval",
+      "enabled": true,
+      "severity": "critical"
+    },
+    {
+      "id": "RULE-002",
+      "name": "no_external_publish_without_explicit_approval",
+      "description": "External publishing (PyPI, npm, etc.) requires explicit owner approval",
+      "enabled": true,
+      "severity": "critical"
+    },
+    {
+      "id": "RULE-003",
+      "name": "no_dependency_install_without_approval",
+      "description": "Installing new dependencies requires explicit owner approval",
+      "enabled": true,
+      "severity": "high"
+    },
+    {
+      "id": "RULE-004",
+      "name": "no_destructive_delete",
+      "description": "Destructive delete operations (rm -rf, DROP TABLE, etc.) are blocked",
+      "enabled": true,
+      "severity": "critical"
+    },
+    {
+      "id": "RULE-005",
+      "name": "no_os_build",
+      "description": "OS-level builds (kernel, drivers, system packages) are blocked without approval",
+      "enabled": true,
+      "severity": "high"
+    },
+    {
+      "id": "RULE-006",
+      "name": "no_secret_exfiltration",
+      "description": "Extracting secrets, credentials, or sensitive data is blocked",
+      "enabled": true,
+      "severity": "critical"
+    },
+    {
+      "id": "RULE-007",
+      "name": "no_network_scan_without_approval",
+      "description": "Network scanning (nmap, masscan, port scanning) requires explicit approval",
+      "enabled": true,
+      "severity": "high"
+    },
+    {
+      "id": "RULE-008",
+      "name": "checkpoint_before_risky_refactor",
+      "description": "Checkpoint must be created before risky refactoring operations",
+      "enabled": true,
+      "severity": "medium"
+    },
+    {
+      "id": "RULE-009",
+      "name": "rollback_on_failed_gate",
+      "description": "Failed gates must trigger automatic rollback to last checkpoint",
+      "enabled": true,
+      "severity": "high"
+    },
+    {
+      "id": "RULE-010",
+      "name": "claim_boundary_enforced",
+      "description": "Claim boundary must be enforced on all final reports",
+      "enabled": true,
+      "severity": "high"
+    }
+  ],
+  "approved_owners": [
+    "Bos"
+  ],
+  "emergency_rollback": true,
+  "audit_logging": true
+}

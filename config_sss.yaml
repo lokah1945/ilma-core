@@ -1,0 +1,288 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# ILMA SSS+++ CONFIGURATION FILE v3.0
+# Military Grade Agent Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ilma:
+  version: "3.0.0"
+  tier: "SSS+++"
+  mode: "production"
+  profile_path: "/root/.hermes/profiles/ilma"
+  workspace: "/root/.openclaw/workspace"
+
+# ─── MODEL ROUTING ─────────────────────────────────────────────────────────────
+model_router:
+  # Single Source of Truth untuk semua model data
+  master_db: "ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json"
+  benchmark_db: "ilma_model_router_data/benchmark_database.json"
+  free_allowlist: "ilma_model_router_data/free_model_allowlist.json"
+  health_state: ".provider_health_state.json"
+  usage_log: "ilma_model_router_data/model_usage_log.jsonl"
+  perf_log: "ilma_model_router_data/model_performance_log.jsonl"
+
+  # Policy: free only by default
+  allow_paid: false   # Override with: --paid flag or user explicit request
+
+  # No-repeat policy: avoid same model within window
+  no_repeat_window_minutes: 30
+
+  # Cache TTL for MASTER_DB (seconds)
+  db_cache_ttl: 120
+
+  # Score weights per task (see ilma_smart_model_router.py for full config)
+  # These override defaults if specified
+  task_weights_override: {}
+
+  # Provider priority (tiebreaker)
+  provider_priority:
+    nvidia: 10
+    useai: 9
+    openrouter: 8
+    minimax: 8
+    deepseek: 7
+    alibaba: 7
+    google: 6
+    meta: 6
+    mistral: 5
+    openai: 5
+    anthropic: 5
+    cohere: 4
+
+# ─── ORCHESTRATOR ──────────────────────────────────────────────────────────────
+orchestrator:
+  # DAG execution settings
+  max_parallel_workers: 5   # max concurrent sub-agents
+  max_depth: 3              # max delegation depth (parent→child→grandchild)
+  max_agent_turns: 1000     # max iterations per agent
+
+  # Task decomposition thresholds
+  complex_task_threshold: 200   # chars — tasks longer than this → complex decomposition
+  simple_task_threshold: 50     # chars — tasks shorter than this → simple decomposition
+
+  # Timeout settings
+  default_task_timeout: 300     # seconds per sub-task
+  workflow_timeout: 3600        # total workflow timeout (1 hour)
+
+  # Retry policy
+  default_max_retries: 2
+  retry_backoff_base: 2          # exponential: 2^attempt seconds
+  retry_backoff_max: 60          # max wait: 60 seconds
+
+  # Gateway
+  gateway_timeout: 1800
+  gateway_notify_interval: 600
+  gateway_auto_continue_freshness: 3600
+
+# ─── FALLBACK CASCADE ──────────────────────────────────────────────────────────
+fallback:
+  # Max number of fallback attempts before giving up
+  max_fallback_depth: 10
+
+  # Rate limit block duration (minutes)
+  rate_limit_block_minutes: 5
+  server_error_block_minutes: 1
+  auth_error_block_hours: 1
+  model_offline_block_minutes: 5
+  degraded_block_minutes: 5
+
+  # Emergency fallback models (always free, always available)
+  emergency_models:
+    - model_id: meta/llama-3.3-70b-instruct
+      provider: nvidia
+      tier: 3
+    - model_id: deepseek-ai/deepseek-r1
+      provider: nvidia
+      tier: 3
+    - model_id: qwen/qwen3.5-397b-a17b
+      provider: nvidia
+      tier: 3
+    - model_id: "meta/llama-3.3-70b-instruct"
+      provider: "openrouter"
+      tier: 4
+    - model_id: "google/gemini-flash-1.5"
+      provider: "openrouter"
+      tier: 4
+    - model_id: "deepseek/deepseek-chat"
+      provider: "openrouter"
+      tier: 4
+    - model_id: "mistralai/mistral-7b-instruct:free"
+      provider: "openrouter"
+      tier: 4
+    - model_id: "qwen/qwen3-8b:free"
+      provider: "openrouter"
+      tier: 4
+
+  # Absolute last resort
+  absolute_fallback:
+    model_id: "meta/llama-3.1-8b-instruct:free"
+    provider: "openrouter"
+    tier: 5
+
+# ─── QUALITY GATE ──────────────────────────────────────────────────────────────
+quality_gate:
+  # Default criticality level
+  default_criticality: "standard"  # minimal | standard | high | military
+
+  # Criticality per task category
+  task_criticality:
+    heavy_coding: "high"
+    medium_coding: "standard"
+    reasoning_xhigh: "high"
+    research: "standard"
+    security_review: "military"
+    general: "minimal"
+    fast_tasks: "minimal"
+
+  # Score thresholds
+  min_pass_score: 0.6      # below this → FAIL
+  min_warn_score: 0.8      # below this → WARN
+
+  # Max retries on quality failure
+  max_quality_retries: 2
+
+  # Security: always run L4 regardless of criticality
+  always_run_security: true
+
+  # Log all quality gate results
+  log_results: true
+
+# ─── PROVIDER INTELLIGENCE ENRICHER ───────────────────────────────────────────
+enricher:
+  # Auto-run enrichment on MASTER_DB change
+  auto_enrich: true
+  enrich_interval_hours: 6
+
+  # Backup settings
+  backup_before_enrich: true
+  max_backups: 10
+
+  # Validation
+  validate_after_enrich: true
+
+# ─── SUB-AGENT ROLES ───────────────────────────────────────────────────────────
+agent_roles:
+  coordinator:
+    task_category: "reasoning_xhigh"
+    system_prompt_key: "coordinator"
+    max_delegation_depth: 0  # coordinator itself doesn't delegate
+    allowed_tools: ["delegate_task", "read_file", "write_file", "bash"]
+
+  researcher:
+    task_category: "research"
+    system_prompt_key: "researcher"
+    allowed_tools: ["web_search", "fetch_page", "bash", "read_file"]
+
+  developer:
+    task_category: "heavy_coding"
+    system_prompt_key: "developer"
+    allowed_tools: ["bash", "read_file", "write_file"]
+
+  reviewer:
+    task_category: "reasoning_xhigh"
+    system_prompt_key: "reviewer"
+    allowed_tools: ["read_file", "bash"]
+
+  security_audit:
+    task_category: "security_review"
+    system_prompt_key: "security_audit"
+    allowed_tools: ["read_file", "bash"]
+
+  optimizer:
+    task_category: "reasoning_xhigh"
+    system_prompt_key: "optimizer"
+    allowed_tools: ["read_file", "write_file", "bash"]
+
+  synthesizer:
+    task_category: "general"
+    system_prompt_key: "synthesizer"
+    allowed_tools: ["read_file", "write_file"]
+
+  validator:
+    task_category: "reasoning_xhigh"
+    system_prompt_key: "validator"
+    allowed_tools: ["read_file", "bash"]
+
+# ─── MEMORY SYSTEM ─────────────────────────────────────────────────────────────
+memory:
+  # Three-layer memory
+  session_context_max_tokens: 100000  # working memory
+  persistent_db: "data/ilma_memory.db"  # SQLite FTS5
+  skills_dir: "skills/"
+
+  # Context compression
+  compression_enabled: true
+  compression_threshold: 0.5
+  compression_target_ratio: 0.2
+  protect_last_n_messages: 20
+
+  # Prompt caching
+  prompt_cache_ttl: "5m"
+
+# ─── TELEMETRY & LEARNING ──────────────────────────────────────────────────────
+telemetry:
+  enabled: true
+  log_dir: "logs/"
+  telemetry_file: "data/orchestrator_telemetry.jsonl"
+
+  # Learning loop
+  learning_enabled: true
+  learning_feedback_threshold: 10   # min samples before learning kicks in
+  model_score_decay: 0.95           # decay factor for old scores
+
+# ─── SECURITY ──────────────────────────────────────────────────────────────────
+security:
+  # Context sanitization: strip secrets before sending to child agents
+  sanitize_context: true
+  sanitize_patterns:
+    - "api_key"
+    - "secret"
+    - "password"
+    - "token"
+    - "bearer"
+
+  # Child agent constraints
+  child_agent_max_depth: 2          # matches MAX_DEPTH
+  enforce_toolset_restriction: true  # principle of least privilege
+
+  # Secret detection in outputs
+  detect_secrets_in_output: true
+  fail_on_secret_detection: true
+
+# ─── GATEWAY ───────────────────────────────────────────────────────────────────
+gateway:
+  platforms:
+    telegram:
+      enabled: true
+    discord:
+      enabled: false
+    slack:
+      enabled: false
+    whatsapp:
+      enabled: false
+    cli:
+      enabled: true
+
+# ─── DISPLAY ───────────────────────────────────────────────────────────────────
+display:
+  streaming: true
+  personality: "kawaii"
+  show_reasoning: false
+  show_cost: false
+  compact: false
+  language: "id"  # Indonesian primary
+
+# ─── AUTONOMOUS LOOP ───────────────────────────────────────────────────────────
+autonomous_loop:
+  enabled: true
+  max_cycles_per_session: 10
+  evolution_score_target: 0.95
+  loop_states:
+    - discovery
+    - analysis
+    - planning
+    - execution
+    - validation
+    - critique
+    - improvement
+    - memory_update
+    - evolution

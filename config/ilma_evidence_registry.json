@@ -1,0 +1,487 @@
+{
+  "registry_version": "1.0",
+  "last_updated": "2026-05-08T22:00:00",
+  "total_entries": 69,
+  "entries": [
+    {
+      "evidence_id": "E001",
+      "capability": "system_awareness",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E002",
+      "capability": "file_operations",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E003",
+      "capability": "skill_management",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E004",
+      "capability": "coding",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E005",
+      "capability": "orchestrator",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E006",
+      "capability": "orchestrator",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E007",
+      "capability": "auto_evolution",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E008",
+      "capability": "auto_evolution",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E009",
+      "capability": "research",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E010",
+      "capability": "runtime_benchmarking",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E011",
+      "capability": "failure_recovery",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E012",
+      "capability": "command_center",
+      "status": "VERIFIED",
+      "confidence": 0.5
+    },
+    {
+      "evidence_id": "E013",
+      "capability": "knowledge_ingestion",
+      "status": "VERIFIED",
+      "confidence": 0.45
+    },
+    {
+      "evidence_id": "E014",
+      "capability": "adversarial_qa",
+      "status": "VERIFIED",
+      "confidence": 0.4
+    },
+    {
+      "evidence_id": "E015",
+      "capability": "qa_critic",
+      "status": "VERIFIED",
+      "confidence": 0.4
+    },
+    {
+      "evidence_id": "E016",
+      "capability": "indonesian_nlp",
+      "status": "VERIFIED",
+      "confidence": 0.5
+    },
+    {
+      "evidence_id": "E017",
+      "capability": "memory",
+      "status": "VERIFIED",
+      "confidence": 0.5
+    },
+    {
+      "evidence_id": "E018",
+      "capability": "meta_cognition",
+      "status": "VERIFIED",
+      "confidence": 0.4
+    },
+    {
+      "evidence_id": "E019",
+      "capability": "indonesian_nlp",
+      "status": "VERIFIED",
+      "confidence": 0.9
+    },
+    {
+      "evidence_id": "E020",
+      "capability": "meta_cognition",
+      "status": "VERIFIED",
+      "confidence": 0.9
+    },
+    {
+      "evidence_id": "E021",
+      "capability": "orchestrator",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E022",
+      "capability": "orchestrator",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E023",
+      "capability": "orchestrator",
+      "status": "VERIFIED",
+      "confidence": 0.9
+    },
+    {
+      "evidence_id": "E024",
+      "capability": "orchestrator",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E025",
+      "capability": "capability_orchestrator",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E026",
+      "capability": "auto_evolution",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E027",
+      "capability": "workflow_ecc",
+      "status": "BROKEN",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E028",
+      "capability": "command_center",
+      "status": "BROKEN",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E029",
+      "capability": "orchestrator",
+      "status": "PARTIAL",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E030",
+      "capability": "knowledge_ingestion",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E031",
+      "capability": "skill_management",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E032",
+      "capability": "skill_management",
+      "status": "VERIFIED",
+      "confidence": 0.9
+    },
+    {
+      "evidence_id": "E033",
+      "capability": "memory",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E034",
+      "capability": "memory",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E035",
+      "capability": "memory",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E036",
+      "capability": "system_awareness",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E037",
+      "capability": "skill_management",
+      "status": "PARTIAL",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E038",
+      "capability": "auto_evolution",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E039",
+      "capability": "orchestrator",
+      "status": "PARTIAL",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "E040",
+      "capability": "command_center",
+      "status": "VERIFIED",
+      "confidence": 1.0
+    },
+    {
+      "evidence_id": "EV_8A_MISSION_STATE_RUNTIME",
+      "capability": "mission_state_runtime",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "Mission state manager v2.0 with track system, resume from disk, evidence_id tracking"
+    },
+    {
+      "evidence_id": "EV_8A_LF_001",
+      "capability": "mission_state_runtime",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "longform_50p track first unit complete"
+    },
+    {
+      "evidence_id": "EV_8A_CF_001",
+      "capability": "mission_state_runtime",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "codebase_100file track first unit complete"
+    },
+    {
+      "evidence_id": "EV_8A_PP_001",
+      "capability": "mission_state_runtime",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "paper_30source track first unit complete"
+    },
+    {
+      "evidence_id": "EV_8B_INTEGRATION_TESTS",
+      "capability": "integration_testing",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "63 tests PASS in phase7_50file_codebase. Bug cycle: 4 fixes"
+    },
+    {
+      "evidence_id": "EV_8B_PERSISTENCE_ROUNDTRIP",
+      "capability": "integration_testing",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "Workflow artifact task export/import roundtrip verified"
+    },
+    {
+      "evidence_id": "EV_8B_ARTIFACT_MANAGER_CONTRACT",
+      "capability": "integration_testing",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "ArtifactManager contract tests verified"
+    },
+    {
+      "evidence_id": "EV_8C_100FILE_PLAN",
+      "capability": "codebase_100file_preparation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "10 planning artifacts in phase8_100file_codebase_plan/"
+    },
+    {
+      "evidence_id": "EV_8C_50_NEW_FILES",
+      "capability": "codebase_100file_preparation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "50 new files planned across 10 modules"
+    },
+    {
+      "evidence_id": "EV_8D_50P_LONGFORM",
+      "capability": "longform_50p_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "50 sections, 25 claims, 15 sources, 15 fact-checks"
+    },
+    {
+      "evidence_id": "EV_8D_25_CLAIMS",
+      "capability": "longform_50p_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "25 claims in claim_registry"
+    },
+    {
+      "evidence_id": "EV_8D_15_FACTCHECKS",
+      "capability": "longform_50p_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "15 claims verified in fact_check_table"
+    },
+    {
+      "evidence_id": "EV_8D_CONTINUITY",
+      "capability": "longform_50p_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "50 sections connected via chapter_graph"
+    },
+    {
+      "evidence_id": "EV_8E_30SOURCE_PAPER",
+      "capability": "paper_30source_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "30 sources, full academic paper, peer review simulation"
+    },
+    {
+      "evidence_id": "EV_8E_QUALITY_SCORE_7.65",
+      "capability": "paper_30source_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "Average source quality: 7.65/10"
+    },
+    {
+      "evidence_id": "EV_8E_PEER_REVIEW_SIMULATED",
+      "capability": "paper_30source_benchmark",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "4 simulated reviewers, 10 issues raised, 100% addressed"
+    },
+    {
+      "evidence_id": "EV_8F_ROOTFS_FEASIBILITY",
+      "capability": "linux_rootfs_feasibility",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "11 artifacts created. NO BUILD executed."
+    },
+    {
+      "evidence_id": "EV_8F_NO_BUILD_EXECUTED",
+      "capability": "linux_rootfs_feasibility",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "ROOTFS_BUILD_NOT_APPROVED. Awaiting Bos approval."
+    },
+    {
+      "evidence_id": "EV_8G_SKEPTICAL_REVIEW",
+      "capability": "external_validation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "3 medium issues (all fixed), 2 high (unsupported claims removed)"
+    },
+    {
+      "evidence_id": "EV_8G_FAILURE_PREDICTOR",
+      "capability": "external_validation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "6 failure modes identified, all have mitigations"
+    },
+    {
+      "evidence_id": "EV_8G_EVIDENCE_AUDITOR",
+      "capability": "external_validation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "All 22 evidence IDs traceable and verified"
+    },
+    {
+      "evidence_id": "EV_8G_SECURITY_REVIEW",
+      "capability": "external_validation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "4 issues (1 medium, 1 high, 2 low), all mitigated or noted"
+    },
+    {
+      "evidence_id": "EV_8G_CONTINUITY_REVIEW",
+      "capability": "external_validation",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "All 5 continuity checks PASS"
+    },
+    {
+      "evidence_id": "EV_9R_RUNTIME_BUDGET",
+      "capability": "adaptive_runtime_budget",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "agent.max_turns 80->220, delegation.max_iterations 100->120. ilma_runtime_policy added as ILMA metadata (Hermes does not read this)."
+    },
+    {
+      "evidence_id": "EV_9R_CONFIG_BACKUP",
+      "capability": "config_backup_safety",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "config.yaml backed up to config.yaml.bak_phase9r_2026-05-08 before patching."
+    },
+    {
+      "evidence_id": "EV_9R_KANBAN_FALLBACK",
+      "capability": "kanban_board",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "Hermes Kanban CLI not available. ILMA internal Kanban board created at test_projects/phase9_kanban_board/kanban_board.json with 12 tasks across 5 columns."
+    },
+    {
+      "evidence_id": "EV_9R_174_TESTS_PASS",
+      "capability": "codebase_100file_testing",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "174/174 tests PASS. Fixed: config_loader defaults, scheduler enabled, audit_query sort() return, backup_restore path format, lru_cache LRU interface, cache_manager.warm_cache() signature. Root cause: contract mismatches."
+    },
+    {
+      "evidence_id": "EV_9R_100FILE_CODEBASE",
+      "capability": "codebase_100file_execution",
+      "status": "VERIFIED",
+      "confidence": 1.0,
+      "description": "~88 Python files in phase9_100file_codebase across 12 modules. All compile. 174 tests PASS."
+    }
+  ],
+  "summary": {
+    "total": 69,
+    "verified": 64,
+    "broken": 2,
+    "partial": 3
+  },
+  "phase9r_additions": {
+    "count": 5,
+    "date": "2026-05-08"
+  },
+  "evidence": {
+    "ILMA-EVID-20260510-GEMINI-INTEGRATION-001": {
+      "id": "ILMA-EVID-20260510-GEMINI-INTEGRATION-001",
+      "type": "COMPILE_IMPORT",
+      "title": "All 8 Gemini modules compile and import",
+      "files": [
+        "ilma_actor_critic_core.py",
+        "ilma_reflexion_loop.py",
+        "ilma_mae_triplet.py",
+        "ilma_trajectory_evolution.py",
+        "ilma_rcr_pattern.py",
+        "ilma_long_term_memory.py",
+        "ilma_gemini_integration.py",
+        "ilma_partner_wrappers.py"
+      ],
+      "test_count": 8,
+      "status": "VERIFIED",
+      "date": "2026-05-10",
+      "notes": "All modules compile without syntax errors and import successfully"
+    },
+    "ILMA-EVID-20260510-GEMINI-INTEGRATION-002": {
+      "id": "ILMA-EVID-20260510-GEMINI-INTEGRATION-002",
+      "type": "TEST_SUITE",
+      "title": "29 unit tests for Gemini integration",
+      "test_file": "tests/test_ilma_gemini_integration.py",
+      "test_count": 29,
+      "passed": 29,
+      "failed": 0,
+      "status": "VERIFIED",
+      "date": "2026-05-10",
+      "notes": "All tests pass including Actor-Critic, Reflexion, MAE, Trajectory, RCR, Memory, Integration, and Partner Wrappers"
+    }
+  },
+  "total_evidence": 2
+}

@@ -1,0 +1,122 @@
+{
+  "version": "1.0",
+  "created": "2026-05-10T16:15:00Z",
+  "description": "ILMA Tool/Skill Selection Policy — rules for selecting tools and skills based on task type",
+
+  "selection_rules": {
+    "if_coding_task": {
+      "primary_tools": ["terminal", "file", "search"],
+      "primary_skills": ["ilma-python-patterns", "ilma-refactor-cleaner", "ilma-testing", "ilma-code-quality"],
+      "execution_order": ["terminal:py_compile", "file:read", "file:write", "terminal:test"],
+      "fallback": "decline_or_template"
+    },
+    "if_document_task": {
+      "primary_tools": ["file"],
+      "primary_skills": ["ilma-writing", "ilma-documentation"],
+      "execution_order": ["file:read", "file:write"],
+      "fallback": "outline_only"
+    },
+    "if_slides_pdf_task": {
+      "primary_tools": ["file"],
+      "primary_skills": ["powerpoint", "design-md"],
+      "execution_order": ["skill:powerpoint", "file:write"],
+      "fallback": "text_outline"
+    },
+    "if_research_task": {
+      "primary_tools": ["web", "search"],
+      "primary_skills": ["ilma-research", "arxiv"],
+      "execution_order": ["web:web_search", "web:web_extract", "file:write"],
+      "fallback": "limited_sources_note"
+    },
+    "if_audit_task": {
+      "primary_tools": ["terminal", "file", "search"],
+      "primary_skills": ["ilma-security-audit", "ilma-code-review", "security"],
+      "execution_order": ["file:read", "search:grep", "terminal:compile", "file:write_report"],
+      "fallback": "limited_audit"
+    },
+    "if_internal_ilma_task": {
+      "primary_tools": ["file", "terminal", "search"],
+      "primary_skills": ["ilma-self-improvement", "ilma-learning"],
+      "execution_order": ["file:read", "search:grep", "terminal:pytest", "file:write"],
+      "fallback": "abort_and_report"
+    },
+    "if_unsafe_task": {
+      "primary_tools": [],
+      "primary_skills": [],
+      "execution_order": [],
+      "fallback": "safety_explanation_no_execution"
+    },
+    "if_tool_unavailable": {
+      "fallback_sequence": ["file", "terminal", "search", "decline"],
+      "note": "Try tools in order until one works"
+    },
+    "if_skill_unavailable": {
+      "fallback_sequence": ["file", "terminal"],
+      "note": "Skills are optional enhancements, tools are required"
+    }
+  },
+
+  "tool_to_capability_map": {
+    "terminal": {
+      "capabilities": ["coding", "networking", "devops", "database", "system_administration"],
+      "commands": ["python3", "pytest", "git", "curl", "bash"]
+    },
+    "file": {
+      "capabilities": ["writing", "documentation", "planning", "reporting"],
+      "operations": ["read", "write", "patch"]
+    },
+    "web": {
+      "capabilities": ["research", "networking"],
+      "operations": ["web_search", "web_extract"]
+    },
+    "search": {
+      "capabilities": ["code_analysis", "research", "audit"],
+      "operations": ["search_files", "grep"]
+    },
+    "delegate_task": {
+      "capabilities": ["orchestration", "delegation"],
+      "operations": ["spawn_subagent"]
+    },
+    "send_message": {
+      "capabilities": ["messaging"],
+      "operations": ["send"]
+    },
+    "skill": {
+      "capabilities": ["any_with_skill"],
+      "operations": ["load_skill", "execute_skill"]
+    }
+  },
+
+  "skill_priority_by_task": {
+    "coding": ["ilma-python-patterns", "ilma-refactor-cleaner", "ilma-testing", "ilma-code-quality", "ilma-debug"],
+    "writing": ["ilma-writing", "ilma-documentation", "ilma-humanizer"],
+    "research": ["ilma-research", "arxiv", "blogwatcher"],
+    "audit": ["ilma-security-audit", "ilma-code-review", "security", "ilma-testing"],
+    "planning": ["ilma-planning", "ilma-problem-solve"],
+    "artifact": ["powerpoint", "design-md", "excalidraw"],
+    "internal": ["ilma-self-improvement", "ilma-evolution-routine", "ilma-learning-engine"]
+  },
+
+  "no_hallucination_rules": {
+    "forbidden_tool_patterns": [
+      "never claim tool exists that is not in available_toolsets",
+      "never claim skill exists that is not in available_skills",
+      "never claim file exists without verification",
+      "never claim API works without testing"
+    ],
+    "verification_required": {
+      "tool_claim": "check toolset list first",
+      "skill_claim": "check skills_list first",
+      "file_claim": "use file read or stat",
+      "api_claim": "test with small request first"
+    }
+  },
+
+  "execution_constraints": {
+    "max_tool_calls_per_task": 50,
+    "max_skill_loads_per_task": 10,
+    "timeout_per_tool_call": 60,
+    "timeout_per_skill": 120,
+    "require_tool_after_5_calls": "checkpoint_progress"
+  }
+}

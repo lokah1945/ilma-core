@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "name": "ILMA Runtime Performance Policy",
+  "machine_profile": "16_core_xeon",
+  "phase": "PHASE 51-D",
+  "date": "2026-05-10",
+
+  "cpu_configuration": {
+    "total_cores": 16,
+    "reserved_for_os": 2,
+    "available_for_ilma": 14,
+    "max_workers_default": 12,
+    "max_workers_burst": 16
+  },
+
+  "cpu_utilization_targets": {
+    "normal_autonomous_loop": {
+      "target_percent": "40-70",
+      "description": "Normal ILMA cycle — router + selector + retrieval + judge"
+    },
+    "compile_test_audit_burst": {
+      "target_percent": "80-95",
+      "description": "Parallel compile, test, scan operations — max 900s burst"
+    },
+    "never_starve_os": true,
+    "never_lock_machine": true
+  },
+
+  "worker_pool_settings": {
+    "default_workers": 12,
+    "burst_workers": 16,
+    "worker_timeout_seconds": 300,
+    "test_timeout_seconds": 120,
+    "scan_timeout_seconds": 60,
+    "compile_timeout_seconds": 30
+  },
+
+  "burst_policy": {
+    "cpu_burst_allowed": true,
+    "cpu_burst_max_seconds": 900,
+    "checkpoint_before_burst": true,
+    "rollback_on_failed_burst": true,
+    "burst_cooldown_seconds": 60
+  },
+
+  "parallel_job_limits": {
+    "max_concurrent_jobs": 16,
+    "max_concurrent_compile": 10,
+    "max_concurrent_test": 8,
+    "max_concurrent_scan": 12,
+    "max_concurrent_validation": 16
+  },
+
+  "forbidden_parallel_jobs": [
+    "delete",
+    "deploy",
+    "install_dependency",
+    "os_build",
+    "external_publish",
+    "secret_rotation",
+    "firewall_change",
+    "database_write",
+    "evidence_delete",
+    "memory_clear"
+  ],
+
+  "safe_parallel_jobs": [
+    "compile_file",
+    "scan_file",
+    "validate_json",
+    "search_text",
+    "run_small_test",
+    "evidence_check",
+    "registry_check",
+    "capability_map_validation",
+    "doc_consistency_scan",
+    "security_pattern_scan",
+    "trace_schema_validation",
+    "lesson_retrieval",
+    "health_check"
+  ],
+
+  "checkpoint_policy": {
+    "checkpoint_interval_minutes": 10,
+    "checkpoint_before_major_operation": true,
+    "checkpoint_on_burst_start": true,
+    "checkpoint_on_error": true,
+    "max_checkpoints_retained": 10
+  },
+
+  "stop_conditions": {
+    "cpu_percent_above": 97,
+    "memory_percent_above": 90,
+    "wall_clock_exceeded_seconds": 18000,
+    "consecutive_failures": 3,
+    "trace_write_failure": true,
+    "checkpoint_failure": true,
+    "test_gate_critical_fail": true
+  },
+
+  "thermal_safety_note": "16-core Xeon can sustain high utilization. Monitor /proc/cpuinfo frequency and /sys/class/thermal/. If thermal throttling detected, reduce workers to 8 and pause burst.",
+
+  "owner_trigger_constraint": {
+    "no_always_on": true,
+    "owner_trigger_required": true,
+    "always_on_scheduler_forbidden": true,
+    "owner_stop_respected": true
+  },
+
+  "active": true
+}

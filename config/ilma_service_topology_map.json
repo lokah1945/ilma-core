@@ -1,0 +1,463 @@
+{
+  "version": "1.0",
+  "created": "2026-05-11T01:14:00Z",
+  "audit_phase": "PHASE 54B",
+  "description": "ILMA Service Topology Map — structured map of all service-like components",
+
+  "services": {
+    "evidence_service": {
+      "status": "MOVED",
+      "canonical_path": "scripts/services/evidence/",
+      "original_path": "scripts/evidence.py",
+      "shim_path": "scripts/ilma_evidence_validator.py",
+      "moved_phase": "Phase 15D",
+      "components": [
+        {
+          "file": "validator.py",
+          "path": "scripts/services/evidence/validator.py",
+          "size_bytes": 29897,
+          "classes": ["ClaimValidator", "EvidenceChecker", "HallucinationDetector", "Evidence", "Claim", "ValidationResult", "HallucinationResult"],
+          "enums": ["EvidenceStrength", "ClaimType"]
+        },
+        {
+          "file": "validator_from_root.py",
+          "path": "scripts/services/evidence/validator_from_root.py",
+          "size_bytes": 4649,
+          "note": "Backwards compat shim from root"
+        },
+        {
+          "file": "__init__.py",
+          "path": "scripts/services/evidence/__init__.py",
+          "exports": ["ClaimValidator", "EvidenceChecker", "HallucinationDetector", "Evidence", "Claim", "ValidationResult", "HallucinationResult", "EvidenceStrength", "ClaimType"]
+        }
+      ],
+      "role": "Validates evidence claims, detects contradictions, hallucination detection",
+      "caller": "ilma_judge_system.py, capability_registry.json (evidence field)",
+      "input": "claim_text, evidence_items, validation_mode",
+      "output": "ValidationResult, HallucinationResult",
+      "imported_by_runtime": true,
+      "imports": [
+        "ilma_judge_system.py (L10 evaluator references ClaimValidator.check_contradictions)"
+      ],
+      "tested": true,
+      "test_file": "test_projects/phase17_350file_codebase/tests/test_evidence_*.py",
+      "safe_to_move": true,
+      "compatibility_shim_needed": false,
+      "shim_status": "DEPRECATED_SIMPLICATE shim exists at scripts/ilma_evidence_validator.py (Phase 15D)"
+    },
+
+    "backup_service": {
+      "status": "MOVED",
+      "canonical_path": "scripts/services/backup/core.py",
+      "original_path": "scripts/ilma_backup.py",
+      "package": "scripts/services/backup/__init__.py",
+      "moved_phase": "Phase 36G",
+      "components": [
+        {
+          "file": "core.py",
+          "path": "scripts/services/backup/core.py",
+          "size_bytes": 3905,
+          "functions": ["run", "create_backup", "list_backups", "restore_backup"]
+        },
+        {
+          "file": "__init__.py",
+          "path": "scripts/services/backup/__init__.py",
+          "exports": ["run", "create_backup", "list_backups", "restore_backup"]
+        }
+      ],
+      "role": "Backup management for ILMA state",
+      "caller": "ilma_phase36 scripts, cron jobs",
+      "input": "backup_type, target_path, options",
+      "output": "backup_metadata, restore_status",
+      "imported_by_runtime": false,
+      "imports": [],
+      "tested": false,
+      "test_file": null,
+      "safe_to_move": true,
+      "compatibility_shim_needed": true,
+      "shim_status": "Shim exists at scripts/ilma_backup.py (Phase 36G)"
+    },
+
+    "task_entrypoint": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_task_entrypoint.py",
+      "size_bytes": 20776,
+      "lines": 510,
+      "phase": "Phase 47 (Nerve Integration)",
+      "role": "Central integration point for Actor-Critic loop. PRIMARY entrypoint for heavy missions with autonomous evolution.",
+      "caller": "ilma_phase47+ scripts, autonomous_evolution_orchestrator, owner command interface",
+      "input": "target (str), task_class (str), max_iterations (int), require_judge (bool), store_lessons (bool)",
+      "output": "EvolutionTrace with cycles, artifacts, judge_results, reflections, lessons",
+      "imported_by_runtime": true,
+      "imports": [
+        "ilma_autonomous_evolution_orchestrator.py (AutonomousEvolutionOrchestrator, MissionState, MissionStatus)",
+        "ilma_critic_judge.py (CriticJudge, JudgeStatus, JudgeResult)",
+        "ilma_reflection_engine.py (ReflectionEngine, ReflectionResult)",
+        "ilma_lesson_memory.py (LessonMemory)",
+        "ilma_pretask_learning_hook.py (PreTaskLearningHook)"
+      ],
+      "tested": true,
+      "test_file": "tests/test_ilma_phase46.py (import check), ilma_phase48f_paired_test.py",
+      "safe_to_move": false,
+      "compatibility_shim_needed": false,
+      "note": "Core workflow component - HIGH RISK to move"
+    },
+
+    "lesson_memory": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_lesson_memory.py",
+      "size_bytes": 15271,
+      "lines": 483,
+      "phase": "Phase 46",
+      "schema": {
+        "lesson_id": "UUID",
+        "timestamp": "ISO8601",
+        "phase": "string",
+        "task_type": "code|writing|planning|analysis",
+        "failure_pattern": "string",
+        "root_cause": "string",
+        "fix": "string",
+        "validation_method": "string",
+        "future_rule": "string",
+        "confidence": "float 0.0-1.0",
+        "source_evidence": "string"
+      },
+      "role": "Persistent lesson storage for autonomous evolution (JSONL-based)",
+      "caller": "ilma_task_entrypoint.py, ilma_pretask_learning_hook.py, ilma_autonomous_evolution_orchestrator.py",
+      "input": "task_description, task_type, keywords for retrieval",
+      "output": "List[Lesson], retrieved lessons with failure_signature prioritization",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": true,
+      "test_file": "Phase 48E tests (13 lesson retrieval tests PASS)",
+      "safe_to_move": false,
+      "compatibility_shim_needed": false,
+      "gap_known": "task_type mismatch: retrieval uses task_type filtering but seeded lessons have task_types like 'parser_fix', 'integration_fix' not 'heavy'"
+    },
+
+    "registry_validators": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_specialist_validators.py",
+      "size_bytes": null,
+      "role": "Specialized validators for different artifact types (Architect, QA, Security, Evidence, Performance, Truthfulness, Regression, Documentation)",
+      "caller": "ilma_judge_system.py, ilma_critic_judge.py, orchestrator",
+      "input": "artifact, context (optional)",
+      "output": "ValidatorResult (pass/fail/warn with details)",
+      "imported_by_runtime": true,
+      "imports": [
+        "ilma_judge_system.py (L10 evaluator uses ArchitectValidator for registry validation)"
+      ],
+      "tested": true,
+      "test_file": "tests/test_ilma_phase46.py (TestSpecialistValidators)",
+      "safe_to_move": true,
+      "compatibility_shim_needed": false
+    },
+
+    "evidence_validators": {
+      "status": "MOVED_TO_SERVICE",
+      "canonical_path": "scripts/services/evidence/validator.py",
+      "shim_path": "scripts/ilma_evidence_validator.py",
+      "role": "Validates evidence format, batch validation, hallucination detection in claims",
+      "caller": "ilma_judge_system.py (L10), capability_registry (evidence field)",
+      "input": "claims, evidence_items, validation_config",
+      "output": "ValidationResult with EvidenceStrength rating",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": true,
+      "test_file": "test_projects/phase17_350file_codebase/tests/test_evidence_ext.py",
+      "safe_to_move": true,
+      "compatibility_shim_needed": false,
+      "shim_status": "DEPRECATED shim at scripts/ilma_evidence_validator.py (Phase 15D)"
+    },
+
+    "runtime_router": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_runtime_router.py",
+      "size_bytes": 12439,
+      "lines": 311,
+      "phase": "Phase 49-E",
+      "task_classes": ["CODE", "WRITE", "RESEARCH", "AUDIT", "PLAN", "INTERNAL", "MULTI", "ARTIFACT", "SIMPLE", "UNSAFE"],
+      "confidence_levels": ["HIGH (>=0.8)", "MEDIUM (0.5-0.8)", "LOW (0.3-0.5)", "REJECT (<0.2)"],
+      "role": "Routes user intent → workflow → capabilities → tools/skills. Nervous system of ILMA.",
+      "caller": "ilma_task_entrypoint.py, ilma_phase50 scripts, agent body integration",
+      "input": "user_intent (str)",
+      "output": "RoutingDecision (task_class, workflow, capabilities, tools)",
+      "imported_by_runtime": true,
+      "imports": [
+        "test_runtime_routing_intelligence.py (import test)"
+      ],
+      "tested": true,
+      "test_file": "test_runtime_routing_intelligence.py",
+      "safe_to_move": true,
+      "compatibility_shim_needed": false,
+      "config_files": [
+        "config/ilma_capability_routing_matrix.json",
+        "config/ilma_runtime_body_map.json",
+        "config/ilma_runtime_routing_policy.json",
+        "config/ilma_capability_effectiveness_audit.json"
+      ]
+    },
+
+    "tool_skill_selector": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_tool_skill_selector.py",
+      "size_bytes": 10907,
+      "phase": "Phase 49-F",
+      "role": "Selects right tools, skills, and execution order for given task. Safety enforcement: never hallucinate unavailable tools.",
+      "caller": "runtime_router output, ilma_phase50 canary",
+      "input": "task_class (TaskClass), workflow_type (str), safety_class (str)",
+      "output": "SelectionResult with tools[], skills[], execution_order[]",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": true,
+      "test_file": "scripts/ilma_phase50_realtime_30min_canary.py (import test), ilma_tool_skill_selector.py (demo function)",
+      "safe_to_move": true,
+      "compatibility_shim_needed": false,
+      "config_files": [
+        "config/ilma_tool_skill_selection_policy.json"
+      ]
+    },
+
+    "judge_critic": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_critic_judge.py",
+      "phase": "Phase 46",
+      "role": "L10 Evaluator - deterministic judge for Actor-Critic loop. Evaluates artifact against criteria: syntax, security, structure, evidence, performance.",
+      "caller": "ilma_autonomous_evolution_orchestrator.py, ilma_task_entrypoint.py",
+      "input": "artifact (str), target (str), criteria (str), task_type (str)",
+      "output": "JudgeResult (status: PASS/FAIL/WARN/ERROR, score, issues[], metadata)",
+      "imported_by_runtime": true,
+      "imports": [
+        "ilma_task_entrypoint.py",
+        "ilma_autonomous_evolution_orchestrator.py"
+      ],
+      "tested": true,
+      "test_file": "tests/test_ilma_phase46.py",
+      "safe_to_move": false,
+      "compatibility_shim_needed": false,
+      "note": "Core component - HIGH RISK to move"
+    },
+
+    "reflexion_engine": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_reflection_engine.py",
+      "phase": "Phase 46",
+      "role": "Converts judge failure into actionable fix plan. Analyzes failure_pattern → root_cause → fix_strategy → revision_plan.",
+      "caller": "ilma_autonomous_evolution_orchestrator.py, ilma_task_entrypoint.py",
+      "input": "failed_artifact, judge_result, target, iteration",
+      "output": "ReflectionResult (root_cause, fix_plan, revision_prompt)",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": true,
+      "test_file": "tests/test_ilma_phase46.py, scripts/ilma_reflection_engine.py (demo)",
+      "safe_to_move": false,
+      "compatibility_shim_needed": false,
+      "note": "Core component - HIGH RISK to move"
+    },
+
+    "trace_exporter": {
+      "status": "DISTRIBUTED",
+      "components": [
+        {
+          "source": "ilma_autonomous_evolution_orchestrator.py",
+          "method": "export_trace() method",
+          "role": "Exports EvolutionTrace to evidence/evolution_traces/"
+        },
+        {
+          "source": "ilma_task_entrypoint.py",
+          "method": "run_task_with_evolution() return",
+          "role": "Returns trace with all cycles, artifacts, judge_results, reflections"
+        }
+      ],
+      "canonical_mention": "config/ilma_runtime_body_map.json step_9_trace: all → trace_export → trace_file",
+      "role": "Exports execution trace with evidence of all iterations, judge evaluations, reflections",
+      "caller": "ilma_autonomous_evolution_orchestrator.py, ilma_phase48h canary contract",
+      "input": "EvolutionTrace object",
+      "output": "trace_file (JSON) in evidence/evolution_traces/",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": true,
+      "test_file": "Phase 50 canary (trace_exported: true in contract)",
+      "safe_to_move": false,
+      "compatibility_shim_needed": false,
+      "note": "No standalone trace_exporter.py - functionality distributed across orchestrator and task_entrypoint"
+    },
+
+    "checkpoint_manager": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_mission_state_manager.py",
+      "phase": "Multiple phases (Phase 10, v2.0 fixed)",
+      "role": "Mission state management with checkpoint/resume. Saves state_snapshot for true resume capability.",
+      "caller": "ilma_autonomous_evolution_orchestrator.py, ilma_phase48h canary (sigint/sigterm/timeout handlers)",
+      "input": "mission_id, objective, checkpoint_interval",
+      "output": "mission_state.json, checkpoints/*.json",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": true,
+      "test_file": "Phase 50 canary (3 checkpoints at 600s, 1200s, 1800s)",
+      "safe_to_move": true,
+      "compatibility_shim_needed": false,
+      "note": "Checkpoints confirmed operational in Phase 50 30-min real-time canary"
+    },
+
+    "report_generator": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_report_generator.py",
+      "size_bytes": 30343,
+      "lines": 893,
+      "role": "Generate structured reports with evidence. ReportBuilder, EvidenceCollector, FormatRenderer.",
+      "caller": "ilma_autonomous_evolution_orchestrator.py (final_report_generator component)",
+      "input": "report_type, evidence_data, format (markdown/pdf/html)",
+      "output": "Structured report file",
+      "imported_by_runtime": true,
+      "imports": [],
+      "tested": false,
+      "test_file": null,
+      "safe_to_move": true,
+      "compatibility_shim_needed": false
+    },
+
+    "autonomous_evolution_orchestrator": {
+      "status": "ACTIVE",
+      "canonical_path": "scripts/ilma_autonomous_evolution_orchestrator.py",
+      "phase": "Phase 46",
+      "role": "Actor-Critic state machine orchestrator. Manages MissionState transitions: INIT → PLANNING → EXECUTING → EVALUATING → REFLECTING → REVISING → FINALIZING",
+      "caller": "ilma_task_entrypoint.py",
+      "input": "MissionState, actor_callback, critic_callback, reflection_callback",
+      "output": "MissionState with final_artifact, verdict, lessons",
+      "imported_by_runtime": true,
+      "imports": [
+        "ilma_task_entrypoint.py",
+        "ilma_critic_judge.py",
+        "ilma_reflection_engine.py",
+        "ilma_lesson_memory.py"
+      ],
+      "tested": true,
+      "test_file": "tests/test_ilma_phase46.py",
+      "safe_to_move": false,
+      "compatibility_shim_needed": false,
+      "note": "Core component - HIGH RISK to move"
+    }
+  },
+
+  "deferred_services": {
+    "ingestion": {
+      "status": "DEFERRED",
+      "reason": "HTTP dependency (urllib.parse)",
+      "script": "scripts/ilma_hermes_knowledge_ingestion.py",
+      "recommendation": "DEFER_DEPENDENCY"
+    },
+    "metrics": {
+      "status": "DEFERRED",
+      "reason": "Empty script (0 bytes)",
+      "script": "scripts/ilma_metrics_monitoring.py",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "monitoring": {
+      "status": "DEFERRED",
+      "reason": "Empty script (0 bytes)",
+      "script": "scripts/ilma_metrics_monitoring.py",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "search_router": {
+      "status": "DEFERRED",
+      "reason": "HTTP dependency",
+      "script": "scripts/ilma_search_router.py",
+      "recommendation": "DEFER_DEPENDENCY"
+    },
+    "qa_critic": {
+      "status": "DEFERRED",
+      "reason": "Judgment dependency",
+      "script": "scripts/ilma_qa_critic.py",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "memory_service": {
+      "status": "DEFERRED",
+      "reason": "Core service, high risk",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "registry_service": {
+      "status": "DEFERRED",
+      "reason": "Core service, high risk",
+      "recommendation": "HIGH_RISK_DEFER"
+    },
+    "command_center": {
+      "status": "DEFERRED",
+      "reason": "Core service, high risk",
+      "recommendation": "HIGH_RISK_DEFER"
+    }
+  },
+
+  "services_manifest_summary": {
+    "moved_count": 2,
+    "deferred_count": 7,
+    "total_domains": 9
+  },
+
+  "registry_status": {
+    "verified": 31,
+    "strongly_supported": 66,
+    "partial": 1,
+    "deprecated": 1,
+    "weak_verified": 0
+  },
+
+  "runtime_tests": {
+    "total": 994,
+    "unit_tests": 423,
+    "behavior_tests": 44,
+    "semantic_tests": 1,
+    "import_smoke": 10,
+    "compile_checks": 516
+  },
+
+  "integration_flow": {
+    "task_entrypoint": "ilma_task_entrypoint.py",
+    "orchestrator": "ilma_autonomous_evolution_orchestrator.py",
+    "router": "ilma_runtime_router.py",
+    "selector": "ilma_tool_skill_selector.py",
+    "judge": "ilma_critic_judge.py",
+    "reflection": "ilma_reflection_engine.py",
+    "memory": "ilma_lesson_memory.py",
+    "checkpoint": "ilma_mission_state_manager.py",
+    "trace": "Distributed (orchestrator + task_entrypoint)",
+    "report": "ilma_report_generator.py"
+  },
+
+  "gaps_identified": [
+    {
+      "component": "lesson_memory",
+      "gap": "task_type mismatch in retrieval",
+      "detail": "PretaskLearningHook retrieves with task_type='heavy' but seeded lessons use specific task_types like 'parser_fix', 'integration_fix' - resulting in 0 lessons retrieved",
+      "severity": "HIGH",
+      "known": true,
+      "fix_needed": "Either update retrieval to use task_type=None OR seed lessons with 'heavy' task_type"
+    },
+    {
+      "component": "reflexion",
+      "gap": "ilma_reflexion_loop.py not found",
+      "detail": "Expected reflexion_loop.py but actual file is ilma_reflection_engine.py (no 'loop' suffix)",
+      "severity": "LOW",
+      "note": "Naming mismatch - reflection_engine exists, no separate reflexion_loop"
+    },
+    {
+      "component": "trace_exporter",
+      "gap": "No standalone trace_exporter.py",
+      "detail": "Trace export functionality is distributed across orchestrator and task_entrypoint, not a separate service",
+      "severity": "LOW",
+      "note": "Functions exist but no dedicated service file"
+    },
+    {
+      "component": "backup_service",
+      "gap": "verify_backup not found in core.py",
+      "detail": "__init__.py exports 'verify_backup' but core.py may not have this function",
+      "severity": "MEDIUM",
+      "note": "Needs verification of core.py implementation"
+    }
+  ],
+
+  "files_created": [
+    "config/ilma_service_topology_map.json",
+    "docs/ILMA_PHASE54_B_SERVICE_TOPOLOGY_AUDIT_2026-05-10.md"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "description": "ILMA Standalone Behavioral Evidence Inventory - Phase 37B",
+  "phase": "Phase 37",
+  "date": "2026-05-09",
+  "categories": {
+    "PYTEST_BEHAVIOR": "pytest-style test functions discovered by pytest runner",
+    "STANDALONE_BEHAVIOR": "Phase 34/35 standalone scripts with evidence IDs",
+    "SEMANTIC_TEST": "workflow/semantic checks",
+    "IMPORT_SMOKE": "smoke tests for imports",
+    "COMPILE_CHECK": "compilation verification",
+    "PROVIDER_LIVE": "live provider API test (requires actual credentials)",
+    "PROVIDER_LOCAL_ADAPTER": "local adapter fallback (no live API)",
+    "COMPONENT_EVIDENCE": "internal mechanism evidence, not standalone capability",
+    "DOC_ONLY": "documentation only, no runtime test",
+    "FILE_EXISTS_ONLY": "file exists check only"
+  },
+  "rules": {
+    "VERIFIED_allowed_evidence": ["PYTEST_BEHAVIOR", "STANDALONE_BEHAVIOR"],
+    "STANDALONE_requires_reproducible": true,
+    "IMPORT_SMOKE_cannot_justify_VERIFIED": true,
+    "COMPILE_CHECK_cannot_justify_VERIFIED": true,
+    "COMPONENT_EVIDENCE_not_user_capability_VERIFIED": true,
+    "PROVIDER_LOCAL_ADAPTER_not_live_provider": true
+  },
+  "Phase_34_standalone_scripts": [
+    {
+      "script": "scripts/ilma_phase34_behavioral_proof_batch.py",
+      "test_count": 6,
+      "capabilities": [
+        {"id": "free_research_pipeline", "evidence_id": "ILMA-EVID-20260509-P34-FREE-RESEARCH-PIPELINE-001"},
+        {"id": "creative_synthesis", "evidence_id": "ILMA-EVID-20260509-P34-CREATIVE-SYNTHESIS-001"},
+        {"id": "database_ops", "evidence_id": "ILMA-EVID-20260509-P34-DATABASE-OPS-001"},
+        {"id": "wal_automation", "evidence_id": "ILMA-EVID-20260509-P34-WAL-AUTOMATION-001"},
+        {"id": "extreme_scale_qa", "evidence_id": "ILMA-EVID-20260509-P34-EXTREME-SCALE-QA-001"},
+        {"id": "research", "evidence_id": "ILMA-EVID-20260509-P34-RESEARCH-001"}
+      ],
+      "last_run": "2026-05-09",
+      "result": "PASS",
+      "deterministic": true,
+      "local_only": true,
+      "provider_dependency": "NONE"
+    }
+  ],
+  "Phase_35_standalone_scripts": [
+    {
+      "script": "scripts/ilma_phase35_behavioral_proof_batch.py",
+      "test_count": 6,
+      "capabilities": [
+        {"id": "browser_automation", "evidence_id": "ILMA-EVID-20260509-P35-BROWSER-AUTOMATION-001"},
+        {"id": "capability_health_dashboard", "evidence_id": "ILMA-EVID-20260509-P35-CAPABILITY-HEALTH-DASHBOARD-001"},
+        {"id": "ilma_super_coding_command_center", "evidence_id": "ILMA-EVID-20260509-P35-ILMA-SUPER-CODING-COMMAND-CENTER-001"},
+        {"id": "intuition_engine", "evidence_id": "ILMA-EVID-20260509-P35-INTUITION-ENGINE-001"},
+        {"id": "meta_cognition", "evidence_id": "ILMA-EVID-20260509-P35-META-COGNITION-001"},
+        {"id": "self_improve_loop", "evidence_id": "ILMA-EVID-20260509-P35-SELF-IMPROVE-LOOP-001"}
+      ],
+      "last_run": "2026-05-09",
+      "result": "PASS",
+      "deterministic": true,
+      "local_only": true,
+      "provider_dependency": "NONE"
+    }
+  ],
+  "total_standalone_scripts": 2,
+  "total_capabilities_covered": 12,
+  "total_evidence_ids": 12
+}

@@ -1,0 +1,286 @@
+# ========================================================================
+# ILMA Core — .gitignore
+# ========================================================================
+# Bos: Huda Choirul Anam
+# Purpose: Keep runtime state, credentials, and binary artifacts OUT of repo.
+#          Source code (ilma_*.py, skills/, scripts/, ilma_bridges/, systemd/) IS tracked.
+# ========================================================================
+
+# ── Credentials & Secrets ──────────────────────────────────────────────────
+# NEVER commit these — they contain API keys, tokens, passwords
+/root/credential/
+/root/.hermes/profiles/ilma/auth.json
+/root/.hermes/profiles/ilma/auth.lock
+/root/.hermes/profiles/ilma/.env
+/root/.hermes/profiles/ilma/config.yaml
+/root/.hermes/profiles/ilma/ilma_evidence_ledger.json
+
+# API Keys & Tokens (in any file — scan ALL files)
+ghp_*
+sk-ant-*
+sk-or-*
+sk-prod-*
+AIzaSy*
+nvapi-*
+MINIMAX*
+dashscope*
+
+# Credential patterns (in filenames)
+*credential*
+*secret*
+*password*
+*token*
+*apikey*
+
+# ── Environment Files ───────────────────────────────────────────────────────
+.env
+.env.*
+*.env
+
+# ── Hermes/ILMA Runtime State ──────────────────────────────────────────────
+# These are LOCAL runtime files — not source code, not shared
+home/
+gateway.pid
+gateway.lock
+gateway_state.json
+bridge_health_state.json
+ilma_bridge_health_state.json
+processes.json
+checkpoints/
+.telemetry/
+.telemetry_state.json
+.optimize.lock
+.optimization/
+.learnings/
+
+# ── Browser Profile ─────────────────────────────────────────────────────────
+# Chrome/Chromium profile — NEVER commit browser cache, cookies, history
+.browser_profile/
+
+# ── Data Directories (Runtime Artifacts) ────────────────────────────────────
+# These are generated at runtime — colleagues clone, then ILMA regenerates them
+evidence/
+sessions/
+sessions_archive/
+backups/
+archive/garbage/
+archive/garbage_scripts/
+artifacts/
+fabric_archive/
+router_archive/
+memory_archive/
+scripts_archive/
+sandbox/
+sandboxes/
+
+# ── Cache & Logs ────────────────────────────────────────────────────────────
+.cache/
+cache/
+logs/
+output/
+tmp/
+workspace/
+*.log
+*.tmp
+
+# ── System & Build ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+.pytest_cache/
+.session/
+.mcp/
+.mission-control/
+node_modules/
+dist/
+build/
+*.egg-info/
+*.db
+state.db
+state.db-*
+
+# ── Local-Only Configs ──────────────────────────────────────────────────────
+ilma_model_router_data/model_health_state.json
+ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json
+
+# ── hermes_profile_ilma/ Runtime State ─────────────────────────────────────
+# Keep: ilma_*.py, *.md (source), config/*.json (some referenced)
+# Remove: runtime state (gateway, memory, processes, timestamps)
+hermes_profile_ilma/gateway.lock
+hermes_profile_ilma/gateway.pid
+hermes_profile_ilma/gateway_state.json
+hermes_profile_ilma/ilma_bridge_health_state.json
+hermes_profile_ilma/ilma_learning_db.json
+hermes_profile_ilma/ilma_routing_rules.json
+hermes_profile_ilma/memory.json
+hermes_profile_ilma/processes.json
+hermes_profile_ilma/ILMA_MODEL_DB.json
+hermes_profile_ilma/model_specialization_database.json
+hermes_profile_ilma/dependency_graph.json
+hermes_profile_ilma/optimization_report_*.json
+hermes_profile_ilma/.meta_cognition_state.json
+hermes_profile_ilma/capability_registry.json
+hermes_profile_ilma/channel_directory.json
+hermes_profile_ilma/scripts/.chatgpt_session.json
+hermes_profile_ilma/scripts/.oauth_state.json
+hermes_profile_ilma/skills/.usage.json
+hermes_profile_ilma/skills/ilma_skill_manifest.json
+hermes_profile_ilma/data/phase13r_*
+
+# ── Phase Reports (Generated, not source) ──────────────────────────────────
+# Root-level phase reports — keep only the canonical SOUL.md
+ILMA_PHASE*.md
+
+# ── Keep These (Explicitly Whitelisted) ────────────────────────────────────
+# Source code directories that ARE tracked
+!ilma_bridges/
+!systemd/
+!scripts/
+!skills/
+!ilma_core/
+!dashboard/
+!docs/
+!docs/passive_benchmark_refresh/
+
+# hermes_profile_ilma/ source files (legacy migration, keep for reference)
+!hermes_profile_ilma/SOUL.md
+!hermes_profile_ilma/ilma_soul.md
+!hermes_profile_ilma/ilma_body_map.md
+!hermes_profile_ilma/ilma_constitution.md
+!hermes_profile_ilma/ilma_runtime_guide.md
+!hermes_profile_ilma/ilma_architecture_diagram.txt
+!hermes_profile_ilma/ilma_bootstrap.sh
+!hermes_profile_ilma/ilma_system_status.sh
+!hermes_profile_ilma/ilma_integration_manifest.json
+!hermes_profile_ilma/ilma_bridge_router.py.new
+
+# Canonical model index files
+!canonical_model_index.json
+!models_registry.json
+!capability_registry.json
+
+# ========================================================================
+# PHASE 72 CLEANUP — Runtime & Sensitif (Bos: Huda Choirul Anam)
+# ========================================================================
+
+# WhatsApp session (SENSITIVE — never track)
+whatsapp/
+
+# Memory / learnings (runtime state)
+memories/
+memory/
+.learnings/
+
+# Dashboard frontend build artifacts
+dashboard/frontend/node_modules/
+dashboard/frontend/.next/
+dashboard/frontend/dist/
+
+# CodeX OAuth / session tokens (SENSITIVE)
+scripts/.codex_oauth_*
+scripts/.codex_pkce_*
+scripts/.chatgpt_session.json
+scripts/.oauth_state.json
+scripts/codex_cookies.json
+scripts/v43_cookies.json
+
+# Skills hub cache
+skills/.hub/
+skills/.curator_backups/
+skills/.usage.json
+skills/ilma_skill_manifest.json
+
+# Root-level phase artifacts (generated by ILMA runs)
+ILMA_*.md
+ILMA_*.json
+ILMA_*.zip
+
+# Root-level state files
+.optimize.lock
+.meta_cognition_state.json
+.optimizer_status.json
+.autonomous_loop_state.json
+.memory.json
+.channel_directory.json
+.model_specialization_database.json
+.models_dev_cache.json
+.benchmark_aa_cache.json
+.deep_analysis_*.json
+.optimization_*.json
+.rollback_manifest_*.json
+.skills_prompt_snapshot.json
+
+# Root-level data directories (runtime)
+dna/
+sandbox/
+run/
+lsp/
+vane/
+platforms/
+reports/
+coding_rollbacks/
+auth/
+state/
+bridge_monitor/
+
+# Router runtime data (not source)
+ilma_model_router_data/backups/
+ilma_model_router_data/audit_trail.jsonl
+ilma_model_router_data/score_history.jsonl
+ilma_model_router_data/sot_changelog.jsonl
+ilma_model_router_data/optimization_cycles.json
+ilma_model_router_data/self_improvement.json
+ilma_model_router_data/unity_state.json
+ilma_model_router_data/knowledge_graph.json
+ilma_model_router_data/response_cache.json
+ilma_model_router_data/benchmark_database.json
+ilma_model_router_data/nvidia_key_health.json
+ilma_model_router_data/production_allowlist.json
+ilma_model_router_data/provider_endpoints.json
+ilma_model_router_data/provider_callability.json
+ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.*.json
+
+# Data / evidence (runtime, not source)
+data/
+evidence/
+sessions/
+backups/
+
+# Config / workflow runtime
+sot_backups/
+
+# --- runtime artifacts (2026-06-20 security/hygiene: stop autonomy git add -A churn) ---
+*.log
+*.ndjson
+logs/
+sessions/
+sessions_archive/
+checkpoints/
+traces/
+memory_archive/
+autonomous_loop_state.json
+channel_directory.json
+*_health_state.json
+provider_health*.json
+ilma_provider_health_state.json
+*.tmp
+*.tmp.*
+*.jsonl
+
+# --- secrets & credentials (never commit) ---
+.env
+*.env
+api_key*.json
+*credential*
+*secret*
+*.pem
+*.key
+.vault*
+.tamperproof*
+# config backups (may contain keys)
+config.yaml.backup*
+config.yaml.bak*
+*.backup_*

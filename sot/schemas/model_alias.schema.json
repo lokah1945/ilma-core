@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "model_alias",
+  "description": "Alias resolution: maps alternative IDs to canonical (provider, model_id).",
+  "type": "object",
+  "required": ["alias", "canonical_provider", "canonical_model_id"],
+  "properties": {
+    "alias":              { "type": "string", "minLength": 1 },
+    "alias_source":       { "type": "string" },
+    "canonical_provider": { "type": "string", "minLength": 1 },
+    "canonical_model_id": { "type": "string", "minLength": 1 },
+    "updated_at":         { "type": ["string", "null"], "format": "date-time" }
+  }
+}

@@ -1,0 +1,673 @@
+{
+  "contract_version": "1.0.0",
+  "contract_date": "2026-05-10",
+  "contract_phase": "PHASE 54C",
+  "description": "ILMA Runtime Wiring Contract — mandatory flow for heavy tasks",
+
+  "contract_scope": {
+    "applies_to": "heavy_tasks",
+    "task_classifications": ["heavy", "super_heavy", "extreme_mission", "autonomous_evolution"],
+    "excludes": ["simple", "fast_tasks"]
+  },
+
+  "flow_sequence": [
+    {
+      "step": 1,
+      "name": "owner_command",
+      "display_name": "Owner Command Interface",
+      "component_path": "ilma.py / ilma_bootstrap.sh",
+      "function_role": "Receives and validates owner command. Establishes mission context and owner intent.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["raw_command", "owner_identity"],
+        "optional": ["mission_parameters", "constraints"]
+      },
+      "outputs": {
+        "structured_command": "(dict with command_type, scope, duration, forbidden_items)",
+        "validation_status": "(pass/fail)"
+      },
+      "must_do": [
+        "Parse raw command into structured format",
+        "Validate command against safety contract",
+        "Extract scope/focus items",
+        "Extract forbidden items",
+        "Determine mission duration if specified"
+      ],
+      "must_not_do": [
+        "Execute command without validation",
+        "Proceed if forbidden scope detected without confirmation",
+        "Bypass safety contract for any reason"
+      ],
+      "failure_mode": "stop",
+      "failure_action": "Request owner confirmation if forbidden scope detected, otherwise abort",
+      "implementation_status": "exists",
+      "implementation_notes": "ilma_bootstrap.sh and ilma.py provide command interface. Formal command parser with structured output not fully implemented."
+    },
+    {
+      "step": 2,
+      "name": "command_parser",
+      "display_name": "Command Parser",
+      "component_path": "scripts/ilma_autolearning_trigger.py (AutoLearningTriggerParser)",
+      "function_role": "Parses structured command into execution plan with scope, focus, and constraints.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["structured_command"],
+        "optional": ["historical_context"]
+      },
+      "outputs": {
+        "parsed_command": "(scope, focus, duration, forbidden, requires_confirmation)",
+        "intent_type": "(string)",
+        "actionable_plan": "(dict)"
+      },
+      "must_do": [
+        "Extract scope items from command",
+        "Extract focus items (priorities)",
+        "Extract forbidden items",
+        "Determine if confirmation required",
+        "Validate duration format"
+      ],
+      "must_not_do": [
+        "Misclassify forbidden items as scope",
+        "Skip validation of scope items",
+        "Return unvalidated parsed output"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Use conservative defaults, flag for review",
+      "implementation_status": "partial",
+      "implementation_notes": "AutoLearningTriggerParser exists but only handles 'auto learning' commands. General command parser for all heavy tasks not unified."
+    },
+    {
+      "step": 3,
+      "name": "task_classifier",
+      "display_name": "Task Classifier",
+      "component_path": "scripts/ilma_runtime_router.py (RuntimeRouter.classify_intent)",
+      "function_role": "Classifies user intent into task class (code/write/research/audit/plan/internal/multi/artifact/simple/unsafe) with confidence score.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["user_message"],
+        "optional": ["parsed_command", "context"]
+      },
+      "outputs": {
+        "task_class": "(TaskClass enum)",
+        "confidence": "(float 0.0-1.0)",
+        "primary_keywords": "(list)",
+        "compound_detected": "(bool)"
+      },
+      "must_do": [
+        "Match keywords with word boundaries",
+        "Detect compound task patterns",
+        "Calculate confidence based on match quality",
+        "Return TaskClass enum value"
+      ],
+      "must_not_do": [
+        "Classify based on partial word matches",
+        "Return ambiguous task class",
+        "Skip compound pattern detection"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Default to PLAN task class with low confidence",
+      "implementation_status": "exists",
+      "implementation_notes": "RuntimeRouter.classify_intent() is functional. 10 task classes defined. Compound pattern detection implemented."
+    },
+    {
+      "step": 4,
+      "name": "runtime_router",
+      "display_name": "Runtime Router",
+      "component_path": "scripts/ilma_runtime_router.py (RuntimeRouter.route)",
+      "function_role": "Routes task to appropriate workflow, capabilities, tools, and skills based on task classification.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["user_message", "task_class", "confidence"],
+        "optional": ["pretask_lessons"]
+      },
+      "outputs": {
+        "routing_decision": "(RoutingDecision dataclass)",
+        "workflow": "(string)",
+        "capabilities": "(list)",
+        "tools": "(list)",
+        "skills": "(list)",
+        "judge_rubric": "(string)",
+        "max_iterations": "(int)"
+      },
+      "must_do": [
+        "Map task class to workflow",
+        "Resolve capabilities to tools/skills",
+        "Apply routing policy rules",
+        "Determine fallback route",
+        "Set safety class"
+      ],
+      "must_not_do": [
+        "Route to unsafe workflow",
+        "Skip capability resolution",
+        "Return incomplete routing decision"
+      ],
+      "failure_mode": "stop",
+      "failure_action": "Escalate to owner if routing fails critically",
+      "implementation_status": "exists",
+      "implementation_notes": "RuntimeRouter.route() functional. Uses body_map and routing_matrix for resolution. Safety class determination implemented."
+    },
+    {
+      "step": 5,
+      "name": "pretask_lesson_retrieval",
+      "display_name": "Pre-task Lesson Retrieval",
+      "component_path": "scripts/ilma_pretask_learning_hook.py (PreTaskLearningHook) + scripts/ilma_lesson_memory.py (LessonMemory)",
+      "function_role": "Retrieves relevant lessons from memory before task execution to inform actor.",
+      "mandatory": false,
+      "inputs": {
+        "required": ["target_task"],
+        "optional": ["task_class", "limit"]
+      },
+      "outputs": {
+        "retrieved_lessons": "(list of Lesson objects)",
+        "lesson_count": "(int)",
+        "lesson_sigs": "(list of failure_signature strings)",
+        "retrieval_query": "(string)"
+      },
+      "must_do": [
+        "Search lessons by keyword similarity",
+        "Deduplicate retrieved lessons",
+        "Track retrieval statistics",
+        "Inject lesson context into actor"
+      ],
+      "must_not_do": [
+        "Filter by task_class incorrectly (excludes seeded lessons)",
+        "Return lessons without deduplication",
+        "Skip lesson context injection when lessons available"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Continue without lessons, log retrieval failure",
+      "implementation_status": "exists",
+      "implementation_notes": "PreTaskLearningHook and LessonMemory exist. retrieve_for_task() returns dict with 'lessons' key. Integration into main flow via ilma_task_entrypoint.py Step 1."
+    },
+    {
+      "step": 6,
+      "name": "tool_skill_selector",
+      "display_name": "Tool/Skill Selector",
+      "component_path": "ilma_capability_registry.py + config/ilma_capability_routing_matrix.json",
+      "function_role": "Selects appropriate tools and skills based on routing decision and capability matrix.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["routing_decision", "task_class"],
+        "optional": ["context", "available_tools"]
+      },
+      "outputs": {
+        "selected_tools": "(list)",
+        "selected_skills": "(list)",
+        "execution_mode": "(string)",
+        "fallback_chain": "(list)"
+      },
+      "must_do": [
+        "Resolve capabilities to actual tools",
+        "Select appropriate skills for task",
+        "Build fallback chain for tool failures",
+        "Verify tool availability before selection"
+      ],
+      "must_not_do": [
+        "Select unavailable tools",
+        "Skip skill resolution",
+        "Return empty tool list for non-simple tasks"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Use default tool set, flag for review",
+      "implementation_status": "partial",
+      "implementation_notes": "Capability resolution exists in RuntimeRouter.route(). Direct tool/skill selector not formalized as separate component. Integration via routing_matrix."
+    },
+    {
+      "step": 7,
+      "name": "actor_execution",
+      "display_name": "Actor Execution",
+      "component_path": "scripts/ilma_task_entrypoint.py (run_task_with_evolution) + scripts/ilma_default_actor_artifact_producer.py",
+      "function_role": "Executes the task using Actor-Critic loop with artifact production.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["target", "task_class", "routing_decision"],
+        "optional": ["lesson_context", "actor_callback", "max_iterations"]
+      },
+      "outputs": {
+        "artifact_path": "(string)",
+        "actor_output": "(string)",
+        "iteration_count": "(int)",
+        "execution_time_ms": "(float)"
+      },
+      "must_do": [
+        "Produce valid artifact based on target",
+        "Inject lesson context when available",
+        "Track iteration count",
+        "Report execution status"
+      ],
+      "must_not_do": [
+        "Produce artifact without lesson context when lessons available",
+        "Exceed max_iterations without justification",
+        "Skip artifact production for non-trivial tasks"
+      ],
+      "failure_mode": "escalate",
+      "failure_action": "Trigger reflection loop, increment revision count",
+      "implementation_status": "exists",
+      "implementation_notes": "run_task_with_evolution() is primary entrypoint. Uses DefaultArtifactProducer for actual artifact creation. Actor-Critic loop in AutonomousEvolutionOrchestrator."
+    },
+    {
+      "step": 8,
+      "name": "judge_evaluation",
+      "display_name": "Judge Evaluation",
+      "component_path": "ilma_judge_system.py + ilma_critic_judge.py (CriticJudge)",
+      "function_role": "Evaluates actor output against judge rubric and criteria.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["actor_output", "target_criteria", "judge_rubric"],
+        "optional": ["context", "iteration"]
+      },
+      "outputs": {
+        "verdict": "(PASS/FAIL/PARTIAL)",
+        "score": "(float 1.0-5.0)",
+        "feedback": "(string)",
+        "critique": "(string)"
+      },
+      "must_do": [
+        "Evaluate against rubric criteria",
+        "Calculate numerical score",
+        "Provide actionable feedback",
+        "Generate critique for revision"
+      ],
+      "must_not_do": [
+        "Return PASS without score >= threshold",
+        "Skip critique generation on FAIL",
+        "Use non-deterministic evaluation"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "If evaluation fails, use conservative verdict (FAIL)",
+      "implementation_status": "exists",
+      "implementation_notes": "CriticJudge class in ilma_critic_judge.py. verify_file() in ilma_judge_system.py for code verification. Judge verdict determines next action."
+    },
+    {
+      "step": 9,
+      "name": "reflexion",
+      "display_name": "Reflexion Loop",
+      "component_path": "ilma_reflection_engine.py (ReflectionEngine) + ilma_gemini_integration.py (ReflexionLoop)",
+      "function_role": "Self-correction cycle when judge returns FAIL. Triggers revision with critique injection.",
+      "mandatory": false,
+      "inputs": {
+        "required": ["judge_verdict", "judge_critique", "actor_output"],
+        "optional": ["reflection_count"]
+      },
+      "outputs": {
+        "revised_output": "(string)",
+        "reflection_quality": "(float)",
+        "revision_needed": "(bool)"
+      },
+      "must_do": [
+        "Check if revision needed based on verdict",
+        "Inject critique into actor context",
+        "Trigger revision iteration",
+        "Track reflection quality"
+      ],
+      "must_not_do": [
+        "Skip reflexion when verdict is FAIL",
+        "Revise when verdict is PASS",
+        "Continue reflexion beyond max_iterations"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "If reflexion fails, proceed with current output and flag for review",
+      "implementation_status": "exists",
+      "implementation_notes": "ReflectionEngine exists. ReflexionLoop in ilma_gemini_integration.py. Triggered when judge verdict is FAIL. Max revision cycles enforced."
+    },
+    {
+      "step": 10,
+      "name": "evidence_update",
+      "display_name": "Evidence Update",
+      "component_path": "scripts/services/evidence/ + ilma_evidence_ledger.json",
+      "function_role": "Updates evidence ledger with execution results, artifacts, and verification data.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["evidence_id", "capability", "description"],
+        "optional": ["artifact_path", "verification_result", "execution_metadata"]
+      },
+      "outputs": {
+        "evidence_entry": "(dict)",
+        "evidence_id": "(string)",
+        "update_status": "(success/fail)"
+      },
+      "must_do": [
+        "Log evidence to ledger",
+        "Update alias map if applicable",
+        "Verify evidence completeness",
+        "Maintain evidence chain"
+      ],
+      "must_not_do": [
+        "Update evidence without verification",
+        "Skip evidence logging for verified capabilities",
+        "Corrupt evidence chain"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Log warning, continue without evidence update",
+      "implementation_status": "partial",
+      "implementation_notes": "log_evidence() function exists in ilma_unified_core.py. Evidence service moved to scripts/services/evidence/. Formal evidence update pipeline not fully integrated into runtime flow."
+    },
+    {
+      "step": 11,
+      "name": "mark_reused",
+      "display_name": "Mark Lesson Reused",
+      "component_path": "scripts/ilma_lesson_memory.py (LessonMemory.mark_reused)",
+      "function_role": "Marks retrieved lessons as reused, incrementing reuse_count and updating last_reused_at.",
+      "mandatory": false,
+      "inputs": {
+        "required": ["lesson_id"],
+        "optional": ["task_context"]
+      },
+      "outputs": {
+        "update_status": "(success/fail)",
+        "new_reuse_count": "(int)",
+        "last_reused_at": "(datetime)"
+      },
+      "must_do": [
+        "Increment reuse_count by 1",
+        "Update last_reused_at timestamp",
+        "Persist changes to memory"
+      ],
+      "must_not_do": [
+        "Mark non-retrieved lessons",
+        "Skip timestamp update",
+        "Reset reuse_count"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Log warning, continue without mark_reused",
+      "implementation_status": "exists",
+      "implementation_notes": "mark_reused() method exists in LessonMemory class. Tests confirm it increments reuse_count and sets reused_at. Integration in test_phase48e_lesson_retrieval.py verified."
+    },
+    {
+      "step": 12,
+      "name": "trace_export",
+      "display_name": "Trace Export",
+      "component_path": "scripts/ilma_task_entrypoint.py (EvolutionTrace.to_json) + evidence/evolution_traces/",
+      "function_role": "Exports complete evolution trace to filesystem for audit and reproducibility.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["evolution_trace"],
+        "optional": ["trace_id", "destination_path"]
+      },
+      "outputs": {
+        "trace_path": "(string)",
+        "trace_id": "(string)",
+        "export_status": "(success/fail)"
+      },
+      "must_do": [
+        "Serialize evolution trace to JSON",
+        "Write to evidence/evolution_traces/ directory",
+        "Include all iterations, lessons, judge results",
+        "Generate unique trace_id"
+      ],
+      "must_not_do": [
+        "Truncate trace data",
+        "Write to non-auditable location",
+        "Skip failed iterations in trace"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Log warning, continue without trace export",
+      "implementation_status": "exists",
+      "implementation_notes": "EvolutionTrace.to_json() method exists. Traces exported to evidence/evolution_traces/. Phase 50 trace exists at evidence/evolution_traces/phase50/final_trace.json."
+    },
+    {
+      "step": 13,
+      "name": "checkpoint",
+      "display_name": "Checkpoint Creation",
+      "component_path": "scripts/ilma_memory_persistence.py (MemoryPersistence.checkpoint)",
+      "function_role": "Creates durable checkpoint for long-running tasks to enable resume.",
+      "mandatory": false,
+      "inputs": {
+        "required": ["mission_state"],
+        "optional": ["checkpoint_id", "auto_trigger"]
+      },
+      "outputs": {
+        "checkpoint_path": "(string)",
+        "checkpoint_id": "(string)",
+        "entries_since_checkpoint": "(int)"
+      },
+      "must_do": [
+        "Serialize mission state",
+        "Write to checkpoints/ directory",
+        "Update last_checkpoint timestamp",
+        "Track entries since checkpoint"
+      ],
+      "must_not_do": [
+        "Checkpoint corrupted state",
+        "Write to volatile storage",
+        "Skip checkpoint for long-running tasks (>5min)"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Log warning, continue without checkpoint (may lose progress)",
+      "implementation_status": "exists",
+      "implementation_notes": "MemoryPersistence class exists with checkpoint() method. Checkpoint directory at memory/checkpoints/. Triggered automatically every N entries or on request."
+    },
+    {
+      "step": 14,
+      "name": "final_report",
+      "display_name": "Final Report Generation",
+      "component_path": "scripts/ilma_task_entrypoint.py + scripts/ilma_phase50_realtime_30min_canary.py",
+      "function_role": "Generates comprehensive final report of mission execution.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["evolution_trace", "verdict", "artifacts"],
+        "optional": ["checkpoint_path", "lessons_created"]
+      },
+      "outputs": {
+        "report_path": "(string)",
+        "report_content": "(dict with summary, metrics, artifacts, lessons)",
+        "exit_code": "(int)"
+      },
+      "must_do": [
+        "Summarize mission outcome",
+        "List all artifacts produced",
+        "Include judge scores and iterations",
+        "Report lessons learned/created",
+        "Generate exit code (0=success, 1=fail)"
+      ],
+      "must_not_do": [
+        "Skip verdict in report",
+        "Omit iteration count",
+        "Exclude artifacts from report",
+        "Report success for FAIL verdict"
+      ],
+      "failure_mode": "continue",
+      "failure_action": "Generate minimal report with available data",
+      "implementation_status": "missing",
+      "implementation_notes": "Final report generation NOT formally implemented as a separate step. Phase 50 scripts produce informal reports. Formal final_report step needs implementation."
+    },
+    {
+      "step": 15,
+      "name": "claim_boundary_audit",
+      "display_name": "Claim Boundary Audit",
+      "component_path": "config/ilma_claim_boundary.json + ilma_grounding_loop.py",
+      "function_role": "Audits claims against evidence and updates claim boundary status.",
+      "mandatory": true,
+      "inputs": {
+        "required": ["mission_result", "evidence_path"],
+        "optional": ["claimed_capabilities"]
+      },
+      "outputs": {
+        "audit_result": "(dict with approved_claims, rejected_claims, gaps)",
+        "boundary_update_needed": "(bool)",
+        "forbidden_claims_detected": "(list)"
+      },
+      "must_do": [
+        "Verify each claim has evidence",
+        "Check against forbidden_claims list",
+        "Identify evidence gaps",
+        "Update claim_boundary if needed"
+      ],
+      "must_not_do": [
+        "Approve claims without evidence",
+        "Skip forbidden claim detection",
+        "Overclaim capability based on partial evidence"
+      ],
+      "failure_mode": "stop",
+      "failure_action": "Halt overclaim, require evidence before proceeding",
+      "implementation_status": "partial",
+      "implementation_notes": "ilma_claim_boundary.json exists with what_ilma_can_claim and what_ilma_cannot_claim_yet. Grounding loop in ilma_grounding_loop.py has auto_classify_claim(). Formal audit mechanism at mission end not implemented."
+    }
+  ],
+
+  "integration_points": {
+    "1_to_2": {
+      "from": "owner_command",
+      "to": "command_parser",
+      "data_flow": "structured_command",
+      "validation": "structured_command must have command_type and scope"
+    },
+    "2_to_3": {
+      "from": "command_parser",
+      "to": "task_classifier",
+      "data_flow": "parsed_command.intent_type + user_message",
+      "validation": "parsed_command must be valid"
+    },
+    "3_to_4": {
+      "from": "task_classifier",
+      "to": "runtime_router",
+      "data_flow": "task_class + confidence + user_message",
+      "validation": "task_class must be valid enum"
+    },
+    "4_to_5": {
+      "from": "runtime_router",
+      "to": "pretask_lesson_retrieval",
+      "data_flow": "routing_decision.workflow + target_task",
+      "validation": "routing_decision must be complete"
+    },
+    "5_to_6": {
+      "from": "pretask_lesson_retrieval",
+      "to": "tool_skill_selector",
+      "data_flow": "retrieved_lessons + routing_decision",
+      "validation": "None (optional step)"
+    },
+    "6_to_7": {
+      "from": "tool_skill_selector",
+      "to": "actor_execution",
+      "data_flow": "selected_tools + selected_skills + context",
+      "validation": "selected_tools must not be empty for non-simple tasks"
+    },
+    "7_to_8": {
+      "from": "actor_execution",
+      "to": "judge_evaluation",
+      "data_flow": "artifact_path + actor_output + target_criteria",
+      "validation": "actor_output must exist"
+    },
+    "8_to_9": {
+      "from": "judge_evaluation",
+      "to": "reflexion",
+      "data_flow": "verdict + score + critique",
+      "validation": "verdict must be valid enum"
+    },
+    "9_to_7": {
+      "from": "reflexion",
+      "to": "actor_execution",
+      "data_flow": "revised_output + critique_context",
+      "validation": "revision_needed must be boolean",
+      "loop": true
+    },
+    "8_to_10": {
+      "from": "judge_evaluation",
+      "to": "evidence_update",
+      "data_flow": "verdict + score + artifact_path",
+      "validation": "verdict must be final (no more revisions)"
+    },
+    "10_to_11": {
+      "from": "evidence_update",
+      "to": "mark_reused",
+      "data_flow": "evidence_id + capability",
+      "validation": "evidence_entry must be logged"
+    },
+    "11_to_12": {
+      "from": "mark_reused",
+      "to": "trace_export",
+      "data_flow": "lesson_ids + reuse_count",
+      "validation": "None (optional step)"
+    },
+    "12_to_13": {
+      "from": "trace_export",
+      "to": "checkpoint",
+      "data_flow": "evolution_trace + checkpoint_trigger",
+      "validation": "trace_id must exist"
+    },
+    "13_to_14": {
+      "from": "checkpoint",
+      "to": "final_report",
+      "data_flow": "checkpoint_path + final_state",
+      "validation": "checkpoint must be complete"
+    },
+    "14_to_15": {
+      "from": "final_report",
+      "to": "claim_boundary_audit",
+      "data_flow": "report_content + claimed_capabilities + artifacts",
+      "validation": "report must have exit_code"
+    }
+  },
+
+  "failure_modes": {
+    "stop": {
+      "description": "Halt execution immediately, do not proceed to next step",
+      "action": "Log error, notify owner, do not produce artifact"
+    },
+    "continue": {
+      "description": "Continue with conservative defaults, flag for review",
+      "action": "Log warning, use fallback, proceed with reduced confidence"
+    },
+    "escalate": {
+      "description": "Trigger higher-level intervention (reflection, owner notification)",
+      "action": "Log critical, trigger reflexion loop or owner alert"
+    }
+  },
+
+  "graceful_degradation": {
+    "description": "When a step fails or is missing, the runtime should continue with reduced functionality",
+    "rules": [
+      "If pretask_lesson_retrieval fails, continue without lessons",
+      "If tool_skill_selector returns empty, use default tool set",
+      "If reflexion fails, use current output and flag for review",
+      "If evidence_update fails, log warning and continue",
+      "If mark_reused fails, log warning and continue",
+      "If trace_export fails, continue without trace (audit gap)",
+      "If checkpoint fails, log warning (may lose progress)",
+      "If final_report fails, generate minimal report with available data",
+      "If claim_boundary_audit fails, halt any overclaim"
+    ]
+  },
+
+  "contract_requirements": {
+    "heavy_task_criteria": {
+      "task_classes": ["heavy", "super_heavy", "extreme_mission", "autonomous_evolution"],
+      "min_iterations": 3,
+      "requires_judge": true,
+      "requires_trace": true
+    },
+    "mandatory_steps_for_heavy": [1, 2, 3, 4, 7, 8, 10, 12, 14, 15],
+    "optional_steps_for_heavy": [5, 6, 9, 11, 13],
+    "conditional_steps": {
+      "reflexion": "Only if judge verdict is FAIL and revision_needed is true",
+      "mark_reused": "Only if lessons were retrieved in step 5",
+      "checkpoint": "Only if task duration > 5 minutes"
+    }
+  },
+
+  "current_implementation_summary": {
+    "total_steps": 15,
+    "exists": 11,
+    "partial": 3,
+    "missing": 1,
+    "not_integrated": [
+      "command_parser - exists but only for auto_learning commands",
+      "tool_skill_selector - exists but not as separate component",
+      "final_report - not formally implemented as a step"
+    ],
+    "integration_gaps": [
+      "pretask_lesson_retrieval not auto-triggered in all heavy tasks",
+      "evidence_update not formally integrated in runtime flow",
+      "claim_boundary_audit not called at mission end"
+    ]
+  },
+
+  "version_control": {
+    "contract_version": "1.0.0",
+    "created": "2026-05-10",
+    "updated": "2026-05-11",
+    "changelog": [
+      "2026-05-11: Initial contract creation with 15-step flow"
+    ]
+  }
+}

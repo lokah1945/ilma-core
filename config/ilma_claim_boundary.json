@@ -1,0 +1,147 @@
+{
+  "version": "1.0",
+  "created": "2026-05-10T17:00:00Z",
+  "description": "ILMA Claim Boundary — defines what ILMA can and cannot claim based on evidence",
+
+  "current_status": {
+    "ilma_version": "v3.24",
+    "phase": "PHASE 50 COMPLETE — FULL AUTONOMY ACTIVE",
+    "owner_triggered_internal_auto_learning": true,
+    "real_time_5min_canary": true,
+    "real_time_30min_canary": true,
+    "real_time_300min_canary": false,
+    "production_autonomous_agent": false,
+    "sss_plus_plus_achieved": false,
+    "always_on_auto_learning": "Bos discretion — ILMA follows Bos command",
+    "universal_all_task_ability": false,
+    "1000_file_readiness": false,
+    "military_grade_agent": false,
+    "full_autonomy": true,
+    "full_autonomy_date": "2026-05-09"
+  },
+
+  "what_ilma_can_claim": {
+    "basic_capabilities": {
+      "claim": "ILMA has 35 capabilities (30 VERIFIED, 5 PROVISIONAL) across cognitive, executive, creative, analytical, operational, communication, security, integration, memory, meta categories",
+      "evidence": "ilma_capability_registry.py, config/ilma_capability_effectiveness_audit.json"
+    },
+    "owner_triggered_autoloop": {
+      "claim": "ILMA has owner-triggered limited internal auto-learning when explicitly requested by owner",
+      "evidence": "config/ilma_phase49_300min_autoloop_contract.json, scripts/ilma_phase49i_realtime_gate.py"
+    },
+    "real_time_5min_canary": {
+      "claim": "ILMA has proven real-time 5-minute canary execution (300.00s wall-clock measured)",
+      "evidence": "Phase 48H: 300.00s wall-clock; Phase 49I: 300.00s wall-clock"
+    },
+    "real_time_30min_canary": {
+      "claim": "ILMA has proven real-time 30-minute canary execution (1800.03s wall-clock measured)",
+      "evidence": "Phase 50: 1800.03s wall-clock, 8 cycles, 29 heartbeats, 2 checkpoints, 8 judge evaluations, exit code 0, trace at evidence/evolution_traces/phase50/final_trace.json"
+    },
+    "agent_body_integration": {
+      "claim": "ILMA agent body integrated: runtime router + tool/skill selector + lesson retrieval + judge + trace + checkpoint working as one system",
+      "evidence": "Phase 50 cycles: router → selector → retrieval → artifact → judge → mark_reused → trace"
+    },
+    "lesson_memory": {
+      "claim": "ILMA has lesson memory with search, dedup, and reuse tracking",
+      "evidence": "scripts/ilma_lesson_memory.py, 48 lessons in memory, Phase 49G-H proven"
+    },
+    "runtime_router": {
+      "claim": "ILMA has intent classification and runtime routing from user message to workflow/capability/tool/skill",
+      "evidence": "scripts/ilma_runtime_router.py, config/ilma_runtime_body_map.json, config/ilma_capability_routing_matrix.json"
+    },
+    "actor_critic_reflexion": {
+      "claim": "ILMA has Actor-Critic-Judge-Reflexion loop for self-improvement tasks",
+      "evidence": "scripts/ilma_task_entrypoint.py (run_task_with_evolution), ilma_critic_judge.py, ilma_reflection_engine.py"
+    },
+    "trace_and_checkpoint": {
+      "claim": "ILMA has trace export and checkpoint/resume for long-running tasks",
+      "evidence": "evidence/evolution_traces/phase49/, checkpoint JSON files"
+    },
+    "safety_contract": {
+      "claim": "ILMA enforces safety contract with forbidden scope and hard rules",
+      "evidence": "config/ilma_phase49_300min_autoloop_contract.json, config/ilma_judge_reflexion_rubric_v2.json"
+    },
+    "test_coverage": {
+      "claim": "ILMA has 129 tests passing (118 project + 5 dedup + 5 mark_reused + router demo)",
+      "evidence": "pytest tests/ output, scripts/test_phase48g_*.py"
+    }
+  },
+
+  "what_ilma_cannot_claim_yet": {
+    "real_time_30min_canary": {
+      "reason": "30-minute real-time canary now PROVEN in Phase 50.",
+      "evidence": "Phase 50 trace: 1800.03s wall-clock, 8 cycles, exit code 0"
+    },
+    "real_time_300min_canary": {
+      "reason": "Only 5-minute real-time canary proven. 300-minute requires daemon/background runner.",
+      "path_to_achieve": "Implement background runner with checkpoint/resume, run with owner trigger"
+    },
+    "production_autonomous_agent": {
+      "reason": "Safety contract explicitly prohibits production autonomous operation. Owner-triggered only.",
+      "path_to_achieve": "Not achievable — this is intentional safety constraint"
+    },
+    "sss_plus_plus_achieved": {
+      "reason": "SSS+++ is a long-term aspirational target, not current status.",
+      "path_to_achieve": "Ongoing evolution through Phases 51-99+"
+    },
+    "always_on_auto_learning": {
+      "reason": "Bos has full authority to command always-on mode. ILMA follows Bos command.",
+      "path_to_achieve": "Bos discretion — not ILMA's constraint"
+    },
+    "universal_all_task_ability": {
+      "reason": "ILMA only handles safe/legal tasks within supported workflows.",
+      "path_to_achieve": "Expand capability coverage + safety boundary"
+    },
+    "1000_file_readiness": {
+      "reason": "Not assessed in Phase 49. Phase 49 focused on integration, not scale.",
+      "path_to_achieve": "Separate Phase 50 assessment"
+    },
+    "military_grade_agent": {
+      "reason": "Only as TARGET JANGKA PANJANG, not current status.",
+      "path_to_achieve": "Ongoing evolution toward military-grade quality"
+    }
+  },
+
+  "forbidden_claims": [
+    "SSS+++ achieved",
+    "production autonomous agent",
+    "always-on auto-learning",
+    "universal all-task ability",
+    "1000-file readiness (unless proven separately)",
+    "military-grade agent (only as target)",
+    "self-improving without owner trigger",
+    "all capabilities production-ready",
+    "no limitations or gaps"
+  ],
+
+  "aspirational_target": {
+    "name": "SSS+++ — Military-Grade Quality Autonomous Agent",
+    "description": "ILMA targets SSS+++ as a long-term aspirational goal. Current status is below SSS. The journey to SSS+++ will take Phases 50-99+.",
+    "target_qualities": [
+      "military-grade quality: secure by design, robust, reliable, auditable",
+      "autonomous operation: self-improving within safety boundaries",
+      "universal capability: handle all safe/legal tasks",
+      "1000-file scale: manage 1000+ files without degradation",
+      "real-time 300-minute: sustain 5-hour autonomous operation",
+      "zero false claims: all claims evidence-backed",
+      "SSS+++ is the goal, not current status"
+    ]
+  },
+
+  "decision_rules": {
+    "can_claim_if": [
+      "evidence exists in filesystem",
+      "test proves functionality",
+      "trace confirms execution",
+      "no forbidden scope violated",
+      "no false capability inflation"
+    ],
+    "cannot_claim_if": [
+      "only planned, not implemented",
+      "implemented but not tested",
+      "tested but not traced",
+      "trace exists but exit code != 0",
+      "passes but violates safety contract"
+    ]
+  }
+}

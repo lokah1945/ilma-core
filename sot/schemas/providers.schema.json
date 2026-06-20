@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "providers",
+  "description": "Tier 2 SOT — General provider metadata consolidated from llm_providers (Tier 1, frozen) + curated documentation. One record per provider name (parallel keys in llm_providers are consolidated here). This is the authoritative catalog used by model-level pipeline (Tier 3) and downstream models (Tier 4).",
+  "type": "object",
+  "required": [
+    "provider",
+    "status",
+    "category"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Provider name (canonical key, unique). e.g. 'nvidia', 'openrouter'"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "AI/LLM",
+        "Search/Research",
+        "Developer/Infra",
+        "Crypto/Exchange",
+        "Messaging",
+        "Browser/Automation",
+        "Sessions",
+        "System"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "ENDPOINT_WORKS_QUOTA_EXHAUSTED",
+        "INVALID",
+        "SERVER_ERROR",
+        "TIMEOUT",
+        "deprecated"
+      ],
+      "description": "Effective status computed from llm_providers sibling keys (any active → active; else most severe)"
+    },
+    "free_tier": {
+      "type": "boolean",
+      "description": "Whether the provider offers a free tier / free quota"
+    },
+    "multi_account": {
+      "type": "boolean",
+      "description": "Whether llm_providers has multiple keys for this provider. For capacity (paralel) OR multi-purpose (e.g. openrouter inference + provisioning)"
+    },
+    "multi_purpose": {
+      "type": "boolean",
+      "description": "True if siblings serve DIFFERENT surfaces (e.g. openrouter inference + provisioning). Openrouter-specific pitfall: NEVER use the inference key to call /v1/models (will fail auth or surface wrong data); always use provisioning key for listing."
+    },
+    "key_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of valid keys in llm_providers for this provider (active or otherwise)"
+    },
+    "act_key_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of keys with key_status='VALID' OR status='active'"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human description (curated or inherited from llm_providers.description)"
+    },
+    "base_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Effective base URL — base_url_actual > base_url (llm_providers), or curated"
+    },
+    "base_url_source": {
+      "type": "string",
+      "description": "Where base_url came from (e.g. 'llm_providers.endpoints', 'curated')"
+    },
+    "auth_format": {
+      "type": "string",
+      "enum": ["Bearer", "ApiKey_Query", "ApiKey_Header", "Basic", "ApiKey", "None", null]
+    },
+    "payload_format": {
+      "type": "string",
+      "enum": ["openai_compatible", "gemini", "anthropic", "custom", "custom_rest", null],
+      "description": "SOT format identifier — drives provider_sync fetcher fmt dispatch"
+    },
+    "env_var": {
+      "type": "string",
+      "description": "ENV variable convention (e.g. 'OPENAI_API_KEY')"
+    },
+    "docs_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "models": {
+      "type": "string",
+      "description": "Curated short summary of available models"
+    },
+    "endpoints": {
+      "type": "object",
+      "description": "How-to-use catalog — per-endpoint URL, method, auth, streaming, purpose, content-type",
+      "properties": {
+        "chat_completion": {"type": "object"},
+        "models_list": {"type": "object"},
+        "embeddings": {"type": "object"},
+        "images_generation": {"type": "object"},
+        "audio": {"type": "object"},
+        "streaming": {"type": "object"}
+      }
+    },
+    "last_verified": {
+      "type": ["string", "null"],
+      "description": "Last successful live-verify timestamp"
+    },
+    "note": {
+      "type": "string",
+      "description": "Free-form curator note"
+    },
+    "added": {"type": ["string", "null"]},
+    "added_by": {"type": ["string", "null"]},
+    "last_synced_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When llm_providers → providers cascade last ran"
+    }
+  }
+}
