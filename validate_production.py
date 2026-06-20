@@ -621,7 +621,13 @@ def run_validation(quick: bool = False) -> dict:
     print(f"  MASTER score update:      {'✅ PASS' if master_update_pass else '⚠️  PARTIAL'}")
     print(f"  Scheduler trigger:        {'✅ PASS' if scheduler_pass else '⚠️  SKIP'}")
 
-    print(f"\n  {'✅ ILMA IS PRODUCTION-READY' if overall_pass else '❌ NOT READY — see above'}")
+    print(f"\n  {'✅ ROUTER/INFRA CHECKS PASS' if overall_pass else '❌ ROUTER/INFRA CHECKS FAILED — see above'}")
+    # HONESTY NOTE (audit 2026-06-20): this gate benchmarks the MODEL ROUTER and infra with
+    # MOCK responses (latency is a fabricated formula; every query is logged success=True).
+    # It does NOT test output correctness/factuality/quality. "Production-ready" requires the
+    # separate quality gate (real prompts through the full pipeline + LLM judge). Do not read
+    # a pass here as end-to-end production readiness.
+    print("  scope: router + infrastructure only — output QUALITY is NOT evaluated here.")
     print("=" * 70)
 
     return {
