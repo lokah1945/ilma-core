@@ -1,0 +1,22 @@
+{
+  "note": "bug-hunter auto-generated cron template (v1.4)",
+  "generated_at": "2026-06-20T19:53:35Z",
+  "jobs": [
+    {
+      "id": "bug_hunter_nightly_scan",
+      "name": "bug-hunter nightly scan (medium+)",
+      "schedule": "0 3 * * *",
+      "command": "python3 /root/.hermes/profiles/ilma/scripts/bug_hunter.py scan --scope scripts/ --severity medium",
+      "deliver": "local",
+      "enabled": true
+    },
+    {
+      "id": "bug_hunter_weekly_evolve",
+      "name": "bug-hunter weekly evolve (heuristic + playbook)",
+      "schedule": "0 4 * * 0",
+      "command": "python3 /root/.hermes/profiles/ilma/scripts/bug_hunter.py evolve",
+      "deliver": "local",
+      "enabled": true
+    }
+  ]
+}

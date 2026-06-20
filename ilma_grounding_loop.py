@@ -8,10 +8,20 @@ Inspired by AYDA anti_hallucination_grounding_loop.py
 Version: 2.0
 """
 
+import re
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+
+# Common stopwords excluded from relevance scoring (audit 2026-06-20 Q4)
+_GROUNDING_STOPWORDS = {
+    "the", "a", "an", "and", "or", "but", "of", "to", "in", "on", "for", "with", "is",
+    "are", "was", "were", "be", "been", "by", "as", "at", "that", "this", "it", "its",
+    "from", "not", "which", "who", "what", "when", "where", "how", "than", "then", "into",
+    "about", "can", "will", "would", "should", "could", "may", "might", "has", "have",
+    "had", "do", "does", "did", "they", "their", "there", "these", "those",
+}
 
 
 class GroundingStatus(Enum):
@@ -96,6 +106,43 @@ class AntiHallucinationGroundingLoop:
         self.stats["claims_registered"] += 1
         return claim_id
     
+    @staticmethod
+    def _tokenize(text: str) -> set:
+        """Content terms (lowercased, >=3 chars, no stopwords) for relevance scoring."""
+        return {
+            w for w in re.findall(r"[a-z0-9]{3,}", (text or "").lower())
+            if w not in _GROUNDING_STOPWORDS
+        }
+
+    def _relevance(self, claim_terms: set, evidence_text: str) -> float:
+        """Fraction of claim terms supported by this evidence's text (0..1)."""
+        ev = self._tokenize(evidence_text)
+        if not claim_terms or not ev:
+            return 0.0
+        return min(1.0, len(claim_terms & ev) / len(claim_terms))
+
+    def _evidence_strength(self, claim: "Claim", evidence: Optional[List[str]],
+                           verification_sources: Optional[List[str]]) -> float:
+        """Grounding strength from evidence RELEVANCE (term overlap with the claim) plus a
+        small no-network credibility bonus for distinct source domains. Irrelevant filler
+        contributes ~0, so a claim cannot be grounded by sheer count of unrelated strings."""
+        claim_terms = self._tokenize(claim.content)
+        rels = [self._relevance(claim_terms, e) for e in (evidence or [])]
+        # only evidence with meaningful overlap counts; saturating sum (~2 strong pieces => 1.0)
+        total = sum(r for r in rels if r >= 0.15)
+        strength = min(1.0, total / 1.5)
+        # distinct credible-looking source domains add a capped bonus (no network fetch)
+        domains = set()
+        candidates = list(verification_sources or []) + [
+            e for e in (evidence or []) if str(e).startswith("http")
+        ]
+        for s in candidates:
+            m = re.search(r"https?://([^/]+)", str(s))
+            if m:
+                domains.add(m.group(1).lower())
+        cred_bonus = min(0.2, 0.1 * len(domains))
+        return min(1.0, strength + cred_bonus)
+
     def ground_claim(self, claim_id: str, evidence: List[str] = None,
                     verification_sources: List[str] = None) -> Optional[GroundingResult]:
         """Ground a claim with evidence."""
@@ -108,10 +155,11 @@ class AntiHallucinationGroundingLoop:
         
         required_confidence = self.grounding_rules.get(claim.claim_type, 0.7)
         confidence_before = claim.confidence
-        
-        # Evaluate grounding
-        evidence_strength = len(evidence) / 5.0 if evidence else 0.0
-        new_confidence = min(1.0, claim.confidence + evidence_strength * 0.3)
+
+        # Evaluate grounding by CONTENT RELEVANCE, not raw count (audit 2026-06-20 Q4).
+        # Old behavior (len(evidence)/5) let 5 arbitrary strings ground any claim.
+        evidence_strength = self._evidence_strength(claim, evidence, verification_sources)
+        new_confidence = min(1.0, claim.confidence + evidence_strength * 0.5)
         
         # Determine status
         if new_confidence >= required_confidence:

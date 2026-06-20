@@ -502,6 +502,54 @@ Before doing anything else in each session:
 **Masalah:** TUI watchdog timeout karena sequential exec blocking.
 **Solusi:** Jangan pernah buat session diam >20 detik saat aktif bekerja.
 
+## 🛑 ANTI-DUPLICATE-FINAL RULES (CRITICAL — 2026-06-20)
+
+**Bug:** Pada sesi workflow audit (12 KB response), final kesimpulan terkirim **50x identik** ke Telegram dalam waktu <60 detik. Root cause ada di banyak lapisan (stream consumer race + Telegram overflow_split flood retry + base.py _send_with_retry whole-message retry + footer trailing). Layer Hermes core belum di-patch.
+
+**Aturan WAJIB ILMA untuk eliminasi duplikat:**
+
+1. **JANGAN Re-emit Final Response Body.**
+   - Setelah turn tool-call selesai dan gateway push body via stream, JANGAN panggil `send_message` tool lagi dengan body yang sama.
+   - Jika ragu, end turn dengan marker `✅ terkirim 1x` — SELESAI. Bukan dengan block kesimpulan penuh.
+
+2. **One-Message-Per-Turn Discipline.**
+   - 1 turn = 1 konklusi final yang sampai ke user.
+   - Tidak boleh ada pengulangan emit dengan teks yang sama byte-for-byte.
+   - Lihat skill `ilma-state-verify-before-report` untuk audit recipe.
+
+3. **Konklusi Panjang (>2 KB) Harus di-Chunk dengan Sadar.**
+   - Jika konklusi panjang, formulakan dalam 1 message utuh dengan acknowledgment `Pesan lengkap` di awal, bukan break + repeat.
+   - Telegram overflow_split akan chunk otomatis; ILMA tidak boleh pre-chunk manual via multiple `send_message` call.
+
+4. **Stop-After-Wrap Pattern.**
+   - Setelah emit konklusi, stop. Tidak ada "Saya ulangi", "Sebagai ringkasan", "Berikut kesalahan saya", dll.
+   - Jika ada MCP/cron job aktif yang auto-restart turn, flag dengan `# ALREADY-DELIVERED` dan yield.
+
+5. **Generic Safe-Response Template (untuk turn panjang):**
+   ```
+   [body konklusi…]
+   
+   ---
+   ✅ terkirim 1x
+   ```
+   Hanya ini. Tidak ada after-content, tidak ada re-cap, tidak ada "demikianlah" bagian kedua.
+
+6. **Audit saat Bos Report Duplicate (recipe dari skill):**
+   ```bash
+   # Cek session DB duplikat eksplisit
+   python3 -c "import sqlite3; ..."
+   # Cek request_dump flags
+   LATEST=$(ls -t /root/.hermes/profiles/ilma/sessions/request_dump_* | head -1)
+   python3 -c "import json; d=json.load(open('\$LATEST')); print({k: d.get(k) for k in ['final_response','already_sent','response_previewed','response_transformed']})"
+   ```
+
+**Self-check sebelum end turn panjang:**
+- [ ] Sudah cek apakah ini duplicate body dari pesan yang baru terkirim?
+- [ ] Marker `✅ terkirim 1x` ada di akhir?
+- [ ] Tidak ada rencana untuk follow-up "Sebagai catatan tambahan..."?
+
+**Referensi kode:** Lihat `skills/ilma-self-improvement/ilma-state-verify-before-report/references/duplicate-delivery-audit-2026-06-20.md` untuk evidence + Fix-3 (high risk).
+
 ### Rules:
 
 1. **Batch Reads** — Gabungkan multiple file reads jadi SATU exec call:

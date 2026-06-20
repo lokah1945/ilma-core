@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "last_evolved": "2026-06-20T19:32:54Z",
+  "heuristics": [
+    {
+      "signature": "old_text is required for '.+' action",
+      "category": "tool_action_shape",
+      "auto_classify": "MEDIUM",
+      "suggested_action": "Tool signature mismatch — introspect via execute_code or use batch shape `operations: [{action,...}]`.",
+      "playbook_ref": "playbook/tool_action_shape/v1",
+      "occurrences": 1
+    },
+    {
+      "signature": "Timed?out.*subprocess",
+      "category": "subprocess_timeout",
+      "auto_classify": "MEDIUM",
+      "suggested_action": "Naive subprocess grep pada filesystem besar — pakai targeted path atau ripgrep dengan file_glob.",
+      "playbook_ref": "playbook/grep_scope/v1"
+    },
+    {
+      "signature": "Permission denied \\(publickey",
+      "category": "ssh_auth",
+      "auto_classify": "HIGH",
+      "suggested_action": "Key mismatch. Cek `vps_project.json`, jalankan matrix scan {key}x{user}x{host}.",
+      "playbook_ref": "playbook/ssh_key_matrix/v1"
+    },
+    {
+      "signature": "NXDOMAIN",
+      "category": "dns_missing",
+      "auto_classify": "LOW",
+      "suggested_action": "Domain belum di-pointing. Cek registrar + DNS zone.",
+      "playbook_ref": null
+    },
+    {
+      "signature": "port \\d+.*not listening|No listening",
+      "category": "service_down",
+      "auto_classify": "HIGH",
+      "suggested_action": "Probe via curl+ss, cek PM2/systemd, restart kalau supervisor turun.",
+      "playbook_ref": null
+    },
+    {
+      "signature": "Loop.*same_tool.*count=\\d+",
+      "category": "agent_loop",
+      "auto_classify": "HIGH",
+      "suggested_action": "Tool stuck — introspect, fallback ke variant, atau escalate ke Bos.",
+      "playbook_ref": null
+    },
+    {
+      "signature": "BUGID-.+0001 mismatch date",
+      "category": "bug_hunter_self_bug",
+      "auto_classify": "LOW",
+      "suggested_action": "bug_id pakai local date (server TZ) untuk konsistensi operator-side; detected_at tetap UTC ISO.",
+      "playbook_ref": null,
+      "occurrences": 1,
+      "first_seen": "2026-06-20T19:32:53Z"
+    },
+    {
+      "signature": "stack_trace",
+      "category": "stack_trace",
+      "auto_classify": "MEDIUM",
+      "suggested_action": "Auto-learned dari chat pattern trigger",
+      "playbook_ref": null,
+      "occurrences": 1,
+      "first_seen": "2026-06-20T19:52:49Z"
+    },
+    {
+      "signature": "error_msg",
+      "category": "error_msg",
+      "auto_classify": "MEDIUM",
+      "suggested_action": "Auto-learned dari chat pattern trigger",
+      "playbook_ref": null,
+      "occurrences": 1,
+      "first_seen": "2026-06-20T19:52:49Z"
+    },
+    {
+      "signature": "missing_module",
+      "category": "missing_module",
+      "auto_classify": "MEDIUM",
+      "suggested_action": "Auto-learned dari chat pattern trigger",
+      "playbook_ref": null,
+      "occurrences": 1,
+      "first_seen": "2026-06-20T19:52:49Z"
+    }
+  ],
+  "playbooks": {
+    "playbook/tool_action_shape/v1": {
+      "title": "Tool action shape mismatch",
+      "steps": [
+        "1. Introspect tool via execute_code (import hermes_tools, dir(), get args).",
+        "2. Periksa signature — `old_text` vs `content` vs `operations` batch.",
+        "3. Coba fallback shape: jika `remove`/`replace` gagal, pakai `add` untuk tambah entry baru yang justru replace.",
+        "4. Jangan loop >3 — escalate."
+      ],
+      "proven_count": 0
+    },
+    "playbook/grep_scope/v1": {
+      "title": "Naive grep timeout pada filesystem besar",
+      "steps": [
+        "1. Pakai search_files (ripgrep) bukan subprocess grep.",
+        "2. Set path spesifik — hindari /root seluruhnya.",
+        "3. Tambahkan timeout pendek (10-15s) + file_glob.",
+        "4. Kalau tetap timeout → pecah per-zona (skills/, scripts/, memory/)."
+      ],
+      "proven_count": 0
+    },
+    "playbook/ssh_key_matrix/v1": {
+      "title": "SSH ke VPS — key/user/host scanning",
+      "steps": [
+        "1. Lihat vps_project.json untuk daftar kredensial.",
+        "2. Jalankan matrix: for key in keys; for user in users; for host in hosts.",
+        "3. Cek sha256 fingerprint key — duplicate keys sering bikin bingung.",
+        "4. Confirm successful match → re-use working combo."
+      ],
+      "proven_count": 0
+    }
+  }
+}

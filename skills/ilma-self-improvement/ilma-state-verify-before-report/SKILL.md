@@ -11,11 +11,39 @@ triggers:
   - "verify via tool"
   - "jangan asumsi"
   - "apa yang sedang running"
-version: 1.0.0
-last_updated: 2026-06-19
+  - "audit duplikat"
+  - "respondouble"
+version: 1.2.0
+last_updated: 2026-06-20
 ---
 
 # State-Verify-Before-Report (SVBR)
+
+## Protocol P-14: NO-DUPLICATE-FINAL (2026-06-20)
+
+**Trigger**: Setiap turn dengan kesimpulan panjang atau response >2 KB atau ada tool-call.
+
+**Aturan:**
+1. **Cek apakah turn ini sudah emit body final** — lihat session DB messages.
+   ```sql
+   SELECT id, role, length(content), timestamp
+   FROM messages
+   WHERE session_id = ? AND role = 'assistant'
+   ORDER BY id DESC LIMIT 3
+   ```
+2. **Jika body >2KB sudah terkirim** → cukup emit `✅ terkirim 1x` sebagai marker. **JANGAN re-summarize or re-state.**
+3. **Maksimum 1 konklusi akhir per turn.** Setelah itu yield.
+
+**Anti-pattern yang harus dihindari:**
+- ❌ Emit "Saya ulangi:" + full body
+- ❌ Emit "Sebagai ringkasan:" + full body
+- ❌ Emit "Berikut kesimpulan:" + full body
+- ❌ Emit "Note tambahan:" + footer
+- ✅ Emit `✅ terkirim 1x` atau 1-2 kalimat singkat
+
+**Lihat juga:** `references/duplicate-delivery-audit-2026-06-20.md` untuk evidence + bug pattern + audit recipe.
+
+---
 
 ## Why this skill exists
 
@@ -35,6 +63,7 @@ agent is about to assert something about the runtime's current state.
 - Browser profile / CDP endpoint / user-data-dir
 - Pipeline state, registry state, capability claims
 - The answer to "apa yang sedang dipakai/aktif/running"
+- After long response >2 KB: check delivery state (no-duplicate-final)
 
 **Don't apply to:**
 - Pure reading of static docs (URL extract is the verify)
@@ -387,7 +416,7 @@ will overlay a duplicate on whatever the gateway already pushed.
 # 1. Session search for the response text
 session_search(query="<first 30 chars of duplicate>", limit=5)
 
-# 2. Inspect request_dump JSON for that session
+# 2. Inspect request_dump JSON for that session (gateway state)
 LATEST=$(ls -t /root/.hermes/profiles/ilma/sessions/request_dump_* | head -1)
 python3 -c "
 import json
@@ -397,7 +426,35 @@ for k in ['final_response', 'already_sent', 'response_previewed', 'response_tran
     print(k, '=', d.get(k, '<missing>')[:120])
 "
 
-# 3. Check gateway flag positions in run.py at the lines above
+# 3. Detect agent-side re-emission via state.db (CRITICAL — see P-15)
+python3 -c "
+import sqlite3
+import sys
+SID = sys.argv[1] if len(sys.argv) > 1 else '<session_id>'
+db = '/root/.hermes/profiles/ilma/state.db'
+cur = sqlite3.connect(db).cursor()
+cur.execute('''
+    SELECT MAX(cnt), preview
+    FROM (
+        SELECT COUNT(*) AS cnt, substr(content, 1, 100) AS preview
+        FROM messages
+        WHERE session_id = ?
+          AND role = 'assistant'
+          AND length(content) > 500
+        GROUP BY substr(content, 1, 200)
+    )
+    WHERE cnt > 1
+''', (SID,))
+rows = cur.fetchall()
+if rows:
+    print('AGENT-SIDE DUPLICATE:', rows[0])
+else:
+    print('No agent-side duplication observed.')
+"
+# If the second query prints AGENT-SIDE DUPLICATE, P-15 branch B applies;
+# do NOT touch Hermes core. Fix is agent discipline (P-14 single-ack).
+
+# 4. Check gateway flag positions in run.py at the lines above
 grep -n 'response_previewed\|_final_response_sent\|already_sent\b' \
   /root/.hermes/hermes-agent/gateway/run.py | head
 ```
@@ -413,6 +470,66 @@ grep -n 'response_previewed\|_final_response_sent\|already_sent\b' \
 See `references/duplicate-delivery-audit-2026-06-20.md` for the full code-level
 audit transcript including line-numbered evidence from `run.py` and
 `stream_consumer.py`.
+
+### P-15: Distinguish gateway-side double-send vs agent-side re-emission
+
+A duplicate-final report can have two distinct root causes that need
+different fixes. Always diagnose which one before claiming a fix.
+
+**A. Gateway-side double-send** — `state.db` shows ONE assistant record,
+but `request_dump_*` flags disagreement + gateway logs multiple
+`Sending response` per session OR multiple `Suppressing normal final send`
+entries that don't match the final delivery.
+
+Fix path: P-14 fix-1/2/3 (Hermes core patches; needs Bos approval)
+
+**B. Agent-side re-emission** — `state.db` shows TWO OR MORE assistant
+records with **byte-identical content** (>500 chars, same `substr(content, 1, 100)`)
+within <60 seconds despite no user turn between them. This is the
+failure mode observed Sesi 2026-06-20 00:41-00:42 (50 identical
+"AUDIT COMPLETE" blocks in Bos's chat-history attachments).
+
+Fix path: agent runtime discipline. Concrete checks the agent MUST
+run before emitting another send:
+
+```python
+import sqlite3
+sid = "<current_session_id>"
+conn = sqlite3.connect('/root/.hermes/profiles/ilma/state.db')
+cur = conn.cursor()
+cur.execute("""
+    SELECT COUNT(*) AS dup_count
+    FROM messages
+    WHERE session_id = ?
+      AND role = 'assistant'
+      AND length(content) > 500
+    GROUP BY substr(content, 1, 200)
+    HAVING COUNT(*) > 1
+    ORDER BY dup_count DESC
+    LIMIT 5
+""", (sid,))
+duplicates = cur.fetchall()
+```
+
+If `len(duplicates) > 0`, the agent is in re-emission loop. Stop
+re-summarizing. Emit only `✅ sudah terkirim` (1 line) and yield.
+
+**C. Hybrid** — both A and B. Rare but seen on long sequences
+(>10 KB body + multiple tool calls + queued follow-up). Diagnose
+both, fix in order:
+
+1. Check `request_dump_*` flags first (gateway state)
+2. Then check `state.db` byte-identical groups (agent state)
+3. Apply gateway fix (Fix-1 to 3) AND agent discipline (single-turn ack)
+
+**Trigger**: any user complaint of "duplicate", "respon double",
+"kesimpulan duplikat", or "audit duplikat".
+
+**Lesson**: do NOT blame the gateway by default. Verify with
+state.db query + request_dump JSON before recommending core patches.
+The Sesi 2026-06-20 case (50x reproduce) was primarily an
+agent-side loop bug, not a Hermes core race — even though core does
+have race conditions worth fixing.
 
 ## Anti-patterns
 

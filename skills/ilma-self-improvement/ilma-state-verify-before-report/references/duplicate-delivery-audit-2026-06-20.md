@@ -175,7 +175,7 @@ if not _is_empty_sentinel and not response.get("response_transformed") and _deli
 Risk: high — may surface pre-existing bugs where one path assumed
 `_previewed` shortcut.
 
-## ILMA-side Mitigation (Already Active)
+## ILMA-side Mitigation (Already Active — see SKILL.md P-14)
 
 Until Hermes core is patched, ILMA applies:
 - **Ack once per turn only**, even for sub-agent results routed back
@@ -184,10 +184,48 @@ Until Hermes core is patched, ILMA applies:
 - If unsure, end the turn with a 1-line marker like
   `✅ terkirim 1x` — never re-emit the full body
 
+## Real-world Reproduction (Bos Attachment, Sesi 2026-06-20 00:41-00:42)
+
+Bos attached `/root/.hermes/profiles/ilma/cache/documents/doc_5f30d5d6d4d8_message.txt`
+and `.../doc_339798c3b886_message.txt` — both 218 KB each, containing an
+export of chat history. The same final block
+
+```
+🛡️ AUDIT COMPLETE — DUPLIKASI KHUSUS KESIMPULAN FINAL
+... (full report body) ...
+✅ terkirim 1x
+```
+
+appears **50 times identically** in each file, with timestamps
+`[21/06/2026 00:41] ILMA: Hmm, OK ...` and `[21/06/2026 00:42] ILMA: Hmm, OK ...`.
+
+**This indicates**: ILMA emitted the same conclusion block via the
+agentic loop multiple times in <60 seconds, despite no user turn
+between them. The gateway's "Suppressing normal final send" log appeared
+correctly (e.g. `2026-06-21 00:42:20,081 response ready: 8733 chars`),
+but the agent kept producing the same text on each loop iteration and
+each one was pushed through the platform adapter.
+
+**Lesson beyond Fix-3**: agent-side re-emission is a separate failure
+mode from gateway-side double-send. Even when the gateway guard works,
+the agent itself can resample its own final output repeatedly if the
+loop driver is misaligned (likely cause: stale context after a long
+turn → mid-stream re-finalize across multiple iterations before the
+state DB merges). The P-14 protocol in `ilma-state-verify-before-report`
+addresses this by enforcing a single-shot acknowledgment, but until
+the upstream loop is governed, the agent's own discipline is the
+last line of defense.
+
+**Post-mortem step added**: after a long turn ends with a final block,
+the agent MUST query `state.db` for the latest 3 assistant messages
+and confirm no byte-for-byte duplicates before issuing another send.
+If duplicate detected, emit only `✅ sudah terkirim` instead of
+re-summarizing.
+
 ## Audit Recipe (when Bos reports a fresh duplicate)
 
 ```bash
-# 1. Find latest session dumps
+# 1. Find latest request dumps
 ls -t /root/.hermes/profiles/ilma/sessions/request_dump_* | head -3
 
 # 2. Check what the gateway recorded in the most recent dump
@@ -202,8 +240,28 @@ for k in ['final_response', 'already_sent', 'response_previewed',
     print(f'{k:25s} = {v!r}')
 " "$(ls -t /root/.hermes/profiles/ilma/sessions/request_dump_* | head -1)"
 
-# 3. Cross-check: should match ONE consistent claim. If 2 disagree → dupe.
+# 3. Detect agent-side duplication via state.db
+python3 -c "
+import sqlite3
+conn = sqlite3.connect('/root/.hermes/profiles/ilma/state.db')
+cur = conn.cursor()
+cur.execute('''
+    SELECT COUNT(*), substr(content, 1, 100)
+    FROM messages
+    WHERE session_id = ?
+      AND role = 'assistant'
+      AND length(content) > 500
+    GROUP BY substr(content, 1, 100)
+    HAVING COUNT(*) > 1
+''', (SESSION_ID,))
+for cnt, preview in cur.fetchall():
+    print(f'{cnt}x: {preview[:80]!r}')
+"
 ```
+
+If the state.db query shows groups with `cnt > 1`, the agent is
+re-emitting. If request_dump flags disagree with state.db insert counts,
+the gateway is double-sending. The recovery path differs.
 
 ## Pattern to Remember
 

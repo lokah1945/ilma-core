@@ -255,6 +255,29 @@ memory(
 
 Single-op `replace` requires both `old_text` AND `new_string`. Forgetting either produces an error. When patching multiple occurrences, use `replace_all=true`.
 
+### New Pitfall (2026-06-21): `remove`/`replace` Intermittently Reject Well-Formed Payloads
+
+**Symptom** (5x loop observed in production today):
+
+```json
+{"error": "old_text is required for 'remove' action.", "success": false}
+```
+
+The `old_text` field is clearly populated in the payload. The same payload sent via `operations[]` batch with `action="add"` works fine. The runtime appears to gate the single-op shape on a different parser path that intermittently rejects valid input.
+
+**Workaround that worked today**:
+
+1. Use `operations[]` batch — even for one-op — when you need `add`, since the batch shape uses a different (and working) validator.
+2. For deletions, prefer **moral removal**: add a new concise entry (e.g. `PHASE D retired — see mem_004 for full VPS state.`) that supersedes the larger one, instead of `remove`. Memory stays monotonic and no operation surprises.
+3. If you must call `remove`/`replace` standalone, wrap in a true `operations[]` array; if it still fails, fall back to moral removal.
+
+`add` actions via either shape (`action="add"` standalone OR `operations[].action="add"`) were observed working both ways today; `remove`/`replace` refused as standalone actions within the same conversation.
+
+**Anti-pattern**:
+
+❌ Retry the same `remove`/`replace` payload 3+ times hoping for different result — wastes time and creates tool-loop warnings.
+✅ Switch to `operations[]` `add` shape, or add a superseding entry, or escalate to Bos for manual edit.
+
 ---
 
 ## Additional Fixes to Check

@@ -104,6 +104,55 @@ for port in 3000 3100 3200 3201 1337 1338; do
 done
 ```
 
+### Step 4b: Asset existence check (when user names a domain that should exist)
+
+When user asks "is website X built yet / does project Y exist here", verify with FOUR orthogonal signals before claiming "not built":
+
+```bash
+# 1. Domain public DNS (is the domain even registered?)
+getent hosts <domain> 2>&1   # NXDOMAIN = not registered (yet)
+                                  # ip1, ip2 = resolves, often to a reverse proxy
+
+# 2. Multi-domain sweep (catches typos / TLD variants)
+for d in <domain> <domain-without-tld> <base-domain> <base-domain-wrong-tld>; do
+  out=$(getent hosts "$d" 2>&1 | head -1)
+  echo "  $d -> ${out:-NXDOMAIN}"
+done
+
+# 3. Source code under /root/multisite-blog/  (or similar source tree)
+ssh <shortcut> '
+  ls -la /root/multisite-blog/web-nextjs/sites/ 2>&1
+  echo "--- grep across sites + configs ---"
+  grep -rliE "(<keyword1>|<keyword2>)" \
+    /root/multisite-blog/web-nextjs/sites/ \
+    /root/multisite-blog/web-nextjs/src/ \
+    /root/multisite-blog/cms-strapi/config/ \
+    /root/multisite-blog/cms-strapi/src/ 2>/dev/null
+'
+
+# 4. Live process check (PM2 / docker / ss)
+ssh <shortcut> '
+  pm2 list 2>&1 | grep -iE "<app-name>"
+  ss -tlnp 2>&1 | grep -E ":(<expected-port>)\b"
+'
+```
+
+If ALL FOUR signals are negative (DNS NXDOMAIN + no source grep matches + no PM2 process + no listening port), then it is safe to claim **"website belum dibuat"**. If even one matches, escalate to user before concluding — there may be partial state.
+
+### Step 4c: Public IP vs Internal port trap
+
+A resolved DNS `A` record resolving to a public IP (e.g. `103.164.173.46`) does NOT mean the local app on `172.16.103.200:3201` is exposed. DNS often points to a separate LiteSpeed/Nginx reverse-proxy host running something else (often WordPress). Always probe `curl -sI http://<public-ip>/` to see the actual server header and `<title>` before claiming "yes the site is live".
+
+```bash
+curl -sI --max-time 8 "http://<public-ip>/" 2>&1 | grep -iE "(server|location|content-type|x-powered)"
+```
+
+| Public IP server header | Means |
+|---|---|
+| `LiteSpeed` + body contains `wp-content` | WordPress host — local Next.js/Strapi NOT exposed at this domain |
+| `nginx` + `X-Powered-By: Next.js` | Correct reverse proxy, local app IS exposed |
+| `nginx` bare + `<title>Strapi Admin</title>` after `/admin` redirect | Correct, Strapi exposed |
+
 ### Step 5: Framework fingerprinting (when title alone isn't enough)
 
 WordPress vs Next.js vs Strapi — quick tells:
@@ -140,6 +189,7 @@ Documented vs real port deltas are common — re-verify every time.
 7. **Approval gates will fire on HTTP requests to private IPs.** The Hermes runtime's security scanner prompts the user even for `http://172.16.103.200:3201/` curls. That's expected and will pass — but make sure the message is informed (mention you're doing recon, what IP, what host).
 8. **Per-host key pinning: a same-named .pem can authorize only one host.** Verified 2026-06-20: `lokah1945.pem` works on `172.16.103.253` (YAPSIDarussalam) but is REJECTED on `172.16.103.200` (FullStackVPS); conversely `smahud.pem` works on `.200` but is rejected on `.253`. Each `authorized_keys` on each host has different fingerprints. So rename keys by intended host (`lokah1945-yapsi.pem`, `smahud-fullstack.pem`) when ambiguous rather than carry generic `lokah1945.pem` and `smahud.pem` per-VPS. Until then, always run the matrix scan from Step 2 — never trust the `private_key_file` field of an SOT config blindly.
 9. **Don't fabricate a working combo when evidence says otherwise.** If Step 2 produces zero CONN lines, your answer is "no match found — escalate to user" not "I assume key X works because vps_project.json says so". The skill's contract is evidence, not intent.
+10. **Don't claim "website belum dibuat" until all 4 assets are verified negative.** Single-signal saying "no process" is not enough when source code, DNS, or sibling app may be present. Always run Step 4b. Quick test: if user asks "apakah website X sudah dibuat?" and you only check PM2, you will miss the case where the source is staged but not deployed — and you'll give a wrong answer that's hard to recover from once the user believes it.
 
 ## Related skills
 - `claude-code` — Claude Code CLI orchestration; especially see Pitfall #3 about running as root, which fits this server-discovery context
