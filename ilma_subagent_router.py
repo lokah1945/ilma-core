@@ -20,6 +20,7 @@ Version: 2.1.0
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -29,7 +30,8 @@ import httpx
 logger = logging.getLogger(__name__)
 
 ILMA_PROFILE = Path("/root/.hermes/profiles/ilma")
-PROXY_URL = "http://127.0.0.1:8001"
+# NOTE: the local proxy layer was fully purged 2026-06-19 — execution now goes through
+# ilma_model_router directly. The old PROXY_URL constant was removed (audit 2026-06-20).
 
 # ── Direct-provider execution support ──────────────────────────────────────────
 # Callable free providers (nvidia, minimax, ollama-cloud) are reachable directly.
@@ -145,8 +147,8 @@ class SubAgentRouter:
     - No-repeat via freshness bonus
     """
 
-    def __init__(self, proxy_url: str = PROXY_URL):
-        self.proxy_url = proxy_url
+    def __init__(self, proxy_url: Optional[str] = None):
+        self.proxy_url = proxy_url  # deprecated/unused; kept for signature compatibility
         self.client = httpx.Client(timeout=60.0)
         # Import router lazily to avoid circular deps
         self.router = self._get_model_router()
@@ -390,13 +392,16 @@ class SubAgentRouter:
 # ══════════════════════════════════════════════════════════════════════════════
 
 _router_instance: Optional[SubAgentRouter] = None
+_router_lock = threading.Lock()
 
 
-def get_router(proxy_url: str = PROXY_URL) -> SubAgentRouter:
-    """Get singleton SubAgentRouter instance."""
+def get_router(proxy_url: Optional[str] = None) -> SubAgentRouter:
+    """Get singleton SubAgentRouter instance (thread-safe, audit 2026-06-20)."""
     global _router_instance
     if _router_instance is None:
-        _router_instance = SubAgentRouter(proxy_url=proxy_url)
+        with _router_lock:
+            if _router_instance is None:
+                _router_instance = SubAgentRouter(proxy_url=proxy_url)
     return _router_instance
 
 

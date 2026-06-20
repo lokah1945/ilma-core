@@ -2663,8 +2663,12 @@ class ILMAUnifiedRouter:
             "total_free_candidates": free_models,
             "allow_paid":            self.allow_paid,
             "routing_method":       "ILMAUnifiedRouter_v1.0",
-            "master_db_size_mb":     round(MASTER_DB.stat().st_size / 1024 / 1024, 2),
-            "master_last_modified":  datetime.fromtimestamp(MASTER_DB.stat().st_mtime).isoformat(),
+            # MongoDB-driven mode (v7.0) no longer requires the legacy JSON file to exist;
+            # guard so get_stats() (called by health monitors) can't raise FileNotFoundError.
+            "master_db_size_mb":     (round(MASTER_DB.stat().st_size / 1024 / 1024, 2)
+                                       if MASTER_DB.exists() else None),
+            "master_last_modified":  (datetime.fromtimestamp(MASTER_DB.stat().st_mtime).isoformat()
+                                       if MASTER_DB.exists() else None),
             "circuit_breaker_state": {
                 "tripped_models": [
                     m for m, c in self._failure_count.items()
@@ -2683,6 +2687,7 @@ class ILMAUnifiedRouter:
 # ══════════════════════════════════════════════════════════════════════════════
 
 _router_instance: Optional[ILMAUnifiedRouter] = None
+_router_lock = threading.Lock()
 
 
 def get_router(allow_paid: bool = False) -> ILMAUnifiedRouter:
@@ -2691,10 +2696,16 @@ def get_router(allow_paid: bool = False) -> ILMAUnifiedRouter:
     A router initialized for free-only mode must not be silently reused for an
     explicit paid request, and vice versa. Recreate the singleton if the caller
     requests a different allow_paid policy.
+
+    Thread-safe: background daemon threads (health/optimizer) and request threads
+    can call this concurrently — double-checked locking prevents double construction
+    and torn singleton state (audit 2026-06-20).
     """
     global _router_instance
     if _router_instance is None or getattr(_router_instance, "allow_paid", False) != allow_paid:
-        _router_instance = ILMAUnifiedRouter(allow_paid=allow_paid)
+        with _router_lock:
+            if _router_instance is None or getattr(_router_instance, "allow_paid", False) != allow_paid:
+                _router_instance = ILMAUnifiedRouter(allow_paid=allow_paid)
     return _router_instance
 
 
