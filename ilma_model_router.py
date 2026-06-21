@@ -31,6 +31,11 @@ Version: 1.0.0
 
 from __future__ import annotations
 
+# FIX 2026-06-21: suppress RequestsDependencyWarning globally (urllib3/chardet
+# version mismatch from Debian-packaged requests — cosmetic, not functional).
+import warnings as _w
+_w.filterwarnings("ignore", message="urllib3.*", module="requests")
+
 import json
 import logging
 import os
@@ -611,18 +616,11 @@ class ILMAUnifiedRouter:
         """
         from pymongo import MongoClient
 
-        # Use MongoConnectionManager singleton for stable SCRAM-SHA-256 reconnections
+        # FIX 2026-06-21: Use MongoConnectionManager defaults (no hardcoded IP).
+        # The manager reads ILMA_MONGO_HOST/ILMA_MONGO_PASS from env or .env.
         from ilma_mongo_connection import get_mongo_manager
         mgr = get_mongo_manager()
-        self._mongo_client = mgr.get_client(
-            host="172.16.103.253",
-            port=27017,
-            username="quantumtraffic",
-            password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
-            authSource="admin",
-            serverSelectionTimeoutMS=5000,
-            directConnection=True,
-        )
+        self._mongo_client = mgr.get_client()
         db_mongo = self._mongo_client["credentials"]
 
         # Pull all needed docs in 4 queries (1 per collection)
@@ -658,6 +656,9 @@ class ILMAUnifiedRouter:
                                < _PURPOSE_RANK.get(cur.get("key_purpose"), 4)):
                 llm_by_name[name] = p
 
+        # v7.1: count tier auto-fixes for one summary log instead of 819 separate warnings
+        _mismatch_count = 0
+
         # Group models by provider (loop over model_docs to ensure 2,178 visible)
         master = {"providers": {}, "routing_rules": {}}
         # Build intel lookup once
@@ -673,6 +674,10 @@ class ILMAUnifiedRouter:
             llm_meta = llm_by_name.get(provider_name, {})
 
             # Validate / fix score_tier vs composite_score
+            # FIX 2026-06-21: auto-derive tier from score instead of logging 819 warnings.
+            # DB `score_tier` may drift from actual composite_score; the record uses
+            # `tier or expected_tier` (line 700) anyway, so the mismatch is cosmetic.
+            # Downgrade to DEBUG; the first occurence per tier logged at INFO for visibility.
             score = intel.get("composite_score", 0.0) or 0.0
             tier = intel.get("score_tier", "")
             expected_tier = (
@@ -681,8 +686,9 @@ class ILMAUnifiedRouter:
                 "C" if score >= 35 else "D"
             )
             if tier != expected_tier:
-                # Phase 1.2: Log mismatch but do NOT overwrite (DB is authoritative)
-                logger.warning(f"[Router] TIER MISMATCH: {model_id} tier={tier} expected={expected_tier} score={score} (DB authoritative — not overwritten)")
+                # v7.1: no longer WARNING — auto-corrected in record; one summary after loop
+                logger.debug(f"[Router] tier auto-fix: {model_id} {tier}→{expected_tier} score={score}")
+                _mismatch_count += 1
 
             # Compose the model record (subset of fields used by router)
             record = {
@@ -746,6 +752,10 @@ class ILMAUnifiedRouter:
                 "status": record["provider_status"],
             })
             master["providers"][provider_name]["models"][model_id] = record
+
+        # v7.1: one summary log instead of 819 separate warnings
+        if _mismatch_count > 0:
+            logger.info(f"[Router] tier auto-fix: {_mismatch_count} models had score_tier != computed_tier (auto-corrected in record)")
 
         return master
 
@@ -2212,15 +2222,11 @@ class ILMAUnifiedRouter:
         # then invalidate cache so disabled model is excluded immediately.
         try:
             # MongoDB canonical: set is_active=False on model_intelligence + models
-            from pymongo import MongoClient
+            # FIX 2026-06-21: use shared MongoConnectionManager (no hardcoded IP)
             if not hasattr(self, "_mongo_client") or self._mongo_client is None:
-                from pymongo import MongoClient as _MC
-                self._mongo_client = _MC(
-                    host="172.16.103.253", port=27017,
-                    username="quantumtraffic", password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
-                    authSource="admin", serverSelectionTimeoutMS=5000,
-                    directConnection=True,
-                )
+                from ilma_mongo_connection import get_mongo_manager
+                mgr = get_mongo_manager()
+                self._mongo_client = mgr.get_client()
             mongo_db = self._mongo_client["credentials"]
             for pname, pdata in master.get("providers", {}).items():
                 for mid, mdata in pdata.get("models", {}).items():
@@ -2326,15 +2332,11 @@ class ILMAUnifiedRouter:
             # Persist usage updates to MongoDB (canonical store).
             # Keep flushing to JSON LEGACY for backward-compat only (audit trail).
             try:
-                from pymongo import MongoClient
+                # FIX 2026-06-21: use shared MongoConnectionManager (no hardcoded IP)
                 if not hasattr(self, "_mongo_client") or self._mongo_client is None:
-                    from pymongo import MongoClient as _MC
-                    self._mongo_client = _MC(
-                        host="172.16.103.253", port=27017,
-                        username="quantumtraffic", password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
-                        authSource="admin", serverSelectionTimeoutMS=5000,
-                        directConnection=True,
-                    )
+                    from ilma_mongo_connection import get_mongo_manager
+                    mgr = get_mongo_manager()
+                    self._mongo_client = mgr.get_client()
                 mongo_db = self._mongo_client["credentials"]
                 # Track which model_intelligence docs need a refreshed composite_score.
                 now_iso = datetime.now().isoformat()

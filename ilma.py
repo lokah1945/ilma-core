@@ -22,6 +22,11 @@ Usage:
 
 from __future__ import annotations
 
+# FIX 2026-06-21: suppress RequestsDependencyWarning globally before any import.
+# The warning category is defined inside requests itself, so we match by message+module.
+import warnings as _w
+_w.filterwarnings("ignore", message="urllib3.*", module="requests")
+
 import argparse
 import json
 import os
