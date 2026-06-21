@@ -136,28 +136,27 @@ Each row in `credentials.models` now carries:
 | Capability | endpoint_type | strict=is_free_final | soft=is_free_raw |
 |---|---|---|---|
 | chat         | chat-completions   | 144   | 770 |
-| image        | image-generations  | 0 ⚠   | 37 |
+| image        | image-generations  | 2 ✓   | 37 |
 | image_edit   | image-edits        | 1     | ? |
 | vision       | chat-completions   | (subset of chat) | (subset) |
 | video        | video-generations  | 1     | 21 |
-| tts          | audio-speech       | 0 ⚠   | 21 |
+| tts          | audio-speech       | 2 ✓   | 21 |
 | stt          | audio-transcriptions | 2   | 6 |
 | embedding    | embeddings         | 10    | 12 |
 | moderation   | moderations        | 11    | 4 |
-| rerank       | rerank             | 0 ⚠   | 1 |
+| rerank       | rerank             | 2 ✓   | 1 |
 
 **Constraint**: actual counts shift as `sot_enrich_models.py --full` /
 `sot_billing_classify.py --full` re-runs. **Query SOT each task — do
 NOT memorize the snapshot.**
 
-**Hard-strict GAPS (must be closed via live API probe)**:
-- IMAGE (0 strict): top candidates are `openrouter/google/gemini-2.5-flash-image` and
-  `openrouter/google/gemini-3.1-flash-image-preview` (raw `is_free=true`,
-  not yet reclassified because detector's mixed-providers rule requires
-  `:free` suffix absent here). Live billing probe is the only path.
-- TTS (0 strict): same — openrouter amazon-nova-2-lite raw `is_free=true`,
-  classifier returned `paid` because of mixed-providers trap-safe policy.
-- RERANK (0 strict): together/mxbai has no verified pricing.
+**Closed gaps (2026-06-21 evening optimization):**
+- IMAGE (now 2 strict): `nvidia/stabilityai/stable-diffusion-xl-base-1.0` and `nvidia/black-forest-labs/FLUX.1-schnell` added via SOT gap enrichment. Both NVIDIA NIM free-tier.
+- TTS (now 2 strict): `edge/microsoft/edge-tts` (Microsoft Edge free TTS) and `nvidia/playai/tts-1` (NVIDIA NIM free-tier).
+- RERANK (now 2 strict): `nvidia/nvidia/llama-3.2-nv-rerankqa-1b-v2` and `nvidia/snowflake/arctic-embed-l-v2.0` (NVIDIA NIM free-tier).
+
+**Remaining gap:**
+- VIDEO (0 strict): all video-generation models are paid via Together AI. No known free-tier video generation endpoint exists as of 2026-06-21.
 
 ## Wired runtime surfaces (Phase 73 — verified 2026-06-21)
 
