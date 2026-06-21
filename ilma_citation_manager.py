@@ -217,24 +217,28 @@ class CitationManager:
         """
         body = self._strip_bibliography(full_text or "")
         out: Dict[str, Any] = {"numeric": set(), "author_year": [], "families": []}
-        if self.style in NUMERIC_STYLES:
-            # [1], [1], [3], [1]-[3], [1]–[5]
-            for grp in re.findall(r"\[\d+(?:\s*[,\-–]\s*\d+)*\]", body):
-                nums = [int(x) for x in re.findall(r"\d+", grp)]
-                if len(nums) == 2 and ("-" in grp or "–" in grp) and "," not in grp:
-                    out["numeric"].update(range(min(nums), max(nums) + 1))
-                else:
-                    out["numeric"].update(nums)
-        elif self.style == "mla":
+        # Scan ALL marker forms regardless of nominal style: drafted prose frequently
+        # uses numeric [n] even when the manager's style is APA/author-date (and vice
+        # versa). consistency_report() then reconciles by what is ACTUALLY present,
+        # so the nominal style can't cause a false "nothing cited" verdict.
+        # Numeric: [1], [1,3], [1]-[3], [1]–[5]
+        for grp in re.findall(r"\[\d+(?:\s*[,\-–]\s*\d+)*\]", body):
+            nums = [int(x) for x in re.findall(r"\d+", grp)]
+            if len(nums) == 2 and ("-" in grp or "–" in grp) and "," not in grp:
+                out["numeric"].update(range(min(nums), max(nums) + 1))
+            else:
+                out["numeric"].update(nums)
+        # Author-date: (Author, 2023) / (Author, t.t.) / (Author, n.d.)
+        for fam, yr in re.findall(
+                r"\(([A-Z][\w'’.\- ]+?),\s*((?:19|20)\d{2}[a-z]?|t\.t\.|n\.d\.)\)", body):
+            out["author_year"].append((fam.strip(), yr.strip()))
+            out["families"].append(fam.strip())
+        # MLA-style bare (Author) families (only when author-date didn't already capture)
+        if not out["author_year"]:
             for m in re.findall(r"\(([A-Z][\w'’.\- ]+?)(?:,?\s*\d{1,4})?\)", body):
                 fam = m.strip()
                 if fam:
                     out["families"].append(fam)
-        else:  # author-date
-            for fam, yr in re.findall(
-                    r"\(([A-Z][\w'’.\- ]+?),\s*((?:19|20)\d{2}[a-z]?|t\.t\.|n\.d\.)\)", body):
-                out["author_year"].append((fam.strip(), yr.strip()))
-                out["families"].append(fam.strip())
         return out
 
     # ── QA: citation <-> bibliography consistency (REAL) ──
@@ -261,7 +265,9 @@ class CitationManager:
         cited_not_listed: List[Any] = []
         cited_ids: set = set()
 
-        if self.style in NUMERIC_STYLES:
+        # Reconcile by the marker form ACTUALLY present in the body (auto-detect),
+        # not the nominal style — numeric [n] wins when present.
+        if markers["numeric"]:
             # Reference numbers = position in self._order (assigned via cite()).
             # If nothing was numbered at runtime (e.g. external markdown), number all
             # listed sources by their natural order so [n] resolves to a real entry.

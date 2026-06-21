@@ -941,7 +941,10 @@ def run_coding_task(description: str, files: List[str] = None,
                     prefer_model: Optional[str] = None,
                     repo: str = "") -> CodingTaskResult:
     """Convenience entry point for the coding worker."""
-    adapter = CodingWorkerAdapter()
+    # Honor `repo`: the adapter writes files + runs the sandbox against repo_root,
+    # so the spec.repo must propagate to the adapter (else generated files land in
+    # the default profile dir and the sandbox never sees them → tests_run=0).
+    adapter = CodingWorkerAdapter(repo_root=repo) if repo else CodingWorkerAdapter()
     spec = CodingTaskSpec(
         description=description,
         files_to_edit=files or [],
