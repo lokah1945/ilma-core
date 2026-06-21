@@ -94,7 +94,8 @@ def _update_story_state(prev_state: str, chapter_text: str, n: int) -> str:
 def generate_book(title: str, chapters: int, project: str = "novel",
                   out_dir: str = "./output/book", max_chapters: Optional[int] = None,
                   words_per_chapter: int = 1200, synopsis: str = "") -> Dict[str, Any]:
-    from ilma_longform_orchestrator import ChapterManager, ContentType, ChapterStatus
+    from ilma_longform_orchestrator import (ChapterManager, ContentType, ChapterStatus,
+                                             ContinuityTracker, StructureValidator)
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -102,6 +103,10 @@ def generate_book(title: str, chapters: int, project: str = "novel",
     mgr = ChapterManager(title, ctype)
     outlines = mgr.create_project_outline(chapters)
     mgr.initialize_chapters(outlines)
+    # Wire the (previously orphaned) structure/continuity engine.
+    tracker = ContinuityTracker()
+    validator = StructureValidator(tracker)
+    validation_issues: List[Dict[str, Any]] = []
 
     # resume support
     manifest_path = out / "manifest.json"
@@ -173,21 +178,39 @@ def generate_book(title: str, chapters: int, project: str = "novel",
             done[str(n)] = {"file": ch_file.name, "words": words, "model": gen.get("model")}
             # update rolling continuity state from the actual prose just written
             story_state = _update_story_state(story_state, content, n)
+            # STRUCTURE/CONTINUITY VALIDATION (wires the previously-orphaned engine)
+            ch_issues = []
+            try:
+                ch_issues = validator.validate_chapter(mgr.get_chapter(n)) or []
+                for it in ch_issues:
+                    it.setdefault("chapter", n)
+                validation_issues.extend(ch_issues)
+            except Exception as ve:
+                ch_issues = [{"rule": "validator_error", "severity": "info", "message": str(ve)[:120]}]
             results.append({"chapter": n, "status": "written", "words": words,
-                            "model": gen.get("model"), "beat": beat[:80]})
+                            "model": gen.get("model"), "beat": beat[:80],
+                            "issues": [f"{i.get('severity')}:{i.get('rule')}" for i in ch_issues]})
         else:
             results.append({"chapter": n, "status": "failed", "error": gen.get("error", "")[:120]})
 
-    # persist the continuity bible for inspection / resume
-    if story_state:
-        (out / "story_state.md").write_text(story_state)
-
-        # incremental manifest
+        # incremental manifest (inside loop — persisted after each chapter)
         manifest_path.write_text(json.dumps({
             "title": title, "project": project, "chapters_total": chapters,
             "chapters_written": len(done), "chapters": done,
             "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }, indent=2))
+
+    # whole-project continuity sweep + persist reports (after loop)
+    try:
+        validation_issues.extend(tracker.check_consistency() or [])
+    except Exception:
+        pass
+    if story_state:
+        (out / "story_state.md").write_text(story_state)
+    (out / "validation_report.json").write_text(json.dumps({
+        "chapters_validated": len(done), "issue_count": len(validation_issues),
+        "issues": validation_issues[:200],
+    }, indent=2))
 
     total_words = sum(d["words"] for d in done.values())
     # assemble full book
@@ -207,6 +230,7 @@ def generate_book(title: str, chapters: int, project: str = "novel",
         "avg_words_per_chapter": round(total_words / max(1, len(done)), 0),
         "projected_pages_full_book": round((total_words / max(1, len(done))) * chapters / WORDS_PER_PAGE, 1),
         "wall_clock_s": round(time.time() - t0, 1),
+        "validation_issues": len(validation_issues),
         "out_dir": str(out), "results": results,
     }
     (out / "generation_report.json").write_text(json.dumps(summary, indent=2))

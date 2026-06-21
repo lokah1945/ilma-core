@@ -95,16 +95,40 @@ TEMPLATES: Dict[str, Dict[str, Any]] = {
             {"key": "references", "title": "References", "kind": "refs", "objective": ""},
         ],
     },
-    # Novel: research-informed worldbuilding bible -> chapters
+    # Novel: research-informed worldbuilding bible -> beat-planned chapters.
+    # beat_structure = Save the Cat! 15 beats (% positions) blended with classic
+    # three-act (25/50/25). Used by the outline planner to map chapters onto beats.
+    # See knowledge/reference_standards.md §4 (fiction craft).
     "novel": {
         "citation_style": "links",
         "chaptered": True,
         "creative": True,
         "sections": [
             {"key": "worldbuilding", "title": "", "kind": "bible",
-             "objective": "Internal research bible: setting facts, realism anchors (not printed in final prose)."},
-            # chapters injected at runtime
+             "objective": "Internal story bible (not printed in final prose): premise/logline, "
+                          "genre & tone, setting facts + realism anchors, the CHARACTER ROSTER "
+                          "(name, role, want vs need, arc), and the central conflict/stakes."},
+            # chapters injected at runtime, mapped onto the beats below
         ],
+        # 15 Save the Cat beats with target position (% through the book) + the act.
+        "beat_structure": [
+            {"beat": "Opening Image",        "pct": 1,  "act": 1, "purpose": "Establish tone + the hero's status-quo world."},
+            {"beat": "Theme Stated",         "pct": 5,  "act": 1, "purpose": "Hint the thematic lesson the hero must learn."},
+            {"beat": "Set-Up",               "pct": 10, "act": 1, "purpose": "Show the hero's flawed world + what needs fixing."},
+            {"beat": "Catalyst",             "pct": 12, "act": 1, "purpose": "Inciting incident that disrupts the status quo."},
+            {"beat": "Debate",               "pct": 20, "act": 1, "purpose": "Hero hesitates; the central question is posed."},
+            {"beat": "Break into Two",       "pct": 25, "act": 2, "purpose": "Hero commits to the new world/goal."},
+            {"beat": "B Story",              "pct": 30, "act": 2, "purpose": "Subplot/relationship that carries the theme."},
+            {"beat": "Fun and Games",        "pct": 40, "act": 2, "purpose": "The 'promise of the premise' — set-pieces."},
+            {"beat": "Midpoint",             "pct": 50, "act": 2, "purpose": "False victory/defeat; stakes raised, clock starts."},
+            {"beat": "Bad Guys Close In",    "pct": 62, "act": 2, "purpose": "External + internal pressure mounts."},
+            {"beat": "All Is Lost",          "pct": 75, "act": 2, "purpose": "Lowest point; 'whiff of death'."},
+            {"beat": "Dark Night of Soul",   "pct": 80, "act": 2, "purpose": "Hero's despair before the insight."},
+            {"beat": "Break into Three",     "pct": 85, "act": 3, "purpose": "Theme internalised; the solution emerges."},
+            {"beat": "Finale",               "pct": 95, "act": 3, "purpose": "Climax; hero proves change, resolves conflict."},
+            {"beat": "Final Image",          "pct": 100,"act": 3, "purpose": "Mirror of opening — shows transformation."},
+        ],
+        "scaffolding": ["logline", "characters", "central_conflict", "stakes", "setting"],
     },
     "documentation": {
         "citation_style": "links",
@@ -442,6 +466,39 @@ def get_template(doc_type: str) -> Dict[str, Any]:
         base["citation_style"] = t.get("citation_style", base.get("citation_style"))
         return base
     return t
+
+
+# ── Per-section word budgets ─────────────────────────────────────────────────
+# Relative weights per section-key; the absolute target is split proportionally
+# from the document's total word target. Lets callers target length instead of
+# only measuring it post-hoc. Unknown keys fall back to an even split.
+WORD_BUDGET_WEIGHTS: Dict[str, Dict[str, float]] = {
+    "paper":  {"Abstract": 0.05, "1. Introduction": 0.15, "2. Related Work": 0.15,
+               "3. Methodology": 0.2, "4. Results": 0.2, "5. Discussion": 0.15,
+               "6. Limitations": 0.05, "7. Conclusion": 0.05},
+    "lima_bab": {"abstrak": 0.04, "bab1": 0.18, "bab2": 0.26, "bab3": 0.18,
+                 "bab4": 0.26, "bab5": 0.08, "references": 0.0},
+}
+
+
+def get_word_budget(doc_type: str, total_words: int) -> Dict[str, int]:
+    """Return {section_key_or_title: target_words} for a doc_type given a total.
+    Uses lima_bab weights for academic-id docs (skripsi/tesis/disertasi)."""
+    tpl = get_template(doc_type)
+    key = "lima_bab" if tpl.get("structure") == "lima_bab" else doc_type
+    weights = WORD_BUDGET_WEIGHTS.get(key)
+    secs = tpl.get("sections", [])
+    out: Dict[str, int] = {}
+    if weights:
+        for s in secs:
+            ident = s.get("key") if key == "lima_bab" else s.get("title")
+            out[s.get("key") or s.get("title")] = int(total_words * weights.get(ident, 0))
+    else:
+        body = [s for s in secs if s.get("kind") not in ("refs", "front")] or secs
+        per = int(total_words / max(1, len(body)))
+        for s in secs:
+            out[s.get("key") or s.get("title")] = 0 if s.get("kind") in ("refs",) else per
+    return out
 
 
 if __name__ == "__main__":
