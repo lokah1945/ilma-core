@@ -151,6 +151,13 @@ def get_db():
     return _get_db()
 
 
+# Attach convenience methods to the dispatch function object
+# so callers can use: sot_dispatch.health(), sot_dispatch.strict_free_only(cap)
+sot_dispatch.health = health              # type: ignore[attr-defined]
+sot_dispatch.strict_free_only = sot_dispatch_strict_free  # type: ignore[attr-defined]
+sot_dispatch.get_db = get_db            # type: ignore[attr-defined]
+
+
 # ── CLI ──────────────────────────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser()
