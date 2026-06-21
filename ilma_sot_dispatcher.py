@@ -158,6 +158,54 @@ sot_dispatch.strict_free_only = sot_dispatch_strict_free  # type: ignore[attr-de
 sot_dispatch.get_db = get_db            # type: ignore[attr-defined]
 
 
+def get_capability_registry() -> Dict[str, Any]:
+    """Return the unified capability registry from credentials._meta.
+
+    Single source of truth for the 25 ILMA+Hermes capabilities — keys are
+    primary_cap ids (chat, coding, image, tts, stt, embedding, vision, rerank,
+    browser, etc.); values carry hermes-default, nous_subscription, ilma_layer,
+    modality, sources, and a routable 'ilma_routes_via' hook.
+    """
+    return get_db()['_meta'].find_one({'_id': 'capability_registry'}) or {}
+
+
+def lookup_models_by_hermes_cap(hermes_cap: str, strict: bool = True, limit: int = 10) -> list:
+    """Find SOT models that satisfy a Hermes handle name (multi-cap aware).
+
+    Args:
+        hermes_cap: a Hermes handle from the registry, e.g.
+            'vision_analyze', 'text_to_speech', 'image_generate',
+            'llm.coding', 'memory_recall', 'vector_search'.
+        strict:    limit to is_free_final=True (default True).
+        limit:     max number of models to return (default 10).
+
+    Notes:
+        The hermes_caps field was added by the enrichment step on 2026-06-21;
+        older models may be missing it. Those are excluded by this lookup.
+    """
+    q: Dict[str, Any] = {"hermes_caps": hermes_cap}
+    if strict:
+        q["is_free_final"] = True
+    q["is_active"] = True
+    cursor = get_db().models.find(q).limit(limit)
+    out = []
+    for d in cursor:
+        out.append({
+            "model_id": d["model_id"],
+            "provider": d["provider"],
+            "primary_cap": d.get("primary_cap"),
+            "endpoint_type": d.get("endpoint_type"),
+            "capabilities_v2": d.get("capabilities_v2", []),
+            "hermes_caps": d.get("hermes_caps", []),
+            "score": d.get("score"),
+        })
+    return out
+
+
+sot_dispatch.get_capability_registry = get_capability_registry  # type: ignore[attr-defined]
+sot_dispatch.lookup_models_by_hermes_cap = lookup_models_by_hermes_cap  # type: ignore[attr-defined]
+
+
 # ── CLI ──────────────────────────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser()
