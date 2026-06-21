@@ -594,7 +594,8 @@ def main():
     ap = argparse.ArgumentParser(description="ILMA Scriptorium — research-grounded writing")
     ap.add_argument("--topic", required=True)
     ap.add_argument("--type", default="paper",
-                    choices=["paper", "thesis", "report", "blog", "article", "book", "novel", "documentation"])
+                    choices=["paper", "thesis", "tesis", "skripsi", "disertasi",
+                             "report", "blog", "article", "book", "novel", "documentation"])
     ap.add_argument("--scope", default="external", choices=["external", "internal"])
     ap.add_argument("--depth", default="deep", choices=["light", "standard", "deep"])
     ap.add_argument("--language", default="id")
