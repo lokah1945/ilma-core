@@ -868,7 +868,42 @@ def _phase_delegate(task: str, state: ECCIntegrationState) -> dict:
         
         task_type = state.task_analysis.get("what", "general") if state.task_analysis else "general"
         delegate_type = f"{task_type}_{primary_action.lower()}" if primary_action else task_type
-        
+
+        # ── Step 2a: MEDIA-CAPABILITY short-circuit (Phase 73b, 2026-06-21) ──────
+        # If the task is a non-chat media capability (image/tts/stt/embedding/
+        # rerank/video/music), the chat delegation below can't execute it (it
+        # would pick a chat model and fail → "direct execution not implemented").
+        # Route it to the SOT-driven FREE-first capability executor instead.
+        try:
+            from ilma_subagent_router import detect_media_capability, get_router
+            _media_cap = detect_media_capability(task)
+        except Exception:
+            _media_cap = None
+        if _media_cap:
+            print(f"[DELEGATE] media capability detected: {_media_cap} → SOT free-first executor")
+            try:
+                cap_res = get_router().execute_capability(_media_cap, task, allow_paid=False)
+                results["delegated_tasks"].append({
+                    "target": task[:120],
+                    "success": bool(cap_res.get("success")),
+                    "capability": _media_cap,
+                    "provider": cap_res.get("provider"),
+                    "model": cap_res.get("model"),
+                    "artifact": cap_res.get("path") or cap_res.get("url") or cap_res.get("text"),
+                    "billing": cap_res.get("billing"),
+                    "error": cap_res.get("error", ""),
+                })
+                if not cap_res.get("success"):
+                    results["delegate_errors"].append(
+                        f"capability {_media_cap}: {cap_res.get('error')}")
+                results["delegation_summary"] = (
+                    f"capability={_media_cap} via {cap_res.get('provider')}/"
+                    f"{cap_res.get('model')} → {'OK' if cap_res.get('success') else 'FAIL'}")
+                return results
+            except Exception as cap_err:
+                print(f"[DELEGATE] capability executor error: {cap_err} — falling back to chat")
+                results["delegate_errors"].append(f"capability {_media_cap} exception: {cap_err}")
+
         # ── Step 2: Determine if fan-out is needed (multiple targets = parallel) ──
         use_fan_out = len(targets) > 1 and complexity in ("MEDIUM", "COMPLEX")
         

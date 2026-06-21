@@ -584,7 +584,9 @@ class SubAgentRouter:
                                      out_path=out_path, allow_paid=allow_paid, **kw)
             elif cap == "rerank":
                 res = self._exec_rerank(provider, model, query=prompt, **kw)
-            elif cap in ("video", "music"):
+            elif cap == "music":
+                res = self._exec_music(provider, model, prompt, out_path=out_path, **kw)
+            elif cap == "video":
                 res = self._exec_video(provider, model, prompt, out_path=out_path, **kw)
             else:
                 res = {"success": False,
@@ -745,22 +747,72 @@ class SubAgentRouter:
 
     def _exec_rerank(self, provider: str, model: str, *, query: str = "",
                      documents: Optional[List[str]] = None, **kw) -> Dict[str, Any]:
-        """Rerank via wrapper-nvidia (best-effort; NVIDIA reranking NIM)."""
+        """Rerank query↔documents. NVIDIA's hosted reranking NIM is not reachable
+        on this account (integrate/genai 404, retrieval path 410-Gone), so rerank
+        is implemented as FREE embedding cosine-similarity using the verified
+        wrapper-nvidia embeddings — always-available, no extra provider needed."""
+        import math
         docs = documents or kw.get("docs") or []
         if not docs:
-            return {"success": False, "error": "rerank requires 'documents' list"}
-        mdl = model or "nvidia/llama-3.2-nv-rerankqa-1b-v2"
+            return {"success": False, "error": "rerank requires a 'documents' list"}
+        qv = self._exec_embedding("wrapper-nvidia", "", input_text=query)
+        if not qv.get("success"):
+            return {"success": False, "error": f"rerank embed(query) failed: {qv.get('error')}"}
+        q = qv["vector"]; nq = math.sqrt(sum(a * a for a in q)) or 1e-9
+        scored = []
+        for i, d in enumerate(docs):
+            dv = self._exec_embedding("wrapper-nvidia", "", input_text=str(d))
+            if not dv.get("success"):
+                continue
+            v = dv["vector"]; nv = math.sqrt(sum(b * b for b in v)) or 1e-9
+            dot = sum(a * b for a, b in zip(q, v))
+            scored.append({"index": i, "document": d, "score": round(dot / (nq * nv), 6)})
+        if not scored:
+            return {"success": False, "error": "rerank: no documents could be embedded"}
+        scored.sort(key=lambda x: -x["score"])
+        return {"success": True, "rankings": scored, "provider": "wrapper-nvidia",
+                "model": f"{qv.get('model')}(cosine)", "billing": "free",
+                "method": "embedding_cosine"}
+
+    def _exec_music(self, provider: str, model: str, prompt: str, *,
+                    out_path: Optional[str] = None, lyrics: Optional[str] = None,
+                    **kw) -> Dict[str, Any]:
+        """Music generation via MiniMax music API (force_free in SOT). Async-free
+        contract; honest quota guard. No other free music backend exists."""
+        import os as _os
+        key = _media_provider_key_dp("minimax")
+        if not key:
+            return {"success": False, "needs_backend": True,
+                    "error": "no minimax key for music (no other free music backend)"}
+        mdl = model if (provider == "minimax" and model) else "music-1.5"
+        body = {"model": mdl, "prompt": prompt}
+        if lyrics:
+            body["lyrics"] = lyrics
         try:
-            r = self.client.post(f"{_WRAPPER_NVIDIA_BASE}/v1/ranking",
-                json={"model": mdl, "query": {"text": query},
-                      "passages": [{"text": d} for d in docs]},
-                headers={"Authorization": "Bearer wrapper-local-key"}, timeout=60)
-            if r.status_code == 200:
-                return {"success": True, "rankings": r.json().get("rankings"),
-                        "provider": "wrapper-nvidia", "model": mdl, "billing": "free"}
-            return {"success": False, "error": f"rerank HTTP {r.status_code}: {r.text[:120]}"}
+            r = self.client.post("https://api.minimax.io/v1/music_generation",
+                                 json=body, headers={"Authorization": f"Bearer {key}",
+                                 "Content-Type": "application/json"}, timeout=120)
+            j = r.json() if r.status_code == 200 else {}
+            br = (j or {}).get("base_resp", {})
+            if br.get("status_code") == 2056:
+                return {"success": False, "quota_exhausted": True, "provider": "minimax",
+                        "model": mdl, "error": "MiniMax free token plan exhausted (2056)"}
+            audio = ((j.get("data") or {}).get("audio")) or j.get("audio")
+            if audio:
+                import base64 as _b64
+                path = self._image_out_path(out_path, ext="mp3")
+                try:
+                    with open(path, "wb") as f:
+                        f.write(_b64.fromhex(audio) if all(c in "0123456789abcdefABCDEF" for c in audio[:32]) else _b64.b64decode(audio))
+                except Exception:
+                    with open(path, "wb") as f:
+                        f.write(bytes.fromhex(audio))
+                return {"success": True, "path": path, "provider": "minimax",
+                        "model": mdl, "billing": "free"}
+            return {"success": False, "provider": "minimax", "model": mdl,
+                    "error": f"music: HTTP {r.status_code} {str(j or r.text)[:160]}"}
         except Exception as e:
-            return {"success": False, "error": f"{type(e).__name__}: {e}"}
+            return {"success": False, "error": f"music {type(e).__name__}: {e}"}
 
     def _exec_video(self, provider: str, model: str, prompt: str, *,
                     out_path: Optional[str] = None, max_wait_s: int = 90,
