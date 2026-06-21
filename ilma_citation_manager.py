@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 
 # doc_type -> default style
 DOCTYPE_STYLE = {
-    "paper": "ieee", "thesis": "apa", "disertasi": "apa", "skripsi": "apa",
+    "paper": "ieee", "thesis": "apa", "tesis": "apa", "disertasi": "apa", "skripsi": "apa",
     "report": "apa", "makalah": "apa", "jurnal": "apa", "book": "chicago",
     "article": "apa", "blog": "links", "esai": "apa", "whitepaper": "ieee",
     "novel": "links", "cerpen": "links", "documentation": "links",
@@ -191,16 +191,128 @@ class CitationManager:
                 out.append("")
         return "\n".join(out)
 
-    # ── QA: citation <-> bibliography consistency ──
+    # ── citation marker extraction (parse what actually got emitted in the doc) ──
+    def _strip_bibliography(self, full_text: str) -> str:
+        """Return the body text with the reference/bibliography list removed, so that
+        the reference entries themselves are not mistaken for in-text citations."""
+        if not full_text:
+            return ""
+        heads = ("references", "daftar pustaka", "works cited", "bibliography",
+                 "sumber & bacaan lanjutan", "sources & further reading", "sources",
+                 "sumber")
+        lines = full_text.splitlines()
+        for i, ln in enumerate(lines):
+            s = ln.strip().lstrip("#").strip().lower().rstrip(":")
+            if s in heads:
+                return "\n".join(lines[:i])
+        return full_text
+
+    def extract_markers(self, full_text: str) -> Dict[str, Any]:
+        """Parse citation markers ACTUALLY present in the rendered body text.
+
+        Numeric styles (ieee/vancouver) -> set of ints from [n] (and [n]-[m] ranges /
+        [n], [m] groups). Author-date styles (apa/harvard/chicago_ad) -> list of
+        (family, year) tuples from (Author, Year). MLA -> list of families from (Author).
+        Returns {"numeric": set[int], "author_year": [(fam, yr)...], "families": [fam...]}.
+        """
+        body = self._strip_bibliography(full_text or "")
+        out: Dict[str, Any] = {"numeric": set(), "author_year": [], "families": []}
+        if self.style in NUMERIC_STYLES:
+            # [1], [1], [3], [1]-[3], [1]–[5]
+            for grp in re.findall(r"\[\d+(?:\s*[,\-–]\s*\d+)*\]", body):
+                nums = [int(x) for x in re.findall(r"\d+", grp)]
+                if len(nums) == 2 and ("-" in grp or "–" in grp) and "," not in grp:
+                    out["numeric"].update(range(min(nums), max(nums) + 1))
+                else:
+                    out["numeric"].update(nums)
+        elif self.style == "mla":
+            for m in re.findall(r"\(([A-Z][\w'’.\- ]+?)(?:,?\s*\d{1,4})?\)", body):
+                fam = m.strip()
+                if fam:
+                    out["families"].append(fam)
+        else:  # author-date
+            for fam, yr in re.findall(
+                    r"\(([A-Z][\w'’.\- ]+?),\s*((?:19|20)\d{2}[a-z]?|t\.t\.|n\.d\.)\)", body):
+                out["author_year"].append((fam.strip(), yr.strip()))
+                out["families"].append(fam.strip())
+        return out
+
+    # ── QA: citation <-> bibliography consistency (REAL) ──
     def consistency_report(self, full_text: str = "") -> Dict[str, Any]:
-        listed = set(self.sources.keys())
-        cited = set(self._order)
-        rep = {
-            "listed_not_cited": sorted(listed - cited),
-            "cited_not_listed": [],   # cite() only emits for known ids, so empty by design
-            "cited": len(cited), "listed": len(listed),
+        """Reconcile citation markers actually emitted in `full_text` against the
+        bibliography entries. Reports:
+          - cited_not_listed: markers in the body with NO matching reference entry
+          - listed_not_cited: reference entries that are never cited in the body
+        When `full_text` is empty, falls back to the runtime cite() order (legacy behavior).
+        """
+        listed_ids = set(self.sources.keys())
+
+        # Legacy / no-text path: use what cite() recorded; cannot detect orphan markers.
+        if not (full_text or "").strip():
+            cited = set(self._order)
+            return {
+                "listed_not_cited": sorted(listed_ids - cited),
+                "cited_not_listed": [],
+                "cited": len(cited), "listed": len(listed_ids),
+                "mode": "runtime",
+            }
+
+        markers = self.extract_markers(full_text)
+        cited_not_listed: List[Any] = []
+        cited_ids: set = set()
+
+        if self.style in NUMERIC_STYLES:
+            # Reference numbers = position in self._order (assigned via cite()).
+            # If nothing was numbered at runtime (e.g. external markdown), number all
+            # listed sources by their natural order so [n] resolves to a real entry.
+            if not self._order:
+                for sid in self.sources:
+                    self._num(sid)
+            n_listed = len(self._order)
+            for n in sorted(markers["numeric"]):
+                if 1 <= n <= n_listed:
+                    cited_ids.add(self._order[n - 1])
+                else:
+                    cited_not_listed.append(n)
+            listed_not_cited = sorted(set(self._order) - cited_ids,
+                                      key=lambda s: self._order.index(s))
+        else:
+            # author-date / mla: match by author family (+ year when available)
+            def _fam_for(sid: str) -> str:
+                s = self.sources[sid]
+                return (_author_family(s.get("authors"))
+                        or s.get("site_name")
+                        or urlparse(s.get("url", "")).netloc.replace("www.", "")
+                        or "").lower()
+
+            fam_index: Dict[str, str] = {}   # family(lower) -> sid
+            for sid in self.sources:
+                fam = _fam_for(sid)
+                if fam:
+                    fam_index.setdefault(fam, sid)
+
+            pairs = markers["author_year"] if self.style != "mla" else \
+                [(f, "") for f in markers["families"]]
+            for fam, _yr in pairs:
+                sid = fam_index.get(fam.strip().lower())
+                if sid:
+                    cited_ids.add(sid)
+                else:
+                    cited_not_listed.append(fam.strip())
+            listed_not_cited = sorted(listed_ids - cited_ids)
+
+        # de-dup preserving type/order
+        _seen = set(); _cnl = []
+        for x in cited_not_listed:
+            if x not in _seen:
+                _seen.add(x); _cnl.append(x)
+
+        return {
+            "listed_not_cited": listed_not_cited,
+            "cited_not_listed": _cnl,
+            "cited": len(cited_ids), "listed": len(listed_ids),
+            "mode": "parsed",
         }
-        return rep
 
 
 if __name__ == "__main__":

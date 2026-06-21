@@ -159,7 +159,7 @@ def judge_code(code: str, task: str) -> Dict[str, Any]:
         report = verify_file(str(temp_file), levels=ALL_LEVELS[:6])
 
         # Clean up
-        temp_file.unlink(maybe_missing=True)
+        temp_file.unlink(missing_ok=True)
 
         return {
             "success": True,

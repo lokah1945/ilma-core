@@ -50,6 +50,47 @@ def _count_words(t: str) -> int:
     return len(re.findall(r"\b\w+\b", t or ""))
 
 
+def _plan_outline(title: str, project: str, chapters: int, synopsis: str) -> List[str]:
+    """LLM-generate a real per-chapter beat/synopsis (replaces placeholder
+    'Chapter N synopsis - to be written'). Returns a list of `chapters` beat
+    strings; falls back to generic beats if the model is unavailable."""
+    prompt = (
+        f"You are a story architect. Plan '{title}', a {project}, in EXACTLY {chapters} chapters.\n"
+        f"{('Premise/synopsis: ' + synopsis) if synopsis else ''}\n"
+        f"For each chapter output one line: 'N. <what concretely happens — events, which "
+        f"characters, what changes>'. Keep continuity and rising tension across chapters. "
+        f"Output ONLY the {chapters} numbered lines."
+    )
+    beats = [""] * (chapters + 1)  # 1-indexed
+    gen = _gen(prompt, role="planning")
+    if gen.get("ok"):
+        for line in (gen.get("content") or "").splitlines():
+            m = re.match(r"\s*(\d+)[\.\)]\s*(.+)", line)
+            if m:
+                idx = int(m.group(1))
+                if 1 <= idx <= chapters:
+                    beats[idx] = m.group(2).strip()
+    return beats
+
+
+def _update_story_state(prev_state: str, chapter_text: str, n: int) -> str:
+    """Maintain a compact rolling 'story bible so far' (characters, established
+    facts, unresolved threads, timeline) — real continuity, not a 200-char prefix.
+    Text-based (robust, no fragile JSON parsing). Capped to keep prompts bounded."""
+    prompt = (
+        "Update the running STORY STATE after this chapter. Output a concise bible with "
+        "sections: CHARACTERS (name: one-line status), FACTS established, OPEN THREADS, "
+        "TIMELINE. Merge with the previous state; keep it under 350 words.\n\n"
+        f"PREVIOUS STATE:\n{prev_state or '(none yet)'}\n\n"
+        f"NEW CHAPTER {n} TEXT:\n{chapter_text[:6000]}"
+    )
+    gen = _gen(prompt, role="reasoning")
+    if gen.get("ok") and (gen.get("content") or "").strip():
+        return gen["content"].strip()[:2400]
+    # fallback: append a trimmed digest so continuity never fully regresses
+    return (prev_state + f"\n[Ch{n}] " + " ".join(chapter_text.split())[:300]).strip()[:2400]
+
+
 def generate_book(title: str, chapters: int, project: str = "novel",
                   out_dir: str = "./output/book", max_chapters: Optional[int] = None,
                   words_per_chapter: int = 1200, synopsis: str = "") -> Dict[str, Any]:
@@ -73,29 +114,34 @@ def generate_book(title: str, chapters: int, project: str = "novel",
 
     to_write = chapters if max_chapters is None else min(max_chapters, chapters)
     results = []
-    prior_summaries: List[str] = []
     t0 = time.time()
+
+    # Real LLM outline (replaces placeholder 'Chapter N - to be written' synopses).
+    beats = _plan_outline(title, project, chapters, synopsis)
+    # Rolling story-state ("bible so far") — real cross-chapter continuity.
+    story_state = ""
 
     for n in range(1, to_write + 1):
         ch = mgr.get_chapter(n)
         cid = ch.outline.chapter_id
         ch_file = out / f"{cid}.md"
+        beat = beats[n] if n < len(beats) else ""
 
         if str(n) in done and ch_file.exists():
             txt = ch_file.read_text()
             mgr.update_chapter_content(n, txt, ChapterStatus.COMPLETE if hasattr(ChapterStatus, "COMPLETE") else None)
-            prior_summaries.append(f"Ch{n}: {txt[:200]}")
+            story_state = _update_story_state(story_state, txt, n)
             results.append({"chapter": n, "status": "skipped(existing)", "words": _count_words(txt)})
             continue
 
-        context = ("\n".join(prior_summaries[-3:]))[:1500]
         prompt = (
             f"You are writing '{title}', a {project}. Write Chapter {n} of {chapters}.\n"
-            f"{('Overall synopsis: ' + synopsis) if synopsis else ''}\n"
-            f"{('Continuity (recent chapters):' + chr(10) + context) if context else ''}\n"
+            f"{('Overall premise: ' + synopsis) if synopsis else ''}\n"
+            f"{('THIS CHAPTER MUST COVER: ' + beat) if beat else ''}\n"
+            f"{('STORY SO FAR (keep strict continuity with this — names, facts, threads, timeline):' + chr(10) + story_state) if story_state else ''}\n"
             f"Write a complete, coherent Chapter {n} of about {words_per_chapter} words. "
-            f"Maintain consistent characters, tone, and plot. Output ONLY the chapter prose "
-            f"(start with a chapter heading).\n"
+            f"Maintain consistent characters, tone, and plot established above. Output ONLY the "
+            f"chapter prose (start with a chapter heading).\n"
         )
 
         # generate + retry
@@ -107,20 +153,34 @@ def generate_book(title: str, chapters: int, project: str = "novel",
         content = gen.get("content", "")
         words = _count_words(content)
 
-        # validate (min length); retry once more if far below target
-        if gen.get("ok") and words < max(150, words_per_chapter * 0.3):
-            gen2 = _gen(prompt + "\nThe chapter must be substantially longer and complete.")
-            if _count_words(gen2.get("content", "")) > words:
-                content, words = gen2.get("content", ""), _count_words(gen2.get("content", ""))
+        # length control: continuation loop (re-prompt "continue") until target met
+        cont_tries = 0
+        target_floor = max(150, int(words_per_chapter * 0.7))
+        while gen.get("ok") and words < target_floor and cont_tries < 3:
+            cont_tries += 1
+            cg = _gen(prompt + f"\n\nSo far you wrote:\n{content[-2000:]}\n\nContinue the SAME "
+                      f"chapter from where it stopped (do not repeat); keep writing until it is "
+                      f"a complete ~{words_per_chapter}-word chapter.")
+            if cg.get("ok") and cg.get("content", "").strip():
+                content = (content + "\n" + cg["content"]).strip()
+                words = _count_words(content)
+            else:
+                break
 
         if gen.get("ok") and content.strip():
             ch_file.write_text(content)
             mgr.update_chapter_content(n, content)
             done[str(n)] = {"file": ch_file.name, "words": words, "model": gen.get("model")}
-            prior_summaries.append(f"Ch{n}: {content[:200]}")
-            results.append({"chapter": n, "status": "written", "words": words, "model": gen.get("model")})
+            # update rolling continuity state from the actual prose just written
+            story_state = _update_story_state(story_state, content, n)
+            results.append({"chapter": n, "status": "written", "words": words,
+                            "model": gen.get("model"), "beat": beat[:80]})
         else:
             results.append({"chapter": n, "status": "failed", "error": gen.get("error", "")[:120]})
+
+    # persist the continuity bible for inspection / resume
+    if story_state:
+        (out / "story_state.md").write_text(story_state)
 
         # incremental manifest
         manifest_path.write_text(json.dumps({

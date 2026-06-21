@@ -67,6 +67,9 @@ def _provider_key_dp(provider: str):
     """Resolve an inference key for a direct provider."""
     env = _ENV_DP
     creds = _CREDS_CACHE_DP
+    if provider == "wrapper-nvidia":
+        # local force-free proxy injects its own pooled NVIDIA key; any bearer works.
+        return "wrapper-local-key"
     if provider == "nvidia":
         if env.get("NVIDIA_API_KEY"):
             return env["NVIDIA_API_KEY"]
@@ -86,7 +89,12 @@ def _provider_key_dp(provider: str):
     return None
 
 # (base_url, needs_key)  — endpoints proven callable 2026-06-01
+# wrapper-nvidia added 2026-06-22: the local force-free NVIDIA proxy (key-pooled)
+# was MISSING here, so the router could NEVER execute its 121 free chat models
+# (incl. llama-4-maverick s=90) — it died on MiniMax empty-responses instead.
+# This is the single highest-impact fix for free text generation reliability.
 _DIRECT_ENDPOINTS_DP = {
+    "wrapper-nvidia": "http://127.0.0.1:9100/v1/chat/completions",
     "nvidia":  "https://integrate.api.nvidia.com/v1/chat/completions",
     "minimax": "https://api.minimax.io/v1/text/chatcompletion_v2",
     "ollama":  "https://ollama.com/v1/chat/completions",
@@ -262,11 +270,17 @@ class SubAgentRouter:
         task_type_or_desc: str,
         thinking: str = "Auto",
         allow_paid: bool = False,
+        avoid_models: Optional[List[str]] = None,
     ) -> RoutingDecision:
-        """Route to best model for task using pure data-driven scoring."""
+        """Route to best model for task using pure data-driven scoring.
+
+        avoid_models: models already tried+failed this request — forwarded to the
+        ranker so re-routing skips them (fixes the loop that kept re-picking a
+        broken MiniMax and gave up instead of reaching a healthy provider)."""
         result = self.router.get_best_model(
             task_type_or_desc=task_type_or_desc,
             allow_paid=allow_paid,
+            avoid_models=avoid_models or None,
         )
 
         model = result.get("model_id", "")
@@ -385,8 +399,11 @@ class SubAgentRouter:
         tried: set = set()  # Models that failed (tracked persistently)
 
         while len(tried) < 20:  # Safety limit
-            # Route fresh each time — ensures we always pick the current best
-            decision = self.route(task_type_or_desc, thinking, allow_paid)
+            # Route fresh each time — ensures we always pick the current best.
+            # Pass tried models as avoid_models so re-routing skips failed ones
+            # (else a broken top model like MiniMax is re-picked forever).
+            decision = self.route(task_type_or_desc, thinking, allow_paid,
+                                  avoid_models=list(tried))
 
             # If selected model already tried and failed, skip to fresh routing
             if decision.model in tried:

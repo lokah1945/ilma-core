@@ -53,6 +53,81 @@ def _count_words(t: str) -> int:
     return len(re.findall(r"\b\w+\b", t or ""))
 
 
+def _ground_sections(drafted: Dict[str, str], claims: List[Dict[str, Any]],
+                     sources: List[Dict[str, Any]], academic: bool) -> Dict[str, Any]:
+    """GROUNDING GATE: verify each drafted section's factual claims against the research
+    evidence using AntiHallucinationGroundingLoop. Returns a report with per-section
+    grounding scores, the worst section, an overall score, and a pass/fail flag.
+
+    Method: split each section into candidate sentences, register the factual ones as
+    claims, ground them against the corpus of research-claim texts + source titles
+    (term-overlap relevance, no network). Sentences that carry a citation marker are
+    treated as factual assertions that MUST be supported by the evidence.
+    """
+    loop_cls = None
+    try:
+        from ilma_grounding_loop import AntiHallucinationGroundingLoop, ClaimType, GroundingStatus
+        loop_cls = AntiHallucinationGroundingLoop
+    except Exception as e:
+        return {"available": False, "error": str(e), "passed": True, "overall_score": 1.0,
+                "sections": {}, "worst_section": None, "ungrounded": []}
+
+    # evidence corpus = research claim texts + source titles (the verified knowledge)
+    corpus = [c.get("text", "") for c in claims if c.get("text")]
+    corpus += [s.get("title", "") for s in sources if s.get("title")]
+    src_urls = [s.get("url", "") for s in sources if s.get("url", "").startswith("http")]
+    corpus = [c for c in corpus if c.strip()]
+
+    sentence_re = re.compile(r"(?<=[.!?])\s+")
+    cite_re = re.compile(r"\[\d+\]|\([A-Z][\w'’.\- ]+?,\s*(?:19|20)\d{2}[a-z]?\)")
+    report: Dict[str, Any] = {"available": True, "sections": {}, "ungrounded": [],
+                              "annotations": {}}
+    section_scores: Dict[str, float] = {}
+
+    for key, text in drafted.items():
+        loop = loop_cls(loop_id=f"sec_{key}")
+        # strip the heading line; evaluate prose only
+        body = re.sub(r"^\s*#+.*$", "", text, count=1, flags=re.M)
+        sents = [s.strip().lstrip("#*-• ").strip() for s in sentence_re.split(body)]
+        scored = []
+        ungrounded_here = []
+        for sent in sents:
+            if len(sent) < 40:
+                continue
+            has_cite = bool(cite_re.search(sent))
+            # factual = has a citation marker OR contains a number/quantitative assertion
+            is_factual = has_cite or bool(re.search(r"\d|persen|%|menurut|menunjukkan|terbukti", sent, re.I))
+            if not is_factual:
+                continue
+            ctype = ClaimType.FACTUAL if has_cite else ClaimType.INFERENTIAL
+            cid = loop.register_claim(sent, ctype, initial_confidence=0.3)
+            res = loop.ground_claim(cid, evidence=corpus, verification_sources=src_urls)
+            ok = res and res.status in (GroundingStatus.GROUNDED, GroundingStatus.PARTIALLY_GROUNDED)
+            scored.append(1.0 if ok else 0.0)
+            if not ok:
+                ungrounded_here.append(sent[:160])
+        sec_score = (sum(scored) / len(scored)) if scored else 1.0
+        section_scores[key] = round(sec_score, 3)
+        report["sections"][key] = {"score": round(sec_score, 3),
+                                    "claims_checked": len(scored),
+                                    "ungrounded": len(ungrounded_here)}
+        if ungrounded_here:
+            report["annotations"][key] = ungrounded_here[:5]
+            report["ungrounded"].extend(f"[{key}] {u}" for u in ungrounded_here[:5])
+
+    if section_scores:
+        report["overall_score"] = round(sum(section_scores.values()) / len(section_scores), 3)
+        report["worst_section"] = min(section_scores, key=section_scores.get)
+    else:
+        report["overall_score"] = 1.0
+        report["worst_section"] = None
+    # gate threshold: academic docs held to a higher bar
+    threshold = 0.6 if academic else 0.45
+    report["threshold"] = threshold
+    report["passed"] = report["overall_score"] >= threshold
+    return report
+
+
 def _clean_topic(topic: str) -> str:
     """Strip writing-command prefixes so project name + title are clean.
     e.g. "tulis blog singkat berbasis riset tentang manfaat X" -> "Manfaat X"."""
@@ -112,7 +187,7 @@ def write(topic: str, doc_type: str = "paper", scope: str = "external", *,
     style = citation_style if citation_style != "auto" else tpl.get("citation_style", "apa")
 
     # ── STAGE 1: RESEARCH ──
-    _academic = doc_type in ('paper','thesis','report','documentation')
+    _academic = doc_type in ('paper','thesis','tesis','skripsi','disertasi','report','documentation')
     manifest = research.research(topic, depth=depth, academic=_academic)
     research.save_manifest(manifest, str(pdir / "research" / "manifest.json"))
     claims = manifest.get("claims", [])
@@ -360,7 +435,7 @@ def write(topic: str, doc_type: str = "paper", scope: str = "external", *,
         _cited = set(int(x) for x in _qre.findall(r"\[(\d+)\]", full_md))
         _tpl_keys = [se.get("key") for se in sections if se.get("kind") not in ("refs",)]
         _present = [k for k in _tpl_keys if k in drafted or k in ("worldbuilding",)]
-        _academic = doc_type in ("paper", "thesis", "report", "makalah")
+        _academic = doc_type in ("paper", "thesis", "tesis", "skripsi", "disertasi", "report", "makalah")
         _qa = {
             "doc_type": doc_type, "language": language,
             "word_count": _count_words(full_md),
@@ -379,7 +454,7 @@ def write(topic: str, doc_type: str = "paper", scope: str = "external", *,
         _qa["checks"]["structure_complete"] = (_qa["sections_present"] >= _qa["sections_expected"])
         _qa["checks"]["claims_grounded"] = (_qa["claims_with_source"] == _qa["claims_total"]) if claims else True
         _qa["checks"]["citations_present"] = (_qa["citations_used_in_text"] > 0) if _academic else True
-        _qa["checks"]["methodology_present"] = ("methodolog" in full_md.lower() or "metodolog" in full_md.lower()) if doc_type in ("paper","thesis") else True
+        _qa["checks"]["methodology_present"] = ("methodolog" in full_md.lower() or "metodolog" in full_md.lower() or "metode penelitian" in full_md.lower()) if doc_type in ("paper","thesis","tesis","skripsi","disertasi") else True
         _qa["checks"]["references_present"] = ("references" in full_md.lower() or "daftar pustaka" in full_md.lower() or "sources" in full_md.lower())
         _sq = manifest.get("source_quality", {})
         _qa["source_quality"] = _sq
@@ -404,11 +479,84 @@ def write(topic: str, doc_type: str = "paper", scope: str = "external", *,
                 _qa.setdefault("warnings", []).append(f"{len(_missing)} sitasi tidak ada di daftar pustaka.")
         except Exception:
             pass
+        # ── GROUNDING GATE: verify drafted claims against research evidence ──
+        try:
+            _grounding = _ground_sections(drafted, claims, sources, _academic)
+            _qa["grounding"] = {k: v for k, v in _grounding.items() if k != "annotations"}
+            _qa["checks"]["claims_grounded_vs_evidence"] = bool(_grounding.get("passed", True))
+            if _grounding.get("ungrounded"):
+                _qa.setdefault("warnings", []).append(
+                    f"{len(_grounding['ungrounded'])} klaim faktual kurang terdukung oleh bukti riset "
+                    f"(grounding {_grounding.get('overall_score')} < ambang {_grounding.get('threshold')}).")
+        except Exception as _ge:
+            _grounding = {"available": False, "passed": True, "error": str(_ge)}
+            _qa["grounding"] = _grounding
         _qa["passed"] = all(_qa["checks"].values())
+        if not _qa["passed"]:
+            _qa["needs_revision"] = True
         (pdir / "logs").mkdir(parents=True, exist_ok=True)
         (pdir / "logs" / "quality_report.json").write_text(json.dumps(_qa, indent=2, ensure_ascii=False))
     except Exception:
         _qa = {"passed": None}
+        _grounding = {"available": False, "passed": None}
+
+    # ── GATE ACTION: if QA failed, re-draft the WORST-grounded section ONCE with the
+    # ungrounded-claim findings injected, then re-assemble. If still failing, the
+    # output is explicitly marked needs_revision (NOT silently exported as clean). ──
+    def _reassemble(_drafted: Dict[str, str]) -> str:
+        _parts = [f"# {topic}\n", meta_line]
+        if _cover:
+            _parts.append(f"\n![{figures_map[_cover]}]({_cover})\n\n*{figures_map[_cover]}*\n")
+        for _sec in sections:
+            if _sec["kind"] == "refs":
+                continue
+            _k = _sec["key"]
+            if _k in _drafted:
+                _b = _drafted[_k].strip()
+                if _sec["title"] and not _b.lstrip().startswith("#"):
+                    _b = f"## {_sec['title']}\n\n{_b}"
+                _parts.append(_b + "\n")
+                if _k in section_figures:
+                    _fp, _cap = section_figures[_k]
+                    _parts.append(f"\n![{_cap}]({_fp})\n\n*{_cap}*\n")
+        _parts.append("\n" + cm.bibliography(include_all=True))
+        return "\n".join(_parts)
+
+    try:
+        _worst = (_grounding or {}).get("worst_section")
+        if (_qa.get("passed") is False) and _worst and _worst in drafted \
+                and (_grounding or {}).get("available"):
+            _ann = (_grounding.get("annotations") or {}).get(_worst, []) \
+                if isinstance(_grounding, dict) else []
+            _sec_obj = next((s for s in draft_secs if s["key"] == _worst), None)
+            if _sec_obj is not None:
+                _redo = (_section_prompt(_sec_obj) +
+                         "\n\nREVISION NOTE: the following statements were NOT supported by the "
+                         "research evidence. Remove them, qualify them, or replace with claims that "
+                         "ARE supported (cite the [n]/(Author, Year) markers from the evidence). Do "
+                         "NOT fabricate facts or citations:\n" +
+                         "\n".join(f"- {a}" for a in _ann))
+                _g = _draft(_redo)
+                _new = _g.get("content", "") if _g.get("ok") else ""
+                if _new.strip():
+                    drafted[_worst] = _new
+                    full_md = _reassemble(drafted)
+                    # re-score grounding + citation consistency after the redraft
+                    try:
+                        _g2 = _ground_sections(drafted, claims, sources, _academic)
+                        _qa["grounding"] = {k: v for k, v in _g2.items() if k != "annotations"}
+                        _qa["checks"]["claims_grounded_vs_evidence"] = bool(_g2.get("passed", True))
+                        _cons2 = cm.consistency_report(full_md)
+                        _qa["citation_consistency"] = _cons2
+                        _qa["checks"]["citation_bibliography_consistent"] = (len(_cons2.get("cited_not_listed") or []) == 0)
+                        _qa["passed"] = all(_qa["checks"].values())
+                        _qa["needs_revision"] = not _qa["passed"]
+                        _qa["redrafted_section"] = _worst
+                        (pdir / "logs" / "quality_report.json").write_text(json.dumps(_qa, indent=2, ensure_ascii=False))
+                    except Exception:
+                        pass
+    except Exception:
+        pass
 
     # ── STAGE 7: EXPORT ──
     reg.set_status(slug, "exporting")

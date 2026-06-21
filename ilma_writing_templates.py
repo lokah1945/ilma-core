@@ -40,7 +40,10 @@ TEMPLATES: Dict[str, Dict[str, Any]] = {
             {"key": "references", "title": "References", "kind": "refs", "objective": ""},
         ],
     },
-    "thesis": {"citation_style": "apa", "alias_of": "paper"},
+    # Indonesian academic "lima-bab" (BAB I–V) — skripsi/tesis/disertasi.
+    # Built below via _LIMA_BAB so all three share the canonical structure but carry
+    # their own KKNI min-reference + similarity-limit metadata.
+    # (TEMPLATES["skripsi"], ["tesis"], ["thesis"], ["disertasi"] injected after this dict.)
     "report": {
         "citation_style": "apa",
         "sections": [
@@ -116,6 +119,75 @@ TEMPLATES: Dict[str, Dict[str, Any]] = {
 }
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# INDONESIAN ACADEMIC "LIMA BAB" (BAB I–V) — skripsi / tesis / disertasi
+# Canonical structure per UGM Pedoman Penulisan Skripsi/Tesis/Disertasi (2023) and
+# KKNI (Perpres RI No. 8/2012). See knowledge/reference_standards.md §1.2.
+# Same 5-bab skeleton across S1/S2/S3; depth/originality + KKNI metadata escalate.
+# ══════════════════════════════════════════════════════════════════════════════
+def _lima_bab_sections() -> List[Dict[str, Any]]:
+    return [
+        {"key": "abstrak", "title": "Abstrak", "kind": "front",
+         "objective": "Intisari/Abstrak 250-300 kata: latar belakang singkat, tujuan, "
+                      "metode, hasil utama, dan kesimpulan. Sertakan 3-5 kata kunci. "
+                      "Mandiri (dapat dibaca tanpa membaca isi)."},
+        {"key": "bab1", "title": "BAB I PENDAHULUAN", "kind": "body",
+         "objective": "Tulis lengkap dengan sub-bab: (1.1) Latar Belakang Masalah; "
+                      "(1.2) Rumusan Masalah; (1.3) Tujuan Penelitian; "
+                      "(1.4) Manfaat Penelitian (teoritis & praktis); "
+                      "(1.5) Batasan Penelitian (ruang lingkup). Alur umum -> khusus."},
+        {"key": "bab2", "title": "BAB II TINJAUAN PUSTAKA", "kind": "body",
+         "objective": "Tulis lengkap dengan sub-bab: (2.1) Landasan Teori (teori/model/"
+                      "definisi fundamental); (2.2) Penelitian Terdahulu (state of the art "
+                      "dari jurnal terbaru, sitasi sumber); (2.3) Kerangka Pemikiran/"
+                      "Kerangka Berpikir; (2.4) Hipotesis (jika penelitian kuantitatif). "
+                      "Tunjukkan keaslian/kebaruan penelitian."},
+        {"key": "bab3", "title": "BAB III METODE PENELITIAN", "kind": "body",
+         "objective": "Tulis dengan kalimat pasif: jenis/rancangan penelitian; lokasi & "
+                      "waktu; populasi & sampel (atau objek); variabel & definisi "
+                      "operasional; instrumen/alat; teknik pengumpulan data (primer/"
+                      "sekunder); teknik/metode analisis data. Harus dapat direplikasi."},
+        {"key": "bab4", "title": "BAB IV HASIL DAN PEMBAHASAN", "kind": "body",
+         "objective": "(4.1) Hasil Penelitian (sajikan data: teks/tabel/gambar, tanpa "
+                      "interpretasi berlebih); (4.2) Pembahasan (analisis kritis dikaitkan "
+                      "dengan landasan teori dan penelitian terdahulu, jawab tujuan "
+                      "penelitian, sitasi sumber)."},
+        {"key": "bab5", "title": "BAB V PENUTUP", "kind": "synthesis",
+         "objective": "(5.1) Kesimpulan (jawaban ringkas atas tujuan penelitian, sesuai "
+                      "urutan tujuan, tanpa data/sitasi baru); (5.2) Saran (tindak lanjut "
+                      "dan rekomendasi penelitian selanjutnya)."},
+        {"key": "references", "title": "Daftar Pustaka", "kind": "refs", "objective": ""},
+    ]
+
+
+# KKNI metadata (min refs / similarity limit / jenjang). reference_standards.md §1.2.
+_LIMA_BAB_KKNI = {
+    "skripsi":   {"jenjang": "S1", "kkni_level": 6, "min_references": 20,
+                  "similarity_limit_pct": 25, "novelty": "applied",
+                  "label_id": "Skripsi"},
+    "tesis":     {"jenjang": "S2", "kkni_level": 8, "min_references": 40,
+                  "similarity_limit_pct": 20, "novelty": "kebaruan",
+                  "label_id": "Tesis"},
+    "disertasi": {"jenjang": "S3", "kkni_level": 9, "min_references": 80,
+                  "similarity_limit_pct": 15, "novelty": "original",
+                  "label_id": "Disertasi"},
+}
+
+for _akey, _meta in _LIMA_BAB_KKNI.items():
+    TEMPLATES[_akey] = {
+        "citation_style": "apa",
+        "academic_id": True,
+        "structure": "lima_bab",
+        "kkni": dict(_meta),
+        "sections": _lima_bab_sections(),
+    }
+# "thesis" / "tesis" used interchangeably; thesis -> tesis (S2) lima-bab structure.
+TEMPLATES["thesis"] = {
+    "citation_style": "apa", "academic_id": True, "structure": "lima_bab",
+    "kkni": dict(_LIMA_BAB_KKNI["tesis"]), "sections": _lima_bab_sections(),
+}
+
+
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -143,6 +215,17 @@ STYLE_PROFILES: Dict[str, Dict[str, Any]] = {
     },
     "thesis": {"alias_of": "paper", "label": "Thesis / Dissertation",
                "rigor": "HIGH — exhaustive literature grounding, explicit research questions"},
+    # Indonesian academic karya ilmiah (lima-bab): formal, impersonal, hedged academic
+    # Indonesian; BAB III in passive voice; rigor escalates S1<S2<S3.
+    "skripsi": {"alias_of": "paper", "label": "Skripsi (S1)",
+                "register": "akademik formal Bahasa Indonesia; istilah baku didefinisikan di awal; BAB III kalimat pasif",
+                "rigor": "HIGH — landasan teori + penelitian terdahulu, minimal 20 rujukan, similarity ≤25%"},
+    "tesis": {"alias_of": "paper", "label": "Tesis (S2)",
+              "register": "akademik formal Bahasa Indonesia; BAB III kalimat pasif",
+              "rigor": "HIGH — grounding literatur menyeluruh + KEBARUAN, minimal 40 rujukan, similarity ≤20%"},
+    "disertasi": {"alias_of": "paper", "label": "Disertasi (S3)",
+                  "register": "akademik formal Bahasa Indonesia; BAB III kalimat pasif",
+                  "rigor": "HIGH — teori/temuan BARU & orisinal, minimal 80 rujukan, similarity ≤15%"},
     "report": {
         "label": "Professional / Technical Report",
         "voice": "third-person or measured first-person-plural; professional",
@@ -296,6 +379,9 @@ FORMAT_PROFILES: Dict[str, Dict[str, Any]] = {
         "block_paragraphs": True,
     },
     "article": {"alias_of": "blog"},
+    "skripsi": {"alias_of": "thesis"},
+    "tesis": {"alias_of": "thesis"},
+    "disertasi": {"alias_of": "thesis"},
     "book": {
         "align": "justify", "first_line_indent": 22, "para_space_after": 0,
         "line_spacing": 1.3, "body_font": "serif", "body_size": 11.5,
@@ -332,6 +418,9 @@ def get_format_profile(doc_type: str) -> Dict[str, Any]:
 VISUAL_POLICY: Dict[str, Dict[str, Any]] = {
     "paper":         {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 3, "caption_prefix": ("Tabel", "Gambar")},
     "thesis":        {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 4, "caption_prefix": ("Tabel", "Gambar")},
+    "skripsi":       {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 4, "caption_prefix": ("Tabel", "Gambar")},
+    "tesis":         {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 4, "caption_prefix": ("Tabel", "Gambar")},
+    "disertasi":     {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 5, "caption_prefix": ("Tabel", "Gambar")},
     "makalah":       {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 2, "caption_prefix": ("Tabel", "Gambar")},
     "report":        {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 3, "caption_prefix": ("Tabel", "Gambar")},
     "blog":          {"tables": True,  "charts": True,  "illustrations": True,  "max_charts": 1, "caption_prefix": ("Tabel", "Gambar")},
