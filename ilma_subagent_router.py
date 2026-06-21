@@ -584,7 +584,9 @@ class SubAgentRouter:
                                      out_path=out_path, allow_paid=allow_paid, **kw)
             elif cap == "rerank":
                 res = self._exec_rerank(provider, model, query=prompt, **kw)
-            else:  # video / music — no verified free HTTP transport yet
+            elif cap in ("video", "music"):
+                res = self._exec_video(provider, model, prompt, out_path=out_path, **kw)
+            else:
                 res = {"success": False,
                        "error": f"capability '{cap}' has no wired free transport yet "
                                 f"(SOT pick: {provider}/{model})",
@@ -606,7 +608,8 @@ class SubAgentRouter:
         if out_path:
             _os.makedirs(_os.path.dirname(out_path) or ".", exist_ok=True)
             return out_path
-        d = "/root/.hermes/profiles/ilma/cache/images"
+        sub = {"mp3": "audio", "wav": "audio", "mp4": "video"}.get(ext, "images")
+        d = f"/root/.hermes/profiles/ilma/cache/{sub}"
         _os.makedirs(d, exist_ok=True)
         return f"{d}/cap_{_h.md5(str(_t.time()).encode()).hexdigest()[:12]}.{ext}"
 
@@ -758,6 +761,76 @@ class SubAgentRouter:
             return {"success": False, "error": f"rerank HTTP {r.status_code}: {r.text[:120]}"}
         except Exception as e:
             return {"success": False, "error": f"{type(e).__name__}: {e}"}
+
+    def _exec_video(self, provider: str, model: str, prompt: str, *,
+                    out_path: Optional[str] = None, max_wait_s: int = 90,
+                    first_frame_image: Optional[str] = None, **kw) -> Dict[str, Any]:
+        """Text/image-to-video via MiniMax (force_free in SOT; Bos paid plan).
+        Async: submit → poll → retrieve. Verified contract 2026-06-21.
+        Honestly surfaces free-quota exhaustion (base_resp 2056) instead of
+        silently using a paid path. No verified free NVIDIA/Together video exists.
+        """
+        import os as _os, time as _t
+        key = _media_provider_key_dp("minimax")
+        if not key:
+            return {"success": False, "needs_backend": True,
+                    "error": "no minimax key for video (no other free video backend exists)"}
+        mdl = model if (provider == "minimax" and model) else "MiniMax-Hailuo-02"
+        body = {"model": mdl, "prompt": prompt}
+        if first_frame_image:
+            body["first_frame_image"] = first_frame_image
+        H = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+        try:
+            r = self.client.post("https://api.minimax.io/v1/video_generation",
+                                 json=body, headers=H, timeout=60)
+            j = r.json() if r.status_code == 200 else {}
+            br = (j or {}).get("base_resp", {})
+            if br.get("status_code") == 2056:
+                return {"success": False, "quota_exhausted": True, "provider": "minimax",
+                        "model": mdl, "error": "MiniMax free token plan exhausted (2056) — "
+                        "refresh plan or add a MiniMax key; no other free video backend available"}
+            task_id = (j or {}).get("task_id")
+            if not task_id:
+                return {"success": False, "provider": "minimax", "model": mdl,
+                        "error": f"video submit failed: HTTP {r.status_code} {str(j or r.text)[:160]}"}
+        except Exception as e:
+            return {"success": False, "error": f"video submit {type(e).__name__}: {e}"}
+
+        # bounded poll
+        file_id, deadline = None, _t.time() + max_wait_s
+        while _t.time() < deadline:
+            _t.sleep(min(10, max(2, max_wait_s // 9)))
+            try:
+                q = self.client.get("https://api.minimax.io/v1/query/video_generation",
+                                    params={"task_id": task_id}, headers=H, timeout=30).json()
+            except Exception:
+                continue
+            st = q.get("status")
+            if st == "Success":
+                file_id = q.get("file_id"); break
+            if st == "Fail":
+                return {"success": False, "provider": "minimax", "model": mdl,
+                        "error": f"video render failed (task {task_id})"}
+        if not file_id:
+            return {"success": True, "status": "processing", "provider": "minimax",
+                    "model": mdl, "task_id": task_id, "billing": "free",
+                    "note": f"still rendering after {max_wait_s}s — poll "
+                            f"/v1/query/video_generation?task_id={task_id}"}
+        # retrieve + download
+        try:
+            f = self.client.get("https://api.minimax.io/v1/files/retrieve",
+                               params={"file_id": file_id}, headers=H, timeout=30).json()
+            url = (f.get("file") or {}).get("download_url")
+            path = self._image_out_path(out_path, ext="mp4")
+            vid = self.client.get(url, timeout=180).content
+            with open(path, "wb") as fh:
+                fh.write(vid)
+            ok = _os.path.exists(path) and _os.path.getsize(path) > 1000
+            return {"success": ok, "path": path, "url": url, "provider": "minimax",
+                    "model": mdl, "billing": "free", "task_id": task_id}
+        except Exception as e:
+            return {"success": False, "error": f"video retrieve {type(e).__name__}: {e}",
+                    "task_id": task_id}
 
     def _exec_tts(self, provider: str, model: str, *, input_text: str = "",
                   out_path: Optional[str] = None, allow_paid: bool = False,
