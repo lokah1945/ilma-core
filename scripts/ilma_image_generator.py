@@ -177,60 +177,67 @@ class ImageGenerator:
                 "model": model_id,
             }
 
-    def generate(self, prompt: str, aspect: str = "landscape", 
-                 style: str = "natural", size: str = "1024x1024") -> dict:
+    def generate(self, prompt: str, aspect: str = "landscape",
+                 style: str = "natural", size: str = "1024x1024",
+                 allow_paid: bool = False) -> dict:
         """
-        Generate image via xAI grok-imagine-image.
-        
+        Generate an image — SOT FREE-first (Bos mandate 2026-06-21, task001).
+
+        Routing:
+          1. SOT-driven FREE executor (ilma_subagent_router.execute_capability):
+             picks the best FREE image model from SOT (nvidia FLUX.1-schnell via
+             the local wrapper-nvidia genai endpoint) and saves the result.
+          2. xAI grok-imagine-image (PAID) ONLY when allow_paid=True.
+
         Args:
             prompt: Image description
-            aspect: landscape | portrait | square  
-            style: natural | vivid
-            size: 1024x1024 | 1792x1024 | 1024x1792
-            
+            aspect: landscape | portrait | square
+            allow_paid: permit paid backends (Together / xAI). Default False.
+
         Returns:
-            dict with status, url, path, cost
+            dict with status, provider, model, path|url
         """
+        # ── 1. SOT FREE-first via the runtime capability executor ──────────────
+        try:
+            sys.path.insert(0, str(ILMA_ROOT))
+            from ilma_subagent_router import execute_capability
+            cap_res = execute_capability("image", prompt, allow_paid=allow_paid)
+            if cap_res.get("success"):
+                self._log(f"FREE image via {cap_res.get('provider')}/{cap_res.get('model')} "
+                          f"→ {cap_res.get('path') or cap_res.get('url')}")
+                return {
+                    "status": "success",
+                    "provider": cap_res.get("provider"),
+                    "model": cap_res.get("model"),
+                    "url": cap_res.get("url", ""),
+                    "local_path": cap_res.get("path", ""),
+                    "aspect": aspect,
+                    "cost_usd": 0,
+                    "prompt": prompt,
+                    "billing": cap_res.get("billing", "free"),
+                    "sot_dispatch": cap_res.get("sot_decision"),
+                }
+            self._log(f"FREE image executor failed: {cap_res.get('error')}")
+            if not allow_paid:
+                return {
+                    "status": "error",
+                    "error": f"FREE image generation failed: {cap_res.get('error')}",
+                    "provider": cap_res.get("provider", "nvidia"),
+                    "hint": "pass allow_paid=True to permit xAI/Together fallback",
+                }
+        except Exception as e:
+            self._log(f"SOT free image path error: {e}")
+            if not allow_paid:
+                return {"status": "error", "error": f"FREE image path error: {e}"}
+
+        # ── 2. PAID fallback (xAI) — only reached when allow_paid=True ─────────
         if not self.enabled:
             return {
                 "status": "error",
-                "error": "xAI API key not configured",
+                "error": "no FREE backend succeeded and xAI key not configured",
                 "provider": "xai",
-                "solution": "Set XAI_API_KEY in /root/credential/api_key.json"
+                "solution": "Set XAI_API_KEY in /root/credential/api_key.json or fix the free backend",
             }
-
-        # ── Resolve via SOT FREE-only dispatcher (Bos mandate 2026-06-21) ──────
-        sot_resolution = self._resolve_via_sot()
-        if sot_resolution:
-            chosen_provider = sot_resolution["provider"]
-            chosen_model = sot_resolution["model_id"]
-            chosen_ep = sot_resolution.get("endpoint_type", "image-generations")
-            self._log(f"SOT picked FREE image model: {chosen_provider}/{chosen_model} "
-                      f"(endpoint={chosen_ep}, score={sot_resolution.get('score')}, "
-                      f"is_free_final={sot_resolution.get('is_free_final')})")
-            if sot_resolution.get("policy_warning"):
-                self._log(f"  ⚠ policy_warning: {sot_resolution['policy_warning']}")
-            # For now, xAI grok-imagine-image is the only wired backend here.
-            # If SOT picks a different provider, fall through to xAI path with
-            # an explicit warning so the user/Bos can wire more backends.
-            if chosen_provider not in ("xai",):
-                # Use the SOT-picked provider/endpoint IF we have credentials;
-                # otherwise fall back to xAI (legacy) and WARN.
-                api_key = self._resolve_provider_key(chosen_provider)
-                if api_key:
-                    base = self._resolve_provider_base(chosen_provider)
-                    return self._call_image_endpoint(
-                        base_url=base,
-                        model_id=chosen_model,
-                        api_key=api_key,
-                        prompt=prompt,
-                        aspect=aspect, style=style, size=size,
-                        provider=chosen_provider,
-                        sot_resolution=sot_resolution,
-                    )
-                self._log(f"  ⚠ no credential for SOT-picked provider "
-                          f"{chosen_provider}; falling back to legacy xAI")
-
         try:
             req = urllib.request.Request(
                 self.ENDPOINT,
@@ -699,18 +706,29 @@ def _together_image(prompt: str, out_path: str, aspect: str = "landscape") -> di
 
 
 def generate_image(prompt: str, out_path: str, aspect: str = "landscape", allow_paid: bool = False) -> dict:
-    """Generate an image and DOWNLOAD it to out_path. Returns {ok, path, url, error}."""
+    """Generate an image and DOWNLOAD it to out_path. Returns {ok, path, url, error}.
+
+    FREE-first order (2026-06-21): SOT executor (nvidia FLUX via wrapper-nvidia)
+    → Together FLUX free tier → xAI (only if allow_paid)."""
     import os as _os, urllib.request as _u
     try:
+        # FREE-FIRST #1: SOT-driven capability executor (nvidia FLUX.1-schnell).
+        try:
+            sys.path.insert(0, str(ILMA_ROOT))
+            from ilma_subagent_router import execute_capability
+            cap = execute_capability("image", prompt, out_path=out_path, allow_paid=allow_paid)
+            if cap.get("success") and cap.get("path"):
+                return {"ok": True, "path": cap["path"], "model": cap.get("model"),
+                        "provider": cap.get("provider"), "billing": cap.get("billing", "free")}
+        except Exception as _e:
+            pass
         gen = ImageGenerator()
-        if not gen.enabled:
-            pass  # fall through to free backend
-        # FREE-FIRST: try Together FLUX before any paid provider
+        # FREE-FIRST #2: Together FLUX (free tier) before any paid provider
         free = _together_image(prompt, out_path, aspect=aspect)
         if free.get("ok"):
             return free
         if not allow_paid:
-            return {"ok": False, "error": "free image backend failed; paid disabled",
+            return {"ok": False, "error": "free image backends failed; paid disabled",
                     "free_error": free.get("error")}
         if not gen.enabled:
             return {"ok": False, "error": "image generator not enabled (no key)"}

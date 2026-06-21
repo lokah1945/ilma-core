@@ -95,6 +95,102 @@ _DIRECT_ENDPOINTS_DP = {
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Phase 73b — RUNTIME MEDIA CAPABILITY EXECUTION (image / stt / embedding / tts /
+# rerank / video).  SOT-driven, FREE-first.  Wired 2026-06-21 (task001).
+#
+# Why: the orchestrator → SubAgentRouter path was chat-only. A media request
+# (e.g. "generate an image") got misclassified as a `vision` chat task and the
+# only working image backend was hardcoded xAI (PAID). These executors close
+# that gap: capability → SOT free pick (ilma_sot_dispatcher) → correct transport.
+# Transport detail (URL/payload shape) lives HERE; SOT owns model SELECTION.
+# Verified free transports (2026-06-21): image=wrapper-nvidia genai (FLUX.1-schnell),
+# stt=groq whisper, embedding=wrapper-nvidia. NO xAI unless allow_paid=True.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Non-chat capabilities routed through the SOT capability dispatcher.
+MEDIA_CAPABILITIES = {"image", "image_edit", "video", "tts", "stt",
+                      "embedding", "rerank", "music"}
+
+# Intent → capability (EN + ID).  Order matters: most-specific first so that
+# "transcribe this voice note" does not collide with "voice"/tts, etc.
+_MEDIA_INTENT = [
+    ("stt",        ["transcribe", "transcription", "transcript ", "speech to text",
+                    "speech-to-text", "voice note", "transkrip", "audio to text",
+                    "stt "]),
+    ("tts",        ["text to speech", "text-to-speech", " tts", "read aloud",
+                    "bacakan", "narasikan", "voice over", "voiceover", "jadikan suara",
+                    "ubah jadi suara", "say this aloud"]),
+    ("image_edit", ["edit image", "edit gambar", "edit this image", "inpaint",
+                    "ubah gambar", "modify image", "retouch", "image edit"]),
+    ("video",      ["generate video", "generate a video", "buat video",
+                    "buatkan video", "create video", "create a video", "text to video",
+                    "text-to-video", "animate this", "video generation"]),
+    ("image",      ["generate image", "generate an image", "generate a picture",
+                    "create image", "create an image", "make an image", "make a picture",
+                    "buat gambar", "buatkan gambar", "bikin gambar", "gambarkan",
+                    "buatkan ilustrasi", "buat ilustrasi", "draw me", "draw a",
+                    "image generation", "text to image", "text-to-image",
+                    "featured image", "thumbnail image", "generate art"]),
+    ("rerank",     ["rerank", "re-rank", "rerank documents", "rerank these"]),
+    ("embedding",  ["embedding for", "embed this", "embed the", "vectorize",
+                    "vector representation", "compute embeddings"]),
+]
+
+
+def detect_media_capability(text: str) -> Optional[str]:
+    """Return a non-chat capability id if the request is a media/specialist task,
+    else None (→ normal chat routing).  Conservative: only fires on explicit
+    generation/transcription/embedding intent so plain chat is never hijacked."""
+    t = f" {(text or '').lower()} "
+    for cap, kws in _MEDIA_INTENT:
+        if any(k in t for k in kws):
+            return cap
+    return None
+
+
+# Local wrapper-nvidia (force_free, key-pooled) — preferred media transport.
+_WRAPPER_NVIDIA_BASE = "http://127.0.0.1:9100"
+_NVIDIA_GENAI_BASE = "https://ai.api.nvidia.com"
+# Embedding model that is actually provisioned on the pooled NVIDIA accounts
+# (the SOT free embed picks 404 on this account; verified 2026-06-21).
+_NVIDIA_EMBED_DEFAULT = "nvidia/nv-embedqa-e5-v5"
+_IMAGE_FREE_DEFAULT = "black-forest-labs/flux.1-schnell"  # nvidia genai slug
+
+
+def _media_provider_key_dp(provider: str) -> Optional[str]:
+    """Resolve an API key for a media provider, handling nested account dicts
+    in /root/credential/api_key.json (e.g. together keyed by account email)."""
+    p = (provider or "").lower()
+    # env first
+    env_name = {"nvidia": "NVIDIA_API_KEY", "groq": "GROQ_API_KEY",
+                "together": "TOGETHER_API_KEY", "minimax": "MINIMAX_API_KEY",
+                "xai": "XAI_API_KEY", "openai": "OPENAI_API_KEY"}.get(p)
+    if env_name and _ENV_DP.get(env_name):
+        return _ENV_DP[env_name]
+    entry = _CREDS_CACHE_DP.get(p)
+    if isinstance(entry, dict):
+        # flat shapes
+        if isinstance(entry.get("api_key"), str):
+            return entry["api_key"]
+        ks = entry.get("keys")
+        if isinstance(ks, list) and ks and isinstance(ks[0], str):
+            return ks[0]
+        if isinstance(ks, str):
+            return ks
+        # nested account dicts (e.g. together -> {"a@b.com": {"api_key": ...}})
+        for v in entry.values():
+            if isinstance(v, dict) and isinstance(v.get("api_key"), str):
+                return v["api_key"]
+            if isinstance(v, dict):
+                vk = v.get("keys")
+                if isinstance(vk, list) and vk and isinstance(vk[0], str):
+                    return vk[0]
+    elif isinstance(entry, str):
+        return entry
+    return None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # ROUTING DECISION
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -440,6 +536,254 @@ class SubAgentRouter:
         return {"success": False, "content": "", "model": model,
                 "error": f"after {MAX_ATTEMPTS} attempts: {last_err}"}
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # Phase 73b — MEDIA CAPABILITY EXECUTION (SOT-driven, FREE-first)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def execute_capability(self, capability: str, prompt: str = "", *,
+                           allow_paid: bool = False,
+                           audio_path: Optional[str] = None,
+                           input_text: Optional[str] = None,
+                           out_path: Optional[str] = None,
+                           **kw) -> Dict[str, Any]:
+        """Resolve the best FREE model for a non-chat capability via SOT, then
+        execute it against the correct transport. Returns a normalized dict:
+            {success, capability, provider, model, path|url|text|vector, error}
+        NEVER falls back to a paid provider unless allow_paid=True.
+        """
+        cap = (capability or "").strip().lower()
+        # 1) SOT free-only model selection (strict first, soft fallback).
+        decision = None
+        try:
+            from ilma_sot_dispatcher import sot_dispatch
+            decision = sot_dispatch(cap, strict=True, allow_paid=allow_paid)
+            if decision.get("error"):
+                decision = sot_dispatch(cap, strict=False, allow_paid=allow_paid)
+        except Exception as e:
+            logger.warning(f"[CAP] SOT dispatch failed for {cap}: {e}")
+            decision = {"error": str(e)}
+        provider = (decision or {}).get("provider") or ""
+        model = (decision or {}).get("model_id") or ""
+        logger.info(f"[CAP] capability={cap} sot_pick={provider}/{model} "
+                    f"free={decision.get('is_free_final') if decision else '?'}")
+
+        # 2) Dispatch to the transport-aware executor.
+        try:
+            if cap in ("image", "image_edit"):
+                res = self._exec_image(provider, model, prompt, out_path=out_path,
+                                       allow_paid=allow_paid, edit=(cap == "image_edit"),
+                                       **kw)
+            elif cap == "stt":
+                res = self._exec_stt(provider, model, audio_path=audio_path, **kw)
+            elif cap == "embedding":
+                res = self._exec_embedding(provider, model,
+                                           input_text=input_text or prompt, **kw)
+            elif cap == "tts":
+                res = self._exec_tts(provider, model,
+                                     input_text=input_text or prompt,
+                                     out_path=out_path, allow_paid=allow_paid, **kw)
+            elif cap == "rerank":
+                res = self._exec_rerank(provider, model, query=prompt, **kw)
+            else:  # video / music — no verified free HTTP transport yet
+                res = {"success": False,
+                       "error": f"capability '{cap}' has no wired free transport yet "
+                                f"(SOT pick: {provider}/{model})",
+                       "needs_backend": True}
+        except Exception as e:
+            res = {"success": False, "error": f"{type(e).__name__}: {e}"}
+
+        res.setdefault("capability", cap)
+        res.setdefault("provider", provider)
+        res.setdefault("model", model)
+        res["sot_decision"] = {"provider": provider, "model": model,
+                               "is_free_final": (decision or {}).get("is_free_final"),
+                               "endpoint_type": (decision or {}).get("endpoint_type"),
+                               "score": (decision or {}).get("score")}
+        return res
+
+    def _image_out_path(self, out_path: Optional[str], ext: str = "jpg") -> str:
+        import os as _os, hashlib as _h, time as _t
+        if out_path:
+            _os.makedirs(_os.path.dirname(out_path) or ".", exist_ok=True)
+            return out_path
+        d = "/root/.hermes/profiles/ilma/cache/images"
+        _os.makedirs(d, exist_ok=True)
+        return f"{d}/cap_{_h.md5(str(_t.time()).encode()).hexdigest()[:12]}.{ext}"
+
+    def _exec_image(self, provider: str, model: str, prompt: str, *,
+                    out_path: Optional[str] = None, allow_paid: bool = False,
+                    edit: bool = False, **kw) -> Dict[str, Any]:
+        """FREE-first image generation. Order:
+        1. wrapper-nvidia genai (local, force_free, key-pooled) — FLUX.1-schnell
+        2. nvidia genai direct (ai.api.nvidia.com) with NVIDIA_API_KEY
+        3. together /v1/images/generations (only if allow_paid — Together is paid in SOT)
+        4. xAI (only if allow_paid)
+        """
+        import os as _os, base64 as _b64
+        prov = (provider or "").lower()
+        # genai slug: nvidia models use lowercase namespace/name; default to verified FLUX.
+        genai_model = (model or "").lower() if prov in ("nvidia", "wrapper-nvidia") else _IMAGE_FREE_DEFAULT
+        if not genai_model or "/" not in genai_model:
+            genai_model = _IMAGE_FREE_DEFAULT
+        payload = {"prompt": prompt, "mode": "base", "steps": 4}
+
+        def _save_b64(b64: str, src_model: str, src_prov: str) -> Dict[str, Any]:
+            path = self._image_out_path(out_path)
+            with open(path, "wb") as f:
+                f.write(_b64.b64decode(b64))
+            ok = _os.path.exists(path) and _os.path.getsize(path) > 1000
+            return {"success": ok, "path": path, "provider": src_prov,
+                    "model": src_model, "billing": "free",
+                    "error": "" if ok else "decoded image too small"}
+
+        # 1 + 2: NVIDIA genai (wrapper preferred, then direct)
+        attempts = [(_WRAPPER_NVIDIA_BASE, "wrapper-local-key", "wrapper-nvidia")]
+        nv_key = _media_provider_key_dp("nvidia")
+        if nv_key:
+            attempts.append((_NVIDIA_GENAI_BASE, nv_key, "nvidia"))
+        last_err = ""
+        for base, key, src_prov in attempts:
+            for mdl in [genai_model, _IMAGE_FREE_DEFAULT]:
+                url = f"{base}/v1/genai/{mdl}"
+                try:
+                    r = self.client.post(url, json=payload, timeout=120,
+                                         headers={"Authorization": f"Bearer {key}",
+                                                  "Accept": "application/json"})
+                    if r.status_code == 200:
+                        data = r.json()
+                        arts = data.get("artifacts") or []
+                        if arts and arts[0].get("base64"):
+                            return _save_b64(arts[0]["base64"], mdl, src_prov)
+                        # some models return data[].b64_json / url
+                        d0 = (data.get("data") or [{}])[0]
+                        if d0.get("b64_json"):
+                            return _save_b64(d0["b64_json"], mdl, src_prov)
+                        last_err = f"{src_prov}:{mdl} 200 but no image in {str(data)[:120]}"
+                    else:
+                        last_err = f"{src_prov}:{mdl} HTTP {r.status_code}: {r.text[:120]}"
+                except Exception as e:
+                    last_err = f"{src_prov}:{mdl} {type(e).__name__}: {e}"
+                if mdl == genai_model and genai_model == _IMAGE_FREE_DEFAULT:
+                    break  # don't retry the same model twice
+
+        # 3: Together (OpenAI-compatible, returns URL) — paid in SOT, gated.
+        if allow_paid:
+            tg_key = _media_provider_key_dp("together")
+            if tg_key:
+                try:
+                    r = self.client.post("https://api.together.xyz/v1/images/generations",
+                        json={"model": "black-forest-labs/FLUX.1-schnell",
+                              "prompt": prompt, "steps": 4, "n": 1,
+                              "response_format": "b64_json"},
+                        timeout=120, headers={"Authorization": f"Bearer {tg_key}"})
+                    if r.status_code == 200:
+                        d0 = (r.json().get("data") or [{}])[0]
+                        if d0.get("b64_json"):
+                            res = _save_b64(d0["b64_json"], "black-forest-labs/FLUX.1-schnell", "together")
+                            res["billing"] = "paid"
+                            return res
+                        if d0.get("url"):
+                            return {"success": True, "url": d0["url"],
+                                    "provider": "together", "billing": "paid",
+                                    "model": "black-forest-labs/FLUX.1-schnell"}
+                    last_err = f"together HTTP {r.status_code}: {r.text[:120]}"
+                except Exception as e:
+                    last_err = f"together {type(e).__name__}: {e}"
+
+        return {"success": False, "provider": "nvidia", "model": genai_model,
+                "error": f"all FREE image backends failed: {last_err}"
+                         + ("" if allow_paid else " (paid providers disabled — pass allow_paid=True for Together/xAI)")}
+
+    def _exec_stt(self, provider: str, model: str, *, audio_path: Optional[str] = None,
+                  **kw) -> Dict[str, Any]:
+        """Speech-to-text via groq whisper (free, OpenAI-compatible multipart)."""
+        import os as _os
+        if not audio_path or not _os.path.exists(audio_path):
+            return {"success": False, "error": "stt requires an existing audio_path"}
+        key = _media_provider_key_dp("groq")
+        if not key:
+            return {"success": False, "error": "no groq key for STT"}
+        mdl = model if (provider == "groq" and model) else "whisper-large-v3"
+        try:
+            with open(audio_path, "rb") as fh:
+                r = self.client.post(
+                    "https://api.groq.com/openai/v1/audio/transcriptions",
+                    headers={"Authorization": f"Bearer {key}"},
+                    data={"model": mdl, "response_format": "json"},
+                    files={"file": (_os.path.basename(audio_path), fh)},
+                    timeout=120)
+            if r.status_code == 200:
+                return {"success": True, "text": r.json().get("text", ""),
+                        "provider": "groq", "model": mdl, "billing": "free"}
+            return {"success": False, "error": f"groq STT HTTP {r.status_code}: {r.text[:150]}"}
+        except Exception as e:
+            return {"success": False, "error": f"{type(e).__name__}: {e}"}
+
+    def _exec_embedding(self, provider: str, model: str, *, input_text: str = "",
+                        **kw) -> Dict[str, Any]:
+        """Embeddings via wrapper-nvidia (force_free, local, key-pooled)."""
+        mdl = model if (provider in ("nvidia", "wrapper-nvidia") and model) else _NVIDIA_EMBED_DEFAULT
+        for mdl_try in [mdl, _NVIDIA_EMBED_DEFAULT]:
+            try:
+                r = self.client.post(f"{_WRAPPER_NVIDIA_BASE}/v1/embeddings",
+                    json={"model": mdl_try, "input": input_text, "input_type": "query"},
+                    headers={"Authorization": "Bearer wrapper-local-key"}, timeout=60)
+                if r.status_code == 200:
+                    vec = (r.json().get("data") or [{}])[0].get("embedding")
+                    if vec:
+                        return {"success": True, "vector": vec, "dim": len(vec),
+                                "provider": "wrapper-nvidia", "model": mdl_try,
+                                "billing": "free"}
+            except Exception as e:
+                last = f"{type(e).__name__}: {e}"
+                continue
+            last = f"HTTP {r.status_code}: {r.text[:120]}"
+        return {"success": False, "error": f"embedding failed: {last}"}
+
+    def _exec_rerank(self, provider: str, model: str, *, query: str = "",
+                     documents: Optional[List[str]] = None, **kw) -> Dict[str, Any]:
+        """Rerank via wrapper-nvidia (best-effort; NVIDIA reranking NIM)."""
+        docs = documents or kw.get("docs") or []
+        if not docs:
+            return {"success": False, "error": "rerank requires 'documents' list"}
+        mdl = model or "nvidia/llama-3.2-nv-rerankqa-1b-v2"
+        try:
+            r = self.client.post(f"{_WRAPPER_NVIDIA_BASE}/v1/ranking",
+                json={"model": mdl, "query": {"text": query},
+                      "passages": [{"text": d} for d in docs]},
+                headers={"Authorization": "Bearer wrapper-local-key"}, timeout=60)
+            if r.status_code == 200:
+                return {"success": True, "rankings": r.json().get("rankings"),
+                        "provider": "wrapper-nvidia", "model": mdl, "billing": "free"}
+            return {"success": False, "error": f"rerank HTTP {r.status_code}: {r.text[:120]}"}
+        except Exception as e:
+            return {"success": False, "error": f"{type(e).__name__}: {e}"}
+
+    def _exec_tts(self, provider: str, model: str, *, input_text: str = "",
+                  out_path: Optional[str] = None, allow_paid: bool = False,
+                  **kw) -> Dict[str, Any]:
+        """Text-to-speech. Tries edge-tts (free, local) if installed; no other
+        verified free HTTP TTS endpoint exists (nvidia speech 404s). Honest fail
+        otherwise so callers can surface a clear message instead of silent paid use."""
+        import os as _os, asyncio as _asyncio
+        path = out_path or self._image_out_path(None, ext="mp3")
+        try:
+            import edge_tts  # type: ignore
+            async def _run():
+                voice = kw.get("voice", "en-US-AriaNeural")
+                await edge_tts.Communicate(input_text, voice).save(path)
+            _asyncio.run(_run())
+            if _os.path.exists(path) and _os.path.getsize(path) > 256:
+                return {"success": True, "path": path, "provider": "edge",
+                        "model": "microsoft/edge-tts", "billing": "free"}
+        except ImportError:
+            pass
+        except Exception as e:
+            return {"success": False, "error": f"edge-tts: {type(e).__name__}: {e}"}
+        return {"success": False, "needs_backend": True,
+                "error": "no free TTS backend available (install `edge-tts` for the "
+                         "free local path; nvidia/genai speech endpoints 404 on this account)"}
+
     def close(self):
         """Clean up resources."""
         self.client.close()
@@ -469,6 +813,12 @@ def close_router():
     if _router_instance:
         _router_instance.close()
         _router_instance = None
+
+
+def execute_capability(capability: str, prompt: str = "", **kw) -> Dict[str, Any]:
+    """Module-level convenience: SOT-driven FREE-first execution of a non-chat
+    capability (image, stt, embedding, tts, rerank, ...)."""
+    return get_router().execute_capability(capability, prompt, **kw)
 
 
 # =============================================================================

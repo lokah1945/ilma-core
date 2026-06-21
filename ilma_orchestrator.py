@@ -248,6 +248,50 @@ class ILMAOrchestrator:
         logger.info(f"[ORCH-EXEC] req={request_id} Processing request: {prompt[:80]}...")
         start_ts = time.time()
 
+        # 0. MEDIA-CAPABILITY ROUTING (Phase 73b, 2026-06-21).
+        # A request like "generate an image / transcribe / embed this" is NOT a
+        # chat task — route it to the SOT-driven FREE-first capability executor
+        # instead of the chat scorer (which used to misroute image→vision→xAI).
+        try:
+            from ilma_subagent_router import detect_media_capability
+            _cap = (task_type if (task_type or "").lower() in
+                    {"image", "image_edit", "video", "tts", "stt", "embedding", "rerank", "music"}
+                    else detect_media_capability(prompt))
+        except Exception:
+            _cap = None
+        if _cap:
+            logger.info(f"[ORCH-EXEC] req={request_id} media capability detected: {_cap}")
+            try:
+                cap_res = self.subagent.execute_capability(
+                    _cap, prompt, allow_paid=False,
+                    audio_path=getattr(self, "_pending_audio_path", None) or
+                               (force_model if _cap == "stt" else None))
+                elapsed_ms = (time.time() - start_ts) * 1000
+                self.execution_log.append({
+                    "ts": start_ts, "prompt_preview": prompt[:80],
+                    "task_type": _cap, "model": cap_res.get("model", ""),
+                    "status": "success" if cap_res.get("success") else "error",
+                    "latency_ms": elapsed_ms, "elapsed_s": round(elapsed_ms / 1000, 3),
+                })
+                if len(self.execution_log) > 200:
+                    self.execution_log = self.execution_log[-200:]
+                return {
+                    "status": "success" if cap_res.get("success") else "error",
+                    "request_id": request_id,
+                    "capability": _cap,
+                    "model": cap_res.get("model", ""),
+                    "provider": cap_res.get("provider", ""),
+                    "reason": f"SOT free-first capability dispatch ({_cap})",
+                    "response": cap_res.get("path") or cap_res.get("url")
+                                or cap_res.get("text") or "",
+                    "result": cap_res,
+                    "error": cap_res.get("error", ""),
+                    "latency_ms": elapsed_ms,
+                }
+            except Exception as e:
+                logger.error(f"[ORCH-EXEC] capability dispatch failed ({_cap}): {e}")
+                # fall through to normal chat routing as a last resort
+
         try:
             # 1. Routing hint (informational; SubAgentRouter will re-route)
             try:
