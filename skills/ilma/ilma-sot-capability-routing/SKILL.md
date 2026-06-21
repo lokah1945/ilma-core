@@ -479,6 +479,8 @@ if strict.get("error"):
     return {"ok": False, "needs_approval": True, "msg": msg}
 ```
 
+Phase 73 implementation details (pitfalls, E2E verification transcript, SOT data-plane snapshot, Phase 73a roadmap): see `references/phase-73-dispatcher-build-2026-06-21.md`.
+
 ## Cross-references
 
 - `ilma-sot-credential-retrieval` — operator read-only path on the
