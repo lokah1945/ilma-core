@@ -105,7 +105,14 @@ def _timeout_wrapper(func, timeout_seconds: float = 30.0, fallback_func=None):
 # PATHS — ALL DATA FROM SINGLE SOURCE
 # ══════════════════════════════════════════════════════════════════════════════
 
-ILMA_PROFILE = Path(os.environ.get("ILMA_PROFILE", "/root/.hermes/profiles/ilma"))
+# Force an ABSOLUTE profile path: if ILMA_PROFILE env is unset/relative/empty,
+# fall back to the canonical absolute dir. A relative value made HEALTH_FILE
+# resolve against cwd → "[Router] Failed to save health state: No such file..."
+# whenever the router ran from a different cwd (e.g. a coding sandbox). (fix 2026-06-22)
+_ILMA_PROFILE_ENV = os.environ.get("ILMA_PROFILE", "").strip()
+ILMA_PROFILE = (Path(_ILMA_PROFILE_ENV)
+                if _ILMA_PROFILE_ENV and os.path.isabs(_ILMA_PROFILE_ENV)
+                else Path("/root/.hermes/profiles/ilma"))
 ROUTER_DATA  = ILMA_PROFILE / "ilma_model_router_data"
 MASTER_DB    = ROUTER_DATA / "PROVIDER_INTELLIGENCE_MASTER.json"
 HEALTH_FILE  = ROUTER_DATA / "model_health_state.json"

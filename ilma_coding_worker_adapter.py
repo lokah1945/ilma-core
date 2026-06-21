@@ -634,7 +634,16 @@ class CodingWorkerAdapter:
                 "module below. Cover normal cases, edge cases, and error handling.\n"
                 f"Import the code under test with: from {module} import ...\n"
                 "Output ONLY one ```python code block with the test file content. "
-                "Use plain `assert`. Do not include the implementation.\n\n"
+                "Use plain `assert`. Do not include the implementation.\n"
+                # Guard against faulty assertions (root-caused 2026-06-22: a model
+                # asserted is_prime(1000000009) is False with a self-doubting comment,
+                # but that number IS prime → a wrong test the repair loop can't fix).
+                "CRITICAL: assert ONLY expected values you are 100% certain are correct. "
+                "Do NOT guess. If you are unsure whether a specific large number is prime/"
+                "composite (or any computed expected value), DO NOT use it — pick small, "
+                "verifiable values instead. Never leave uncertain or self-doubting comments "
+                "like 'actually prime?' next to an assertion. A wrong assertion is worse "
+                "than no test.\n\n"
                 f"TASK SPEC:\n{spec.description}\n\n"
                 f"CODE UNDER TEST ({cf}):\n```python\n{code_text[:6000]}\n```\n"
             )
