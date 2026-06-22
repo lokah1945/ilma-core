@@ -198,25 +198,30 @@ def sync_provider_delta(db, pname: str, dry_run: bool = False,
 
 
 def cascade_out_provider(db, pname: str, dry_run: bool = False) -> Dict[str, Any]:
-    """Provider removed from llm_providers → hard-delete ALL its models + downstream."""
+    """Provider inactive/removed in llm_providers (T1) → hard-delete ALL of its T2
+    providers doc + T3 models + provider-scoped downstream. Provider-scoped only, so
+    the SAME model_id under ANOTHER provider AND the global benchmark/AA cache (keyed by
+    model name) are preserved (e.g. deactivating minimax keeps bluesminds' MiniMax-M2.7)."""
     n = db.models.count_documents({"provider": pname})
+    n_t2 = db.providers.count_documents({"provider": pname})
     if dry_run:
-        return {"provider": pname, "would_delete_models": n}
+        return {"provider": pname, "would_delete_models": n, "would_delete_t2": n_t2}
     flt = {"provider": pname}
     deleted = db.models.delete_many(flt).deleted_count
     for c in DOWNSTREAM:
         db[c].delete_many(flt)
+    db.providers.delete_many(flt)          # T2 providers doc — must not exist either
     db[STATE_COLL].delete_one({"_id": pname})
     try:
         db.model_audit_trail.insert_one({
-            "provider": pname, "model_id": "*", "event_type": "model_disabled",
+            "provider": pname, "model_id": "*", "event_type": "provider_cascade_out",
             "actor": "sot_auto_sync", "source_collection": "llm_providers",
             "event_at": now_utc(), "evidence_id": f"AUTOSYNC-CASCADEOUT-{pname}-{int(time.time())}",
-            "delta": {"provider_removed_from_llm_providers": True, "deleted_models": deleted},
+            "delta": {"t1_inactive_or_removed": True, "deleted_models": deleted, "deleted_t2": n_t2},
         })
     except Exception:
         pass
-    return {"provider": pname, "deleted_models": deleted}
+    return {"provider": pname, "deleted_models": deleted, "deleted_t2": n_t2}
 
 
 # ── Orchestration ──────────────────────────────────────────────────────────────
@@ -289,6 +294,34 @@ def _detect_removed(db, targets: List[str]) -> List[str]:
     return sorted(known - set(targets))
 
 
+# System/local free-media providers that are served via the wrapper-nvidia genai
+# proxy or a local lib (no T1 credential by design). EXEMPT from cascade-out so the
+# free image/tts/rerank backends survive the "no T1 entry ⇒ delete" rule.
+SYSTEM_EXEMPT_PROVIDERS = {"nvidia", "edge", "wrapper-nvidia"}
+
+
+def _active_t1_providers(db) -> Set[str]:
+    """Providers with at least one ACTIVE account in llm_providers (T1)."""
+    return {d["provider"] for d in
+            db.llm_providers.find({"is_active": {"$ne": False}}, {"provider": 1})}
+
+
+def _detect_cascade_out(db) -> List[str]:
+    """SoT invariant for LLM-MODEL providers only: an LLM provider that is in T1 but
+    is_active=False, OR that has T3 models yet is not active in T1, must be hard-deleted
+    (T1 is_active=False ⇒ its T2 + T3 must not exist).
+
+    Scoped to LLM providers so this NEVER touches T2 service/tool providers (tavily,
+    serper, github, telegram, binance, google, …) which legitimately live in T2 with
+    no T1 llm_providers entry and no T3 models. System free-media providers
+    (nvidia/edge/wrapper-nvidia — served via wrapper/local, no T1 credential) are exempt."""
+    active = _active_t1_providers(db)
+    all_t1 = {d["provider"] for d in db.llm_providers.find({}, {"provider": 1})}
+    inactive_t1 = all_t1 - active                          # LLM providers explicitly deactivated in T1
+    orphan_model_provs = set(db.models.distinct("provider")) - active  # has T3 but not active in T1
+    return sorted((inactive_t1 | orphan_model_provs) - SYSTEM_EXEMPT_PROVIDERS)
+
+
 def run_sync(mode: str = "full", provider: Optional[str] = None,
              dry_run: bool = False, force_prune: bool = False) -> Dict[str, Any]:
     db = get_db()
@@ -307,9 +340,10 @@ def run_sync(mode: str = "full", provider: Optional[str] = None,
         targets = changed
 
     results, removed_results = [], []
-    # cascade-out providers removed from llm_providers (only on full/changed sweeps)
+    # cascade-out providers INACTIVE or REMOVED in llm_providers (T1) — T1 is_active=False
+    # ⇒ its T2 + T3 must not exist. Runs on full/changed sweeps (i.e. the 6h timer).
     if not provider:
-        for rp in _detect_removed(db, resolve_target_providers(db)):
+        for rp in _detect_cascade_out(db):
             removed_results.append(cascade_out_provider(db, rp, dry_run=dry_run))
 
     if targets:
