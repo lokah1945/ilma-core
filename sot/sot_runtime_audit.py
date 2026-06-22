@@ -622,21 +622,11 @@ def patch_model_no_intel(db) -> int:
 
 
 def patch_is_free_free_tier(db) -> int:
-    """Sync is_free to free_tier (prefer free_tier as source of truth)"""
-    n = 0
-    # is_free=True, free_tier=False → set free_tier=True
-    r1 = db["models"].update_many(
-        {"$and": [{"is_free": True}, {"free_tier": False}]},
-        {"$set": {"free_tier": True, "free_tier_fixed_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    n += r1.modified_count
-    # is_free=False, free_tier=True → set free_tier=False
-    r2 = db["models"].update_many(
-        {"$and": [{"is_free": False}, {"free_tier": True}]},
-        {"$set": {"free_tier": False, "free_tier_fixed_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    n += r2.modified_count
-    return n
+    """free_tier CONSOLIDATED into the single canonical is_free field (2026-06-23) — there is
+    no free_tier source-of-truth to sync; drop any stray free_tier instead of mirroring."""
+    return db["models"].update_many(
+        {"free_tier": {"$exists": True}}, {"$unset": {"free_tier": ""}}
+    ).modified_count
 
 
 def patch_datetime_leftover(db) -> int:

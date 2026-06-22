@@ -193,14 +193,14 @@ class SOTFreePicker:
                 "quality_tier": d.get("quality_tier"),
                 "is_free_final": d.get("is_free"),  # back-compat alias → canonical is_free
                 # derived from is_free_final (billing_class field dropped 2026-06-22)
-                "billing_class": ("free" if d.get("is_free_final") else "paid"),
+                "billing_class": ("free" if d.get("is_free") else "paid"),
                 "free_tier_score": d.get("free_tier_score"),
                 "score": d.get("score"),
                 "score_tier": d.get("score_tier"),
                 "capabilities": d.get("capabilities_v2") or d.get("capabilities"),
                 # policy warning if model isn't strictly classified FREE
                 "policy_warning": (None
-                                   if d.get("is_free_final")
+                                   if d.get("is_free")
                                    else "soft_free_ungated_strict_required_for_production"),
             })
         self._cache[key] = (time.time(), clean)
@@ -235,7 +235,7 @@ def assert_free_choice(model: Dict[str, Any], strict: bool = True) -> None:
     """Raise if model isn't FREE (use this guard at runtime call sites)."""
     if not model:
         raise RuntimeError("SOT FREE picker returned empty model — no provider met the FREE+capability filter")
-    if strict and not (model.get("is_free_final") or
+    if strict and not (model.get("is_free") or
                        (model.get("free_tier_score") or 0) >= 0.7):
         raise RuntimeError(f"SOT FREE picker violated policy: {model.get('provider')}/{model.get('model_id')} is not FREE")
 

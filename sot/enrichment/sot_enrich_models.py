@@ -212,6 +212,13 @@ def enrich_model(db, m: Dict[str, Any], bench: Dict[tuple, Dict[str, Any]],
                   "enrichment_sources": intel_doc["enrichment_sources"],
                   "enrichment_version": ENRICH_VERSION, "enriched_at": now_utc()}},
         upsert=True)
+    # ALSO write composite score onto the models doc itself — the capability picker
+    # (sot_free_model_picker) sorts + filters on models.score; without this, freshly
+    # enriched models had no `score` and were skipped by the picker (fix 2026-06-23).
+    db.models.update_one(
+        {"provider": provider, "model_id": mid},
+        {"$set": {"score": score["score"], "score_tier": score["score_tier"],
+                  "score_source": "sot_enrich_models", "specialization": spec}})
     return {"provider": provider, "model_id": mid, "score": score["score"],
             "tier": score["score_tier"], "spec": spec}
 

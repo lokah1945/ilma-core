@@ -274,9 +274,7 @@ def infer_free_tier_score(model_doc: Dict[str, Any]) -> float:
     """Heuristik FREE likelihood; 1.0 = strongest FREE signal.
     Inputs: is_free, billing_class, is_free, price fields, raw suffix."""
     score = 0.0
-    if model_doc.get("is_free") is True:       score += 0.4
-    if model_doc.get("is_free") is True: score += 0.5   # this is the SOT final verdict
-    if model_doc.get("is_free") is True: score += 0.3  # was billing_class=="free" (dropped)
+    if model_doc.get("is_free") is True: score += 0.6   # single canonical free verdict
     # Pricing signals (input + output both 0 ⇒ free)
     try:
         inp = float(model_doc.get("price_per_m_input") or 0)
@@ -399,7 +397,6 @@ def analyze_model(model_doc: Dict[str, Any]) -> Dict[str, Any]:
         "quality_tier":       infer_quality_tier(mid),
         "free_tier_score":    infer_free_tier_score(model_doc),
         "is_free":      bool(model_doc.get("is_free")),
-        "billing_class":      ("free" if model_doc.get("is_free") else "paid"),  # derived (field dropped)
         "score":              model_doc.get("score"),
         "score_tier":         model_doc.get("score_tier"),
         "status":             model_doc.get("status"),
@@ -433,7 +430,6 @@ def writeback(db, results: List[Dict[str, Any]], dry_run: bool = False) -> int:
             "provider": r["provider"], "model_id": r["model_id"],
             "free_tier_score": r["free_tier_score"],
             "is_free": r["is_free"],
-            "billing_class": r["billing_class"],
             "quality_tier": r["quality_tier"],
             "score": r["score"],
             "score_tier": r["score_tier"],
@@ -459,6 +455,20 @@ def writeback(db, results: List[Dict[str, Any]], dry_run: bool = False) -> int:
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
+def run(provider: str = None, only_missing: bool = False, dry_run: bool = False) -> dict:
+    """Programmatic entry (used by the sync pipeline _enrich_provider). Enrich active
+    models' capabilities_v2/endpoint_type/primary_cap/quality_tier/free_tier_score."""
+    db = get_db()
+    q = {"is_active": True}
+    if provider:
+        q["provider"] = provider
+    if only_missing:
+        q["capabilities_v2"] = {"$exists": False}
+    results = [analyze_model(d) for d in db.models.find(q)]
+    written = writeback(db, results, dry_run=dry_run)
+    return {"provider": provider or "ALL", "analyzed": len(results), "written": written}
+
+
 def main():
     ap = argparse.ArgumentParser(description="SOT capabilities v2 enricher")
     ap.add_argument("--full", action="store_true", help="process all active models")

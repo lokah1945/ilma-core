@@ -485,7 +485,7 @@ def sync_provider(pname: str, dry_run: bool = False) -> Dict[str, Any]:
             "price_per_m_input": m.get("price_per_m_input"),
             "price_per_m_output": m.get("price_per_m_output"),
             "is_free": is_free,
-            "free_tier": is_free,  # mirror — SOT single source
+# free_tier dropped (consolidated to is_free; billing_classify owns the verdict)
             "is_active": True,
             "status": "active",
             "capabilities": infer_capabilities(mid),

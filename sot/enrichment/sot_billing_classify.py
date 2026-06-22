@@ -147,10 +147,10 @@ def stats() -> dict:
     db = get_db()
     return {
         "total": db.models.count_documents({}),
-        "is_free_final=True": db.models.count_documents({"is_free_final": True}),
-        "is_free_final=False": db.models.count_documents({"is_free_final": False}),
-        "unclassified": db.models.count_documents({"is_free_final": {"$exists": False}}),
-        "active_free_final": db.models.count_documents({"is_active": True, "is_free_final": True}),
+        "is_free=True": db.models.count_documents({"is_free": True}),
+        "is_free=False": db.models.count_documents({"is_free": False}),
+        "unclassified": db.models.count_documents({"is_free": {"$exists": False}}),
+        "active_free": db.models.count_documents({"is_active": True, "is_free": True}),
     }
 
 

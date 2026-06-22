@@ -245,36 +245,16 @@ def fix_capabilities_consistency(db, dry_run=True):
 
 
 def fix_is_free_consistency(db, dry_run=True):
-    """F5: Reconcile is_free vs free_tier. Set free_tier=True when is_free=True."""
-    print("\n[F5] Reconcile is_free vs free_tier")
-    m = db['models']
-    me = db['model_enrichment']
-    n1, n2 = 0, 0
-    # Case 1: is_free=True but free_tier!=True
-    for d in m.find({'is_free': True, 'free_tier': {'$ne': True}}):
-        if not dry_run:
-            m.update_one({'_id': d['_id']}, {'$set': {'free_tier': True}})
-        n1 += 1
-    # Case 2: is_free=False but free_tier=True (likely wrong)
-    for d in m.find({'is_free': False, 'free_tier': True}):
-        if not dry_run:
-            m.update_one({'_id': d['_id']}, {'$set': {'free_tier': False}})
-        n2 += 1
-    # Also propagate to model_enrichment
-    n3 = 0
-    for d in m.find({}):
-        me_doc = me.find_one({'provider': d['provider'], 'model_id': d['model_id']})
-        if me_doc and d.get('is_free') is not None:
-            me_free = me_doc.get('is_free')
-            if me_free != d['is_free']:
-                if not dry_run:
-                    me.update_one({'_id': me_doc['_id']}, {'$set': {
-                        'is_free': d['is_free'],
-                        'free_tier': d.get('free_tier', False)
-                    }})
-                n3 += 1
-    print(f"  models.is_free→free_tier: {n1}, free_tier→False: {n2}, enrichment sync: {n3}" + (" [DRY RUN]" if dry_run else ""))
-    return n1 + n2 + n3
+    """F5: free_tier CONSOLIDATED into the single is_free field (2026-06-23) — nothing to
+    reconcile; just drop any stray free_tier from models + model_enrichment."""
+    print("\n[F5] Drop legacy free_tier (consolidated into is_free)")
+    m, me = db['models'], db['model_enrichment']
+    n = 0
+    if not dry_run:
+        n += m.update_many({'free_tier': {'$exists': True}}, {'$unset': {'free_tier': ''}}).modified_count
+        n += me.update_many({'free_tier': {'$exists': True}}, {'$unset': {'free_tier': ''}}).modified_count
+    print(f"  free_tier dropped: {n}" + (" [DRY RUN]" if dry_run else ""))
+    return n
 
 
 def fix_embedding_no_chat(db, dry_run=True):

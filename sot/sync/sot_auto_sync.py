@@ -79,9 +79,13 @@ def resolve_target_providers(db) -> List[str]:
     Both must hold for propagation; SOT-driven (add to llm_providers → auto-included)."""
     active = set()
     for d in db.llm_providers.find({"is_active": {"$ne": False}},
-                                   {"provider": 1, "key_status": 1}):
+                                   {"provider": 1, "key_status": 1, "free_bypass": 1}):
         p = d.get("provider")
-        if p and str(d.get("key_status", "") or "").upper() != "INVALID":
+        if not p:
+            continue
+        # key_status=INVALID blocks propagation — UNLESS free_bypass=True (trusted/served
+        # specially, e.g. groq/wrapper-nvidia whose key may show stale-INVALID but work).
+        if str(d.get("key_status", "") or "").upper() != "INVALID" or d.get("free_bypass") is True:
             active.add(p)
     syncable = {p for p, cfg in provider_sync.PROVIDER_CONFIGS.items()
                 if p not in _SKIP and not cfg.get("skip_sync")}
@@ -236,11 +240,15 @@ def _enrich_provider(provider: str, dry_run: bool = False) -> Dict[str, Any]:
     final free/paid verdict baked in."""
     try:
         sys.path.insert(0, os.path.join(_HERE, "..", "enrichment"))
-        import sot_enrich_models, sot_billing_classify
+        import sot_enrich_models, sot_billing_classify, sot_enrich_capabilities_v2
         r = sot_enrich_models.run(mode="full", provider=provider, dry_run=dry_run)
+        # capabilities_v2: endpoint_type/capabilities_v2/primary_cap/quality_tier/free_tier_score
+        # — required by the capability picker; must run per-provider so NEW models are routable.
+        cap = sot_enrich_capabilities_v2.run(provider=provider) if hasattr(sot_enrich_capabilities_v2, "run") else None
         b = sot_billing_classify.run(provider=provider, dry_run=dry_run)
         return {"provider": provider, "enriched": r.get("enriched"),
                 "tiers": r.get("tier_distribution"),
+                "capabilities_v2": (cap or {}).get("written") if cap else "n/a",
                 "billing": {"free": b.get("free"), "paid": b.get("paid")}}
     except Exception as e:
         logger.warning(f"[autosync] enrich {provider} failed: {e}")
@@ -355,7 +363,9 @@ def _rebuild_missing_t2(db, dry_run: bool = False) -> List[str]:
     have = set(db.providers.distinct("provider"))
     rebuilt = []
     for prov, src in active.items():
-        if prov in have or prov in SYSTEM_EXEMPT_PROVIDERS:
+        # rebuild T2 for any active T1 missing it (incl. system free-media which now
+        # carry a T1 foundation — SYSTEM_EXEMPT only governs cascade-delete, not rebuild).
+        if prov in have:
             continue
         if dry_run:
             rebuilt.append(prov)
