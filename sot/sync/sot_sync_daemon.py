@@ -82,8 +82,11 @@ class Debouncer:
             self._timers.pop(provider, None)
         try:
             db = eng.get_db()
-            if op == "delete" and provider not in eng.resolve_target_providers(db):
-                log.info(f"{provider}: removed from llm_providers → cascade-out")
+            # Real-time cascade for ANY change leaving the provider inactive/removed in T1
+            # (delete OR is_active=False update) — scoped to LLM providers, exempts system
+            # free-media + T2 service providers. Mirrors the 6h sweep invariant.
+            if provider in eng._detect_cascade_out(db):
+                log.info(f"{provider}: inactive/removed in llm_providers (op={op}) → cascade-out (T2+T3)")
                 r = eng.cascade_out_provider(db, provider, dry_run=False)
             else:
                 log.info(f"{provider}: llm_providers changed ({op}) → delta sync")
