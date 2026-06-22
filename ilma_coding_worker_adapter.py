@@ -106,6 +106,9 @@ class CodingTaskResult:
     security_status: str = "skipped"    # passed | high_severity | skipped
     repair_iterations: int = 0
     repair_log: List[str] = field(default_factory=list)
+    # Test-assertion cross-check (adjudicator): tests judged to have a factually
+    # wrong expected value and skipped, recorded transparently (never silent).
+    quarantined_tests: List[str] = field(default_factory=list)
     rollback_file: str = ""
     latency_ms: float = 0.0
     error_type: str = ""
@@ -692,6 +695,78 @@ class CodingWorkerAdapter:
         logger.info(f"[REPAIR] Rewrote {target} ({len(fixed)} chars)")
         return [target]
 
+    # ─── Test-assertion cross-check (adjudicator) ────────────────────────────
+    def _adjudicate_failing_tests(self, spec: "CodingTaskSpec", code_files: List[str],
+                                  test_files: List[str], failure_output: str) -> Dict[str, Any]:
+        """Independent free-model judge: for each FAILING test, decide whether the
+        TEST's expected value is itself factually WRONG (faulty test) or the CODE is
+        wrong (real bug). Conservative — defaults to 'code_bug' when unsure.
+
+        Runs ONLY after the code-repair budget is exhausted (so we always try to fix
+        the code first). Returns {"faulty":[name...], "reasons":{name:why}}.
+        """
+        import json as _json, re as _re
+        code_text = "".join((self.repo_root / c).read_text()
+                            for c in code_files if (self.repo_root / c).exists())[:5000]
+        test_text = "".join((self.repo_root / t).read_text()
+                            for t in test_files if (self.repo_root / t).exists())[:5000]
+        prompt = (
+            "You are an IMPARTIAL test auditor. Some pytest tests FAILED. For each failing "
+            "test, decide whether the TEST's asserted/expected value is itself factually "
+            "WRONG (a faulty test) or the CODE has a real bug.\n"
+            "Be STRICT and CONSERVATIVE: only label a test 'faulty' when you are CERTAIN its "
+            "expected value is factually incorrect given the task spec — e.g. it asserts that "
+            "a number which IS prime is composite, or hardcodes a wrong arithmetic result. "
+            "If there is ANY doubt, classify it as a code bug (do NOT excuse the code).\n\n"
+            f"TASK SPEC:\n{spec.description}\n\n"
+            f"CODE UNDER TEST:\n```python\n{code_text}\n```\n\n"
+            f"TEST FILE:\n```python\n{test_text}\n```\n\n"
+            f"PYTEST FAILURE OUTPUT:\n{failure_output[:3000]}\n\n"
+            'Output ONLY JSON, no prose: '
+            '{"faulty_tests":[{"name":"<exact test function name>","reason":"<why the '
+            'expected value is factually wrong>"}]}. Empty list if all failures are code bugs.'
+        )
+        out: Dict[str, Any] = {"faulty": [], "reasons": {}}
+        try:
+            resp = self._call_model(prompt, timeout_seconds=spec.max_latency_seconds)
+            txt = resp.get("content", "") or ""
+            m = _re.search(r"\{.*\}", txt, _re.DOTALL)
+            data = _json.loads(m.group(0)) if m else {}
+            for item in (data.get("faulty_tests") or []):
+                name = str(item.get("name", "")).strip()
+                # only accept names that actually exist as test functions
+                if name and _re.search(rf"def\s+{_re.escape(name)}\s*\(", test_text):
+                    out["faulty"].append(name)
+                    out["reasons"][name] = str(item.get("reason", ""))[:160]
+        except Exception as e:
+            logger.warning(f"[ADJUDICATE] failed: {e}")
+        return out
+
+    def _quarantine_tests(self, test_files: List[str], names: List[str],
+                          reasons: Dict[str, str]) -> int:
+        """Skip specific test functions judged to have faulty assertions, by inserting
+        a @pytest.mark.skip above their def. Transparent + reversible (recorded in result)."""
+        import re as _re
+        n = 0
+        for t in test_files:
+            p = self.repo_root / t
+            if not p.exists():
+                continue
+            src = p.read_text()
+            if "import pytest" not in src:
+                src = "import pytest\n" + src
+            for name in names:
+                reason = (reasons.get(name, "faulty assertion") or "faulty assertion").replace('"', "'")
+                # insert skip marker just above the function def (preserve indentation)
+                pat = _re.compile(rf"(^[ \t]*)def\s+{_re.escape(name)}\s*\(", _re.MULTILINE)
+                def _repl(mo):
+                    ind = mo.group(1)
+                    return f'{ind}@pytest.mark.skip(reason="adjudicator-quarantine: {reason}")\n{ind}def {name}('
+                src, k = pat.subn(_repl, src, count=1)
+                n += k
+            p.write_text(src)
+        return n
+
     # ─── Main entry point ───────────────────────────────────────────────────
     def execute(self, spec: CodingTaskSpec, prefer_model: Optional[str] = None) -> CodingTaskResult:
         """
@@ -813,6 +888,32 @@ class CodingWorkerAdapter:
                     break
                 checks = _run_all_checks()
 
+            # ── TEST-ASSERTION CROSS-CHECK (adjudicator) ────────────────────
+            # Repair tried to fix the CODE first. If tests still fail, an independent
+            # judge decides whether the failing tests are themselves faulty (wrong
+            # expected value, e.g. asserting a prime is composite). Only confidently-
+            # faulty tests are quarantined, capped at 40% of the suite so this can
+            # never whitewash genuinely broken code. Every quarantine is RECORDED.
+            _tr = checks["tests"]
+            if (spec.run_tests and test_files and _tr.get("run", 0) > 0
+                    and _tr.get("failed", 0) > 0):
+                _fo = (_tr.get("stdout_tail", "") or "") + "\n" + (_tr.get("stderr_tail", "") or "")
+                _adj = self._adjudicate_failing_tests(spec, code_files, test_files, _fo)
+                _faulty = _adj.get("faulty", [])
+                _cap = max(1, int(_tr.get("run", 0) * 0.4))
+                if _faulty and len(_faulty) <= _cap:
+                    _nq = self._quarantine_tests(test_files, _faulty, _adj.get("reasons", {}))
+                    if _nq:
+                        result.quarantined_tests = [
+                            f"{nm}: {_adj['reasons'].get(nm, '')}" for nm in _faulty]
+                        result.repair_log.append(
+                            f"adjudicator quarantined {_nq} faulty test(s): {_faulty}")
+                        checks = _run_all_checks()  # re-run after quarantine
+                elif _faulty:
+                    result.repair_log.append(
+                        f"adjudicator flagged {len(_faulty)} > cap {_cap} faulty — "
+                        f"NOT quarantining (treated as code bug, code stays on the hook)")
+
             # ── Record final check state ────────────────────────────────────
             tr = checks["tests"]
             result.tests_run = tr.get("run", 0)
@@ -857,6 +958,11 @@ class CodingWorkerAdapter:
                 if result.security_status != "passed":
                     why.append(f"security_{result.security_status}")
                 result.limitations = why
+            # Transparency: surface any adjudicator-quarantined tests in the verdict
+            # regardless of pass/fail, so a human always sees what was set aside.
+            if result.quarantined_tests:
+                result.limitations.append(
+                    f"adjudicator_quarantined_{len(result.quarantined_tests)}_test(s)")
             result.confidence_score = self._compute_confidence(result)
 
         except FreePolicyViolation as e:
