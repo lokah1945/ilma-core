@@ -24,7 +24,30 @@ class ILMAUnifiedPipeline:
     def _route(self,tp:TaskPackage):
         c=self.selector.select(tp.task_type); subs=tp.parallel_subtasks; return ExecutionPlan('parallel' if subs else 'single',c.get('provider','minimax'),c.get('model_id','MiniMax-M3'),tp.to_dict(),subs,c.get('provider')=='nvidia' and len(subs)>=2)
     async def _execute(self,plan):
-        await self.bus.publish('execution_started',asdict(plan)); out=[{'subtask':s.get('id'),'success':True,'content':f"Completed {s.get('id')}: {s.get('prompt')}"} for s in plan.subtasks] if plan.mode=='parallel' else [{'subtask':'main','success':True,'content':f"Executed via {plan.provider}/{plan.model_id}: {plan.task_package.get('expanded_task')}"}]; await self.bus.publish('execution_completed',{'count':len(out)}); return out
+        # REAL execution via the free-only SubAgentRouter (was a facade returning
+        # f"Executed via {provider}/{model}: {task}" with NO model call — fixed 2026-06-22).
+        import asyncio as _a
+        await self.bus.publish('execution_started',asdict(plan))
+        try:
+            from ilma_subagent_router import get_router
+            router=get_router()
+        except Exception as e:
+            return [{'subtask':'main','success':False,'content':f'router unavailable: {e}'}]
+        tt=(plan.task_package or {}).get('task_type') or 'general'
+        if plan.mode=='parallel' and plan.subtasks:
+            async def _one(s):
+                r=await _a.to_thread(router.route_and_execute, message=s.get('prompt',''),
+                                     task_type_or_desc=tt, allow_paid=False)
+                return {'subtask':s.get('id'),'success':bool(r.get('success')),
+                        'content':r.get('content') or r.get('error',''),'model':r.get('model')}
+            out=list(await _a.gather(*[_one(s) for s in plan.subtasks]))
+        else:
+            task=(plan.task_package or {}).get('expanded_task','')
+            r=await _a.to_thread(router.route_and_execute, message=task,
+                                 task_type_or_desc=tt, allow_paid=False)
+            out=[{'subtask':'main','success':bool(r.get('success')),
+                  'content':r.get('content') or r.get('error',''),'model':r.get('model')}]
+        await self.bus.publish('execution_completed',{'count':len(out)}); return out
     def _synthesize(self,tp,raw):
         body = '\n'.join('- '+r.get('content','') for r in raw)
         return '## ILMA Result\n\n**Interpreted task:** '+tp.expanded_task+'\n\n**Execution:**\n'+body+'\n\n**Validation:** free-only policy enforced; output synthesized by unified pipeline.'
