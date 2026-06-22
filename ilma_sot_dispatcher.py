@@ -18,10 +18,10 @@ API:
                  provider=None, quality=None)
       → returns {"provider", "model_id", "endpoint_type", "endpoint_path",
                  "input_modality", "output_modality", "free_signal",
-                 "is_free_final", "policy_warning", "alternatives": [...]}
+                 "is_free", "policy_warning", "alternatives": [...]}
   - sot_dispatch.health()  → DB conn health snapshot
   - sot_dispatch.strict_free_only(capability) → "" | provider/model_id
-        (FAST-PATH for call sites that want is_free_final=True only)
+        (FAST-PATH for call sites that want is_free=True only)
 
 CLI test:
   python3 ilma_sot_dispatcher.py --capability image
@@ -58,7 +58,7 @@ def sot_dispatch(capability: str,
     """Single-call dispatcher. Returns chosen model + alternatives.
 
     Args:
-      strict: only is_free_final=True & billing_class='free'.
+      strict: only is_free=True & billing_class='free'.
       allow_paid: bypass FREE filter (NOT recommended for ILMA default).
       prefer_score: prefer higher score (else prefer raw free signal).
     """
@@ -96,7 +96,7 @@ def sot_dispatch(capability: str,
         "input_modality": chosen["input_modality"],
         "output_modality": chosen["output_modality"],
         "quality_tier": chosen["quality_tier"],
-        "is_free_final": chosen.get("is_free_final", False),
+        "is_free": chosen.get("is_free", False),
         "billing_class": chosen.get("billing_class"),
         "score": chosen.get("score"),
         "score_tier": chosen.get("score_tier"),
@@ -135,7 +135,7 @@ def health() -> Dict[str, Any]:
         "connected": connected,
         "total_models": models.count_documents({}),
         "active_models": models.count_documents({"is_active": True}),
-        "free_strict": models.count_documents({"is_free_final": True, "is_active": True}),
+        "free_strict": models.count_documents({"is_free": True, "is_active": True}),
         "endpoint_types": {r["_id"]: r["n"] for r in
             models.aggregate(
                 [{"$match": {"endpoint_type": {"$exists": True}, "is_active": True}},
@@ -176,7 +176,7 @@ def lookup_models_by_hermes_cap(hermes_cap: str, strict: bool = True, limit: int
         hermes_cap: a Hermes handle from the registry, e.g.
             'vision_analyze', 'text_to_speech', 'image_generate',
             'llm.coding', 'memory_recall', 'vector_search'.
-        strict:    limit to is_free_final=True (default True).
+        strict:    limit to is_free=True (default True).
         limit:     max number of models to return (default 10).
 
     Notes:
@@ -185,7 +185,7 @@ def lookup_models_by_hermes_cap(hermes_cap: str, strict: bool = True, limit: int
     """
     q: Dict[str, Any] = {"hermes_caps": hermes_cap}
     if strict:
-        q["is_free_final"] = True
+        q["is_free"] = True
     q["is_active"] = True
     cursor = get_db().models.find(q).limit(limit)
     out = []
@@ -210,7 +210,7 @@ sot_dispatch.lookup_models_by_hermes_cap = lookup_models_by_hermes_cap  # type: 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--capability", help="capability to dispatch (chat, image, tts, ...)")
-    ap.add_argument("--strict", action="store_true", help="only is_free_final=True")
+    ap.add_argument("--strict", action="store_true", help="only is_free=True")
     ap.add_argument("--allow-paid", action="store_true")
     ap.add_argument("--provider", default=None)
     ap.add_argument("--quality", default=None)

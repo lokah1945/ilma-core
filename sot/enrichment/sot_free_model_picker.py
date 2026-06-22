@@ -100,16 +100,9 @@ def _query_free(db, capability: str, provider: Optional[str] = None,
     # Map capability → endpoint_type if not provided
     ep = endpoint_type or _CAP_TO_ENDPOINT.get(capability, "chat-completions")
 
-    # billing_class consolidated into is_free_final (2026-06-22): verified bijection
-    # billing_class=="free" ⟺ is_free_final==True, so is_free_final alone is the gate.
-    if strict:
-        q_or = {"is_free_final": True}
-    else:
-        # Allow soft fallback (raw is_free=True, SOT not yet reclassified)
-        q_or = {"$or": [
-            {"is_free_final": True},
-            {"is_free": True, "is_free_final": False},
-        ]}
+    # SINGLE canonical billing field: `is_free` (the trap-safe verdict; free_tier +
+    # is_free_final consolidated into it 2026-06-22). is_free alone is the free gate.
+    q_or = {"is_free": True}
     base_q: Dict[str, Any] = {
         "is_active": True,
         "status": "active",
@@ -198,7 +191,7 @@ class SOTFreePicker:
                 "output_modality": _ENDPOINT_DERIVE.get(d.get("endpoint_type"), ("", "text", "text"))[2],
                 "primary_cap": d.get("primary_cap"),
                 "quality_tier": d.get("quality_tier"),
-                "is_free_final": d.get("is_free_final"),
+                "is_free_final": d.get("is_free"),  # back-compat alias → canonical is_free
                 # derived from is_free_final (billing_class field dropped 2026-06-22)
                 "billing_class": ("free" if d.get("is_free_final") else "paid"),
                 "free_tier_score": d.get("free_tier_score"),

@@ -227,7 +227,7 @@ def cascade_out_provider(db, pname: str, dry_run: bool = False) -> Dict[str, Any
 # ── Orchestration ──────────────────────────────────────────────────────────────
 def _enrich_provider(provider: str, dry_run: bool = False) -> Dict[str, Any]:
     """Score + classify a provider's models after a sync: model_intelligence (scoring SOT)
-    AND is_free_final (billing SOT) so new models are immediately selectable AND have a
+    AND is_free (billing SOT) so new models are immediately selectable AND have a
     final free/paid verdict baked in."""
     try:
         sys.path.insert(0, os.path.join(_HERE, "..", "enrichment"))

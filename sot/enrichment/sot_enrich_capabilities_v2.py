@@ -18,7 +18,7 @@ NEW vs v1:
     base URL/payload shape to use
   • `endpoint_suggestion` per model (e.g. /v1/images/generations,
     /v1/audio/speech, /v1/embeddings)
-  • Stronger FREE-tier enforcement — `is_free_final` plus predicted
+  • Stronger FREE-tier enforcement — `is_free` plus predicted
     `free_tier_score` (0..1) per model (pricing-based)
   • `capabilities_detail` (router vocabulary) on each row, plus
     `primary_cap` (single most-important cap used for routing)
@@ -272,11 +272,11 @@ _CAP_MODALITY = {
 # ── Pricing hint → free_tier_score (0..1) ─────────────────────────────────────
 def infer_free_tier_score(model_doc: Dict[str, Any]) -> float:
     """Heuristik FREE likelihood; 1.0 = strongest FREE signal.
-    Inputs: is_free, billing_class, is_free_final, price fields, raw suffix."""
+    Inputs: is_free, billing_class, is_free, price fields, raw suffix."""
     score = 0.0
     if model_doc.get("is_free") is True:       score += 0.4
-    if model_doc.get("is_free_final") is True: score += 0.5   # this is the SOT final verdict
-    if model_doc.get("is_free_final") is True: score += 0.3  # was billing_class=="free" (dropped)
+    if model_doc.get("is_free") is True: score += 0.5   # this is the SOT final verdict
+    if model_doc.get("is_free") is True: score += 0.3  # was billing_class=="free" (dropped)
     # Pricing signals (input + output both 0 ⇒ free)
     try:
         inp = float(model_doc.get("price_per_m_input") or 0)
@@ -398,8 +398,8 @@ def analyze_model(model_doc: Dict[str, Any]) -> Dict[str, Any]:
         "output_modality":    out_mod,
         "quality_tier":       infer_quality_tier(mid),
         "free_tier_score":    infer_free_tier_score(model_doc),
-        "is_free_final":      bool(model_doc.get("is_free_final")),
-        "billing_class":      ("free" if model_doc.get("is_free_final") else "paid"),  # derived (field dropped)
+        "is_free":      bool(model_doc.get("is_free")),
+        "billing_class":      ("free" if model_doc.get("is_free") else "paid"),  # derived (field dropped)
         "score":              model_doc.get("score"),
         "score_tier":         model_doc.get("score_tier"),
         "status":             model_doc.get("status"),
@@ -432,7 +432,7 @@ def writeback(db, results: List[Dict[str, Any]], dry_run: bool = False) -> int:
         enr_col.update_one(key, {"$set": {
             "provider": r["provider"], "model_id": r["model_id"],
             "free_tier_score": r["free_tier_score"],
-            "is_free_final": r["is_free_final"],
+            "is_free": r["is_free"],
             "billing_class": r["billing_class"],
             "quality_tier": r["quality_tier"],
             "score": r["score"],
@@ -533,7 +533,7 @@ def main():
     cap_hist = {}
     for r in results:
         endpoint_hist[r["endpoint_type"]] = endpoint_hist.get(r["endpoint_type"], 0) + 1
-        if r["is_free_final"]:
+        if r["is_free"]:
             free_hist["free"] += 1
         else:
             free_hist["paid"] += 1

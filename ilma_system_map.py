@@ -175,7 +175,7 @@ def sot_snapshot():
         snap["available"] = True
         snap["models_total"] = M.count_documents({})
         snap["models_active"] = M.count_documents({"is_active": True})
-        snap["models_free"] = M.count_documents({"is_free_final": True, "is_active": True})
+        snap["models_free"] = M.count_documents({"is_free": True, "is_active": True})
         snap["providers"] = db.providers.count_documents({})
         snap["llm_providers"] = db.llm_providers.count_documents({})
         snap["fields"] = sorted({k for d in M.find({}, {"_id": 0}).limit(60) for k in d})
@@ -183,7 +183,7 @@ def sot_snapshot():
             r["_id"]: {"n": r["n"], "free": r["free"]} for r in M.aggregate([
                 {"$match": {"endpoint_type": {"$exists": True}, "is_active": True}},
                 {"$group": {"_id": "$endpoint_type", "n": {"$sum": 1},
-                            "free": {"$sum": {"$cond": ["$is_free_final", 1, 0]}}}},
+                            "free": {"$sum": {"$cond": ["$is_free", 1, 0]}}}},
                 {"$sort": {"n": -1}}])}
         cr = db["_meta"].find_one({"_id": "capability_registry"}) or {}
         snap["capability_registry"] = {

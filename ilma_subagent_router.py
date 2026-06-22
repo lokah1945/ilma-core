@@ -349,7 +349,7 @@ class SubAgentRouter:
                        "ep={e} if={iff} score={sc}").format(
                 prov=disp["provider"], m=disp["model_id"],
                 e=disp.get("endpoint_type"),
-                iff=disp.get("is_free_final"),
+                iff=disp.get("is_free"),
                 sc=disp.get("score")),
         )
 
@@ -582,7 +582,7 @@ class SubAgentRouter:
         provider = (decision or {}).get("provider") or ""
         model = (decision or {}).get("model_id") or ""
         logger.info(f"[CAP] capability={cap} sot_pick={provider}/{model} "
-                    f"free={decision.get('is_free_final') if decision else '?'}")
+                    f"free={decision.get('is_free') if decision else '?'}")
 
         # 2) Dispatch to the transport-aware executor.
         try:
@@ -617,7 +617,7 @@ class SubAgentRouter:
         res.setdefault("provider", provider)
         res.setdefault("model", model)
         res["sot_decision"] = {"provider": provider, "model": model,
-                               "is_free_final": (decision or {}).get("is_free_final"),
+                               "is_free": (decision or {}).get("is_free"),
                                "endpoint_type": (decision or {}).get("endpoint_type"),
                                "score": (decision or {}).get("score")}
         return res

@@ -84,11 +84,9 @@
         "unknown"
       ]
     },
-    "free_tier": {
-      "type": "boolean"
-    },
     "is_free": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "SINGLE canonical billing verdict (free_tier + is_free_final consolidated 2026-06-22). Written by sot_billing_classify (trap-safe + T1 free_bypass). Runtime free gate reads THIS."
     },
     "capabilities": {
       "type": "array",
@@ -290,10 +288,6 @@
         "null"
       ],
       "format": "date-time"
-    },
-    "is_free_final": {
-      "type": "boolean",
-      "description": "FINAL free/paid verdict (T3 SOT) computed by sot_billing_classify \u2014 runtime free gate reads THIS. Trap-safe: force_free hardcode + mixed :free/-free suffix + direct flags."
     },
     "billing_class": {
       "type": "string",

@@ -64,17 +64,22 @@ def _price(v) -> float:
         return 1.0
 
 
-def classify(model: dict, force_free: set) -> tuple:
-    """Return (billing_class, reason). Mirrors the trap-safe policy."""
+def classify(model: dict, free_bypass: set) -> tuple:
+    """Return (billing_class, reason). Trap-safe policy.
+
+    `free_bypass` = providers whose T1 (llm_providers) has free_bypass=True — every model
+    under them is forced FREE regardless of per-model pricing (e.g. minimax is upstream-paid
+    but Bos set free_bypass=True). This is the SINGLE provider-level free override (it
+    supersedes/merges the old T2 providers.force_free)."""
     prov = model.get("provider")
     mid = str(model.get("model_id") or "")
     name = str(model.get("model_name") or "")
     midl = mid.lower()
     combined = f"{prov}/{mid} {name}".lower()
 
-    # 1) hardcode override
-    if prov in force_free:
-        return "free", "force_free:provider"
+    # 0/1) provider-level FREE BYPASS (T1 free_bypass, merged with legacy force_free)
+    if prov in free_bypass:
+        return "free", "free_bypass:t1"
     # 2) paid keyword
     if _PAID_KW.search(combined):
         return "paid", "paid_keyword"
@@ -101,30 +106,36 @@ def classify(model: dict, force_free: set) -> tuple:
     return "paid", "no_per_model_price_evidence"
 
 
-def _force_free_providers(db) -> set:
-    return {d["provider"] for d in db.providers.find({"force_free": True}, {"provider": 1})}
+def _free_bypass_providers(db) -> set:
+    """Providers force-FREE at the provider level. SoT = T1 llm_providers.free_bypass=True
+    (Bos control). Merged with legacy T2 providers.force_free=True for transition so no
+    existing free provider regresses. T1 free_bypass is the canonical control going forward."""
+    t1 = {d["provider"] for d in db.llm_providers.find({"free_bypass": True}, {"provider": 1})}
+    t2 = {d["provider"] for d in db.providers.find({"force_free": True}, {"provider": 1})}
+    return t1 | t2
 
 
 def run(provider: str = None, dry_run: bool = False) -> dict:
     db = get_db()
-    force_free = _force_free_providers(db)
+    free_bypass = _free_bypass_providers(db)
     q = {} if not provider else {"provider": provider}
-    proj = {"provider": 1, "model_id": 1, "model_name": 1, "is_free": 1, "free_tier": 1,
-            "pricing": 1, **{k: 1 for k in _PRICE_KEYS}}
+    proj = {"provider": 1, "model_id": 1, "model_name": 1, "pricing": 1,
+            **{k: 1 for k in _PRICE_KEYS}}
     ops, counts, now = [], {"free": 0, "paid": 0}, now_utc()
     reasons = {}
     for m in db.models.find(q, proj):
-        cls, reason = classify(m, force_free)
+        cls, reason = classify(m, free_bypass)
         counts[cls] += 1
         reasons[reason] = reasons.get(reason, 0) + 1
         if dry_run:
             continue
-        # billing_class field DROPPED 2026-06-22 — it was a 1:1 string mirror of
-        # is_free_final ("free"⟺True, verified 0 mismatches). Runtime derives it.
+        # SINGLE canonical billing field: `is_free` (bool verdict). free_tier + is_free_final
+        # CONSOLIDATED into is_free 2026-06-22 (were a raw-dup + a separate verdict — overlap).
         ops.append(pymongo.UpdateOne(
             {"_id": m["_id"]},
-            {"$set": {"is_free_final": cls == "free",
-                      "free_reason": reason, "billing_classified_at": now}}))
+            {"$set": {"is_free": cls == "free",
+                      "free_reason": reason, "billing_classified_at": now},
+             "$unset": {"is_free_final": "", "free_tier": ""}}))
     if not dry_run and ops:
         for i in range(0, len(ops), 1000):
             db.models.bulk_write(ops[i:i + 1000], ordered=False)

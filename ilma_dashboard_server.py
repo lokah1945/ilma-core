@@ -119,7 +119,7 @@ function renderPIPE(){
 function renderSOT(){
   const s=M.sot||{};let h='<div class=grid>'+
    `<div class=card><div class=kpi>${s.models_total||'–'}</div><div class=lbl>models total</div></div>`+
-   `<div class=card><div class="kpi v">${s.models_free||'–'}</div><div class=lbl>free (is_free_final)</div></div>`+
+   `<div class=card><div class="kpi v">${s.models_free||'–'}</div><div class=lbl>free (is_free)</div></div>`+
    `<div class=card><div class=kpi s>${(s.fields||[]).length}</div><div class=lbl>fields/doc (deduped)</div></div></div>`;
   h+=`<div class=card style=margin-top:12px><div class=lbl>models fields (${(s.fields||[]).length})</div><div>`+
    (s.fields||[]).map(f=>`<span class=pill style=background:var(--panel2);margin:2px>${f}</span>`).join('')+'</div></div>';

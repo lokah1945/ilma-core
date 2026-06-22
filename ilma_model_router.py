@@ -469,12 +469,12 @@ class ILMAUnifiedRouter:
         The trap-safe free/paid decision (force_free hardcode, mixed-provider ':free'/
         '-free' suffix rules, direct-provider price/flags) is computed ONCE at sync/enrich
         time by sot/enrichment/sot_billing_classify.py and stored on each models doc as
-        `is_free_final`. Runtime just reads the boolean — no per-request computation, no
+        `is_free`. Runtime just reads the boolean — no per-request computation, no
         delay. When the field is absent (a model not yet classified) default to PAID,
         which is the trap-safe stance ("not explicitly free → paid").
         """
-        if "is_free_final" in model_data:
-            return model_data.get("is_free_final") is True
+        if "is_free" in model_data:
+            return model_data.get("is_free") is True
         # Legacy fallback (pre-classification docs): conservative default → PAID.
         return model_data.get("force_free") is True
 
@@ -708,7 +708,7 @@ class ILMAUnifiedRouter:
                 "is_free":            model_meta.get("is_free", intel.get("is_free", llm_meta.get("free_tier", False))),  # Phase R: per-model is_free from models collection (authoritative)
                 # FINAL free/paid verdict precomputed in the models SOT (sot_billing_classify).
                 # This is what the runtime free gate reads — trap-safe, zero runtime cost.
-                "is_free_final":      model_meta.get("is_free_final", False),
+                "is_free":      model_meta.get("is_free", False),
                 "composite_score":    score,
                 "score_tier":         tier or expected_tier,  # FIX 2026-06-19: ~1336 models have no intel doc → intel={}; hard intel["score_tier"] crashed the whole mongo MASTER build. Use computed tier (line above) / score-derived fallback.
                 "context_window":     model_meta.get("context_window", 4096),  # Phase 1.2: models collection authoritative
@@ -1759,7 +1759,7 @@ class ILMAUnifiedRouter:
             scored.append({
                 "model_id":        mid,
                 "provider":        pname,
-                "is_free":        mdata.get("is_free", False) or mdata.get("free_tier", False),
+                "is_free":        mdata.get("is_free", False),  # single canonical billing field
                 "composite_score": round(composite, 4),
                 "capability_score": breakdown["capability_score"],
                 "intelligence_score": breakdown["intelligence_score"],
@@ -2662,7 +2662,7 @@ class ILMAUnifiedRouter:
         total_models = sum(len(p.get("models", {})) for p in providers.values())
         free_models = sum(
             sum(1 for m in p.get("models", {}).values()
-                if m.get("is_free", False) or m.get("free_tier", False))
+                if m.get("is_free", False))
             for p in providers.values()
         )
 

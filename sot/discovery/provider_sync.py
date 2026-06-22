@@ -185,6 +185,13 @@ PROVIDER_CONFIGS = {
     "fmt": "openai",
     "free_tier": True
   },
+  "z.ai": {
+    "url": "https://api.z.ai/v1/models",
+    "env_var": "z.ai",
+    "fmt": "openai",
+    "free_tier": True,
+    "added_note": "2026-06-23 Bos direct insert at z.ai. Endpoint TBD pending probe; format guessed openai-compatible."
+  },
   "cloudflare": {
     "url": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/models/search",
     "fmt": "unsupported",
@@ -401,7 +408,9 @@ def fetch_models(pname: str) -> List[Any]:
                 "context_length": m.get("context_length"),
                 "price_per_m_input": pricing.get("prompt"),
                 "price_per_m_output": pricing.get("completion"),
-                "free_tier": m.get("free_tier", False),
+                # models.free_tier DROPPED 2026-06-22 — billing collapsed to single is_free
+                # (verdict written by sot_billing_classify). Raw price fields above are the
+                # classifier's input; no per-model free_tier flag is stored anymore.
             })
         return result
 
