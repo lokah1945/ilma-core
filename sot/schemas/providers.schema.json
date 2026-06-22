@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "providers",
-  "description": "Tier 2 SOT — General provider metadata consolidated from llm_providers (Tier 1, frozen) + curated documentation. One record per provider name (parallel keys in llm_providers are consolidated here). This is the authoritative catalog used by model-level pipeline (Tier 3) and downstream models (Tier 4).",
+  "description": "Tier 2 SOT \u2014 General provider metadata consolidated from llm_providers (Tier 1, frozen) + curated documentation. One record per provider name (parallel keys in llm_providers are consolidated here). This is the authoritative catalog used by model-level pipeline (Tier 3) and downstream models (Tier 4).",
   "type": "object",
   "required": [
     "provider",
@@ -37,7 +37,7 @@
         "TIMEOUT",
         "deprecated"
       ],
-      "description": "Effective status computed from llm_providers sibling keys (any active → active; else most severe)"
+      "description": "Effective status computed from llm_providers sibling keys (any active \u2192 active; else most severe)"
     },
     "free_tier": {
       "type": "boolean",
@@ -68,7 +68,7 @@
     "base_url": {
       "type": "string",
       "format": "uri",
-      "description": "Effective base URL — base_url_actual > base_url (llm_providers), or curated"
+      "description": "Effective base URL \u2014 base_url_actual > base_url (llm_providers), or curated"
     },
     "base_url_source": {
       "type": "string",
@@ -76,12 +76,27 @@
     },
     "auth_format": {
       "type": "string",
-      "enum": ["Bearer", "ApiKey_Query", "ApiKey_Header", "Basic", "ApiKey", "None", null]
+      "enum": [
+        "Bearer",
+        "ApiKey_Query",
+        "ApiKey_Header",
+        "Basic",
+        "ApiKey",
+        "None",
+        null
+      ]
     },
     "payload_format": {
       "type": "string",
-      "enum": ["openai_compatible", "gemini", "anthropic", "custom", "custom_rest", null],
-      "description": "SOT format identifier — drives provider_sync fetcher fmt dispatch"
+      "enum": [
+        "openai_compatible",
+        "gemini",
+        "anthropic",
+        "custom",
+        "custom_rest",
+        null
+      ],
+      "description": "SOT format identifier \u2014 drives provider_sync fetcher fmt dispatch"
     },
     "env_var": {
       "type": "string",
@@ -97,30 +112,73 @@
     },
     "endpoints": {
       "type": "object",
-      "description": "How-to-use catalog — per-endpoint URL, method, auth, streaming, purpose, content-type",
+      "description": "How-to-use catalog \u2014 per-endpoint URL, method, auth, streaming, purpose, content-type",
       "properties": {
-        "chat_completion": {"type": "object"},
-        "models_list": {"type": "object"},
-        "embeddings": {"type": "object"},
-        "images_generation": {"type": "object"},
-        "audio": {"type": "object"},
-        "streaming": {"type": "object"}
+        "chat_completion": {
+          "type": "object"
+        },
+        "models_list": {
+          "type": "object"
+        },
+        "embeddings": {
+          "type": "object"
+        },
+        "images_generation": {
+          "type": "object"
+        },
+        "audio": {
+          "type": "object"
+        },
+        "streaming": {
+          "type": "object"
+        }
       }
     },
     "last_verified": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Last successful live-verify timestamp"
     },
     "note": {
       "type": "string",
       "description": "Free-form curator note"
     },
-    "added": {"type": ["string", "null"]},
-    "added_by": {"type": ["string", "null"]},
+    "added": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "added_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "last_synced_at": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time",
-      "description": "When llm_providers → providers cascade last ran"
+      "description": "When llm_providers \u2192 providers cascade last ran"
+    },
+    "t1_source": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "STRICT LINEAGE: name of the T1 collection this T2 providers doc derives from (llm_providers|search_providers|infra_providers|system_credentials). null = no T1 foundation (flagged for review). T1 is the absolute SoT."
+    },
+    "t1_source_key": {
+      "type": "string",
+      "description": "the key in t1_source that links back (e.g. llm_providers.provider)."
+    },
+    "t1_source_status": {
+      "type": "string",
+      "description": "unmapped_no_t1_foundation when no T1 source exists."
     }
   }
 }

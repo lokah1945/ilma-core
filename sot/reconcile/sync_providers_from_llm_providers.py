@@ -94,6 +94,11 @@ def consolidate_provider(pname: str, siblings: List[Dict], existing: Dict = None
     # Record per-key purpose breakdown for diagnostic
     base["key_purposes"] = sorted(purposes)
     base["last_synced_at"] = now_utc()
+    # STRICT T1 LINEAGE (2026-06-22): every T2 providers doc must declare the T1
+    # collection it is derived from. This doc is built from llm_providers siblings,
+    # so its T1 source is unambiguous. T1 is the absolute SoT; T2 changes flow from it.
+    base["t1_source"] = "llm_providers"
+    base["t1_source_key"] = pname  # links back to llm_providers.provider
     return base
 
 
