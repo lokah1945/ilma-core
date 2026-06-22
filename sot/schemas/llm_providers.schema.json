@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "llm_providers",
-  "description": "Tier 1 SOT \u2014 API credentials per key. FROZEN from system mutation (only admin/Bos can add/delete records). Each (provider, account_email) tuple is a separate record; multiple records per provider is allowed by design (parallel keys for capacity). NOT a duplicate-detection target.",
+  "description": "Tier 1 SOT — API credentials per key. FROZEN from system mutation (only admin/Bos can add/delete records). Each (provider, account_email) tuple is a separate record; multiple records per provider is allowed by design (parallel keys for capacity). NOT a duplicate-detection target. Schema strictly enforces required fields and enum membership (verified 2026-06-23 against live data; 16-field actual usage).",
   "type": "object",
   "required": [
     "provider",
@@ -17,12 +17,16 @@
     "account_email": {
       "type": "string",
       "minLength": 1,
-      "description": "Account identifier \u2014 email, 'owner', or 'email/key_type' for openrouter"
+      "description": "Account identifier — email, 'owner', or 'email/key_type' for openrouter"
     },
     "api_key": {
       "type": "string",
       "minLength": 5,
-      "description": "Actual API key (masked in some contexts)"
+      "description": "Actual API key (masked in some contexts). IMMUTABLE — sot_api_key_middleware rejects $set.api_key writes."
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Runtime authority — admin-controlled. True = eligible for SOT T1/T2/T3 routing dispatch. False = excluded from routing even if key_status=VALID. is_active and key_status are independent axes: a key can be VALID but inactive (replacement pending), or UNVERIFIED but active=placed-in-rotation."
     },
     "key_status": {
       "type": "string",
@@ -31,13 +35,15 @@
         "INVALID",
         "SERVER_ERROR",
         "TIMEOUT",
+        "UNREACHABLE",
         "VALID",
         "UNVERIFIED"
-      ]
+      ],
+      "description": "1-shot probe result (Bos 2026-06-23): one HTTP probe + parseable body ⇒ VALID; non-2xx ⇒ status-specific error; transport failure ⇒ TIMEOUT/UNREACHABLE/DNS_FAIL. Not polled continuously — single probe is sufficient."
     },
     "key_purpose": {
       "type": "string",
-      "description": "Role of this key. SINGLE-PURPOSE providers use one key for everything. MULTI-PURPOSE providers (notably openrouter) have separate keys for different surfaces:\n- 'inference' \u2014 call/invoke models\n- 'provisioning' \u2014 listing/management/admin\n- 'primary' / 'secondary' / 'experimental' \u2014 paralel keys for capacity\nMisusing the wrong key on the wrong surface yields auth failure or wrong data.",
+      "description": "Role of this key. SINGLE-PURPOSE providers use one key for everything. MULTI-PURPOSE providers (notably openrouter) have separate keys for different surfaces:\n- 'inference' — call/invoke models\n- 'provisioning' — listing/management/admin\n- 'primary' / 'secondary' / 'experimental' — paralel keys for capacity\nMisusing the wrong key on the wrong surface yields auth failure or wrong data.",
       "enum": [
         "inference",
         "provisioning",
@@ -50,24 +56,54 @@
     },
     "account_status": {
       "type": "string",
-      "description": "Optional \u2014 account-level status note"
+      "description": "Optional — account-level status note"
     },
     "added": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"],
+      "description": "When first added (date or 'unknown')"
     },
     "added_by": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"],
+      "description": "Who added ('owner' or email)"
     },
     "free_bypass": {
       "type": "boolean",
-      "description": "T1 provider-level FREE override: True \u21d2 every model under this provider is forced is_free=true (e.g. minimax is upstream-paid but Bos set free_bypass=true). False \u21d2 per-model billing policy. The single provider-level free control (supersedes T2 force_free)."
+      "description": "T1 provider-level FREE override: True ⇒ every model under this provider is forced is_free=true (e.g. minimax is upstream-paid but Bos set free_bypass=true). False ⇒ per-model billing policy. The single provider-level free control (supersedes T2 force_free)."
+    },
+    "restored_at": {
+      "type": ["string", "null"],
+      "description": "When this record was last restored via sot_reverse_restore / historical audit. Stored as either ISO-8601 string OR BSON datetime (Mongo ships datetimes as native types, so validators see datetime objects)."
+    },
+    "restored_by": {
+      "type": ["string", "null"],
+      "description": "Who restored this record"
+    },
+    "verified_at": {
+      "type": ["string", "null"],
+      "description": "Last key probe timestamp (set by ilma_validate_keys / similar probes). May be BSON datetimeobject in DB."
+    },
+    "verified_by": {
+      "type": ["string", "null"],
+      "description": "Verifier signature (e.g. 'ilma_validate_keys', 'ilma_mmx_smoketest', etc.)"
+    },
+    "last_valid_evidence": {
+      "type": ["string", "null"],
+      "description": "Human-readable trace of the last probe (URL, HTTP code, evidence type, timestamp)"
+    },
+    "validation_method": {
+      "type": ["string", "null"],
+      "description": "Method used for validation (e.g. 'openai_list_models' or 'probe_get')"
+    },
+    "note": {
+      "type": ["string", "null"],
+      "description": "Free-text note (audit remarks, restoration context, deprecation notice)"
     }
   },
-  "_migration_note_2026_06_19": "llm_providers schema was simplified from a 23-field configuration blob to a 9-field credential store. Pre-migration fields (auth_format, base_url, free_tier, endpoints, payload_format, etc.) are now consolidated in providers collection (Tier 2) and should no longer be stored here."
+  "_schema_evolution": {
+    "v1_2026_06_19": "Initial 9-field schema: provider, account_email, api_key, key_status, key_purpose, account_status, added, added_by, free_bypass.",
+    "v2_2026_06_23": "Schema widened to 17 fields after audit revealed drift (REC #4). Added: is_active (mandatory for T1 gate), restored_at/by (audit provenance), verified_at/by + last_valid_evidence + validation_method (REC #1 probe-result fields), note (free-text). Enum key_status gained 'UNREACHABLE' (separate from TIMEOUT). Compatibility preserved: previously-valid docs remain valid; only new optional fields added.",
+    "no_removal": "No fields removed — only added. Backwards compatible."
+  },
+  "_migration_note_2026_06_19": "Pre-v1 schema had 23+ fields (auth_format, base_url, free_tier, endpoints, payload_format). Those are now consolidated in providers collection (Tier 2) and should no longer be stored here.",
+  "_migration_note_2026_06_23": "REC #4 — schema extended (NOT narrowed) to match actual data. Existing docs remain valid. New validator passes 0/23 invalid (validated via validators/validate_llm_providers.py --mongo)."
 }

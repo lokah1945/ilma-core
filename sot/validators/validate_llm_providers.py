@@ -13,18 +13,35 @@ Exit: 0=valid, 1=invalid, 2=error
 """
 
 import json, sys, os
+from datetime import datetime, date
 from jsonschema import Draft7Validator, validators
 
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "..", "schemas", "llm_providers.schema.json")
+
+
+def _normalize_for_validation(doc):
+    """Convert BSON-native types (datetime, date, etc.) to ISO strings so the JSON
+    schema validator (draft-07, string-only) passes for fields like verified_at /
+    restored_at / added that live in MongoDB as datetime objects."""
+    if isinstance(doc, dict):
+        return {k: _normalize_for_validation(v) for k, v in doc.items()}
+    if isinstance(doc, list):
+        return [_normalize_for_validation(v) for v in doc]
+    if isinstance(doc, (datetime, date)):
+        return doc.isoformat()
+    return doc
+
 
 def load_schema():
     with open(SCHEMA_PATH) as f:
         return json.load(f)
 
+
 def validate_doc(doc, schema=None):
     if schema is None:
         schema = load_schema()
-    errors = list(Draft7Validator(schema).iter_errors(doc))
+    doc_n = _normalize_for_validation(doc)
+    errors = list(Draft7Validator(schema).iter_errors(doc_n))
     return len(errors) == 0, errors
 
 def format_errors(errors):
