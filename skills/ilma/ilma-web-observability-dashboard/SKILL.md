@@ -27,7 +27,7 @@ Full-stack web dashboard for monitoring ILMA runtime state. Built during Phase 5
 | Layer | Tech | Port |
 |-------|------|------|
 | Backend | FastAPI + SQLModel + SQLite + Uvicorn | 8000 |
-| Frontend | React + TypeScript + Vite + Tailwind CSS + Recharts | 3000 |
+| Frontend | React + TypeScript + Vite + Tailwind CSS + Recharts | 3001 (systemd) / 3000 (manual npm) |
 | Data | 16 providers, 1,284 models, 4 benchmarks, 258 checkpoints | — |
 
 ## Quick Start
@@ -268,3 +268,5 @@ providers, models, benchmarks, usage_records, routing_chains, workflows, evidenc
 - **Seed data:** Backend auto-seeds providers + models from ilma_capability_registry on first startup.
 - **Empty benchmarks/usage:** Normal — no historical data yet, table exists for future ingestion.
 - **Screenshot:** `browser_navigate` + `browser_vision` → `send_message(target="telegram:Huda Choirul Anam")` to send to owner.
+- **systemd port mismatch:** The systemd service `ilma-dashboard-frontend.service` runs on port **3001**, not 3000. Manual `npm run dev` defaults to 3000. Health check the systemd version at `http://localhost:3001/` (not 127.0.0.1 — Vite binds to `localhost` only by default).
+- **systemd crash-loop:** If services show `activating (auto-restart)` with exit code 209, the log directory `run/` is missing. See `hermes-agent-recovery` skill for the fix pattern.

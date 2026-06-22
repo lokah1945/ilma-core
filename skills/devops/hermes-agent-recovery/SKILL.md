@@ -149,3 +149,68 @@ with open('ILMA_RUNTIME_STATE.json', 'w') as f:
 | Credential file not found | Path corruption | Set `CREDENTIAL_FILE = "/root/credential/api_key.json"` |
 | 16 agents running | Legacy config | Kill excess agents, keep only ilma + master-chief |
 | Status shows STOPPED but process running | Watchdog checks systemd, not processes | Use `ps aux` to verify actual state |
+
+## Systemd Service Crash-Loop Recovery (exit 209 / missing log dirs)
+
+### Symptom
+ILMA user-level systemd services show `activating (auto-restart)` with `Result: exit-code` and exit status **209**. The service binary/script exists and Python deps are fine, but the service keeps crashing.
+
+### Root Cause
+When a `.service` unit has `StandardOutput=append:/path/to/logfile.log` or `StandardError=append:`, but the **parent directory of the log file does not exist**, systemd fails to open the file for output redirection and exits with code 209. This creates a crash-loop because `Restart=always` keeps retrying the same impossible path.
+
+### Affected Services (as of 2026-06-23)
+| Service | Binary | Log Dir | Port |
+|---------|--------|---------|------|
+| `ilma-command-center.service` | `ilma_command_center.py` | `run/` | 18790 |
+| `ilma-dashboard-backend.service` | `uvicorn app.main:app` | `run/` | 8000 |
+| `ilma-dashboard-frontend.service` | `vite --port 3001` | `run/` | 3001 |
+
+All three write to `$BASE_DIR/run/` (`/root/.hermes/profiles/ilma/run/`).
+
+### Fix
+```bash
+# 1. Create the missing log directory
+mkdir -p /root/.hermes/profiles/ilma/run
+
+# 2. Restart all affected services
+systemctl --user restart ilma-command-center.service
+systemctl --user restart ilma-dashboard-backend.service
+systemctl --user restart ilma-dashboard-frontend.service
+
+# 3. Wait and verify they stay active (not crash-looping)
+sleep 5
+systemctl --user is-active ilma-command-center.service
+systemctl --user is-active ilma-dashboard-backend.service
+systemctl --user is-active ilma-dashboard-frontend.service
+# All should return "active"
+
+# 4. Health check endpoints
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:18790/  # 303 (login redirect)
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/  # 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/   # 200 (note: localhost, not 127.0.0.1 for Vite)
+```
+
+### Pitfall: Vite Binds to localhost Only
+The Vite dev server (frontend) binds to `localhost` by default, not `0.0.0.0`. Health checks using `127.0.0.1:3001` will return connection refused (exit code 7 / HTTP 000). Use `http://localhost:3001/` instead.
+
+### Diagnostic Pattern for Any systemd Crash-Loop
+```bash
+# 1. Check service status + exit code
+systemctl --user status <service>.service
+# Look for: Process exit code, Result line
+
+# 2. Check if log directory exists
+ls -la /path/to/log/parent/dir/
+
+# 3. Check if binary/script actually exists
+ls -la <ExecStart binary path>
+
+# 4. Check Python/Node dependencies
+python3 -c "import <module>"  # for Python services
+
+# 5. If exit 209 → 99% chance it's a missing log/output directory
+mkdir -p /path/to/log/dir && systemctl --user restart <service>
+```
+
+### Prevention
+The `run/` directory under the ILMA profile should be created during setup or via `tmpfiles.d` rule. If the directory gets cleaned (e.g. reboot clearing `/run`), the services will crash-loop again. Consider adding `ExecStartPre=mkdir -p /root/.hermes/profiles/ilma/run` to the service unit files, or adding a `RuntimeDirectory=run` directive.
