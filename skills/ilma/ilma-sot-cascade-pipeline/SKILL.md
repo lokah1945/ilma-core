@@ -29,6 +29,9 @@ triggers:
   - "get_api_key purpose parameter"
   - "multi_account vs multi_purpose distinction"
   - "providers.multi_purpose flag"
+  - "schema widen recipe"
+  - "bson datetime validator normalize"
+  - "unique compound index llm_providers"
 ---
 
 # ILMA SOT Cascade Pipeline (class-level)
@@ -484,19 +487,70 @@ python3 reconcile_from_<name>.py --json
   - `multi_purpose=True` = sibling keys serve permukaan BERBEDA (openrouter
     inference vs provisioning). DOWNSTREAM consume `key_purposes` aware — never
     panggil `/v1/models` pakai key inference.
-  - Bisa overlap: openrouter punya multi_account=True AND multi_purpose=True.
+  Schema enum
+  `llm_providers.key_purpose`:
 
-  **Schema enum** `llm_providers.key_purpose`:
   ```
   ['inference', 'provisioning', 'primary', 'secondary', 'experimental', 'backup']
   ```
-  `default purpose='provisioning'` di `get_api_key()` karena listing endpoint
+  `default purpose='provisioning'` in `get_api_key()` because listing endpoint
   butuh provisioning key. Panggil `get_api_key('openrouter', 'inference')`
   explicit saat runtime invoke model.
 
-  Field `multi_purpose` di `providers.schema.json` (Tier 2) — bisa `True` saat
+  Field `multi_purpose` in `providers.schema.json` (Tier 2) — bisa `True` saat
   siblings punya `key_purpose` berbeda. Update schema providers untuk include
   field ini.
+
+- **P-CASCADE-18 (BSON datetime validation trap, Bos 2026-06-23)**: When
+  validating `llm_providers` (or any collection) against a JSON-schema
+  (draft-07), BSON-native `datetime` objects in fields like
+  `verified_at` / `restored_at` / `last_valid_evidence` will FAIL schema
+  validation because schema declares `type: "string"`. Two fixes — pick
+  one to add to the validator:
+
+  - **(A)** Widen schema to allow datetime strings only:
+    `type: ["string", "null"]` + `format: date-time` + insert ISO strings
+    explicitly (cumbersome insert-side).
+  - **(B)** **Normalize at validator boundary** (preferred, REC #4):
+    ```python
+    def _normalize(doc):
+        from datetime import datetime, date
+        if isinstance(doc, dict): return {k: _normalize(v) for k,v in doc.items()}
+        if isinstance(doc, list): return [_normalize(v) for v in doc]
+        if isinstance(doc, (datetime, date)): return doc.isoformat()
+        return doc
+    norm = _normalize(doc); errors = list(Draft7Validator(schema).iter_errors(norm))
+    ```
+
+  Both work. **Do NOT remove `verified_at`/`restored_at`** to make schema
+  pass — these are legitimate fields set by probe-once validator (REC #1)
+  and restore scripts.
+
+  Always pair schema change + validator update + `sot_schema_registry`
+  `fields_count` update. Evidence needed: validator pass count
+  (`0/N invalid`) AFTER fix.
+
+- **P-CASCADE-19 (DB alias drift — public reference)**: Some docs and
+  older scripts reference DB `ilma_sot`. Authoritative reference is
+  the collection `_db_meta.db_alias_map` in DB `credentials` that lists
+  `db_canonical=credentials` + alias `ilma_sot→credentials`. Phase any
+  multi-collection script with `client['credentials']` default; never
+  trust schema file's DB name as literal.
+
+- **P-CASCADE-20 (Unique compound index — pattern)**: Adding
+  `unique(provider, account_email)` to `llm_providers` requires:
+  1. **Pre-check duplicates** via `Counter` over compound keys. If any
+     count > 1, REPAIR intent first (multi-account by design ≠ accidental
+     dup; consult Bos).
+  2. `create_index([(p,1),(e,1)], name=..., unique=True)` — re-run safe.
+  3. Log entry to `model_audit_trail` with
+     `event_type='unique_index_added'` + `provider='*'` (system-level).
+  4. Re-run any restore scripts idempotency test to verify they don't
+      violate the new constraint.
+
+  Verified 2026-06-23 (#REC #5): 23 docs, 23 distinct
+  `(provider, account_email)` pairs, zero dup, safe to add. Index name
+  convention: `uq_<fields>`.
 
 ## Verification Recipe
 
@@ -575,3 +629,13 @@ Paska-apply, verifikasi:
   warning)** Multi-purpose provider trap (inference vs provisioning keys),
   `key_purpose` enum, `multi_purpose` flag distinct dari `multi_account`,
   `get_api_key(pname, purpose=...)` API usage, verification recipe
+- `references/sot-session-2026-06-23-zai-insert.md` — companion to
+  REC #1-#6 (probe validator, schema widen P-CASCADE-18, unique index
+  P-CASCADE-20, DB alias drift P-CASCADE-19, felo diagnosis REC #6)
+
+## Pointer to operator-side skill
+
+For one-shot operator queries against `llm_providers` (read-only audit,
+probe key_status, check DB alias, etc.), use
+**`ilma-sot-credential-retrieval`**. This skill is for cascade/reconcile
+tasks that mutate downstream collections.
