@@ -71,12 +71,17 @@ def now_utc() -> datetime:
 
 # ── SOT resolution ────────────────────────────────────────────────────────────
 def resolve_target_providers(db) -> List[str]:
-    """Providers to sync = ACTIVE in llm_providers (Tier-1 SOT) AND have a sync config.
-    SOT-driven: adding a provider to llm_providers auto-includes it (if a config exists)."""
+    """Providers to propagate T1→T2→T3 = those with ≥1 T1 account that BOTH:
+      • is_active != False  — the admin's FROZEN manual propagation switch (T1 is_active is
+        NEVER written by automation; only Bos/admin changes it). is_active=False ⇒ the key
+        stays as data in T1 only, no T2/T3, even if key_status=VALID.
+      • key_status not INVALID — the auto key-validation gate ('can it proceed to T2/T3?').
+    Both must hold for propagation; SOT-driven (add to llm_providers → auto-included)."""
     active = set()
-    for d in db.llm_providers.find({"is_active": {"$ne": False}}, {"provider": 1}):
+    for d in db.llm_providers.find({"is_active": {"$ne": False}},
+                                   {"provider": 1, "key_status": 1}):
         p = d.get("provider")
-        if p:
+        if p and str(d.get("key_status", "") or "").upper() != "INVALID":
             active.add(p)
     syncable = {p for p, cfg in provider_sync.PROVIDER_CONFIGS.items()
                 if p not in _SKIP and not cfg.get("skip_sync")}

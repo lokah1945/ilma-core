@@ -51,8 +51,7 @@ def fix_is_free_1(dry_run: bool = False) -> Dict[str, Any]:
     if not dry_run:
         result = models_coll().update_many(
             q,
-            {"$set": {"is_free": True, "free_tier": True, "billing": "free",
-                      "_sot_fixed_is_free_1": _now()}}
+            {"$set": {"is_free": True, "_sot_fixed_is_free_1": _now()}}
         )
         affected = result.modified_count
     else:
@@ -73,8 +72,7 @@ def fix_is_free_2(dry_run: bool = False) -> Dict[str, Any]:
     if not dry_run:
         result = models_coll().update_many(
             q,
-            {"$set": {"is_free": True, "free_tier": True, "billing": "free",
-                      "_sot_fixed_is_free_2": _now()}}
+            {"$set": {"is_free": True, "_sot_fixed_is_free_2": _now()}}
         )
         affected = result.modified_count
     else:
@@ -192,7 +190,6 @@ def fix_intel_3_is_free_sync(dry_run: bool = False) -> Dict[str, Any]:
                 {"provider": provider, "model_id": model_id},
                 {"$set": {
                     "is_free": is_free,
-                    "free_tier": free_tier,
                     "_sot_fixed_is_free_4": _now(),
                 }}
             )

@@ -287,26 +287,12 @@ def reconcile_integrity(db, apply: bool) -> Dict[str, Any]:
     """Resolve is_free ↔ free_tier, disabled_at vs is_active conflicts."""
     out = {}
 
-    # 5a. is_free ↔ free_tier normalization
-    mismatched = db["models"].count_documents({
-        "$expr": {"$ne": ["$is_free", "$free_tier"]}
-    })
-    out["free_tier_mismatched"] = mismatched
-    if apply and mismatched > 0:
-        # Iterate (cheap) — Mongo $set doesn't directly mirror field to other
-        cur = db["models"].find(
-            {"$expr": {"$ne": ["$is_free", "$free_tier"]}},
-            {"provider": 1, "model_id": 1, "is_free": 1, "_id": 1}
-        )
-        n = 0
-        for doc in cur:
-            db["models"].update_one(
-                {"_id": doc["_id"]},
-                {"$set": {"free_tier": doc.get("is_free", False),
-                          "_sot_free_tier_synced_at": now_utc()}},
-            )
-            n += 1
-        out["free_tier_fixed"] = n
+    # 5a. free_tier CONSOLIDATED into is_free (2026-06-23) — drop any stray free_tier docs
+    #     instead of mirroring (is_free is the single canonical billing field now).
+    if apply:
+        r = db["models"].update_many({"free_tier": {"$exists": True}},
+                                     {"$unset": {"free_tier": ""}})
+        out["free_tier_dropped"] = r.modified_count
 
     # 5b. is_active=True + disabled_at exists → conflict
     conflict = db["models"].count_documents({
