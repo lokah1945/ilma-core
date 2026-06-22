@@ -300,26 +300,79 @@ def _detect_removed(db, targets: List[str]) -> List[str]:
 SYSTEM_EXEMPT_PROVIDERS = {"nvidia", "edge", "wrapper-nvidia"}
 
 
+# All T1-tier collections (the absolute SoT foundation). T2 docs declare their origin
+# via the `t1_source` field; T2 exists IFF its T1 source entry is active.
+T1_TIERS = ["llm_providers", "search_providers", "infra_providers", "system_credentials"]
+
+
+def _t1_is_active(d: Dict[str, Any]) -> bool:
+    """A T1 entry is active unless is_active=False or status is a disabled variant.
+    (llm_providers uses is_active; infra/search use status='active')."""
+    if d.get("is_active") is False:
+        return False
+    if str(d.get("status", "active")).lower() in ("disabled", "inactive", "revoked", "deleted"):
+        return False
+    return True
+
+
+def _active_t1_index(db) -> Dict[str, str]:
+    """provider → T1 source collection, for ACTIVE entries across ALL T1 tiers."""
+    idx: Dict[str, str] = {}
+    for col in T1_TIERS:
+        for d in db[col].find({}, {"provider": 1, "name": 1, "service": 1,
+                                   "is_active": 1, "status": 1}):
+            key = d.get("provider") or d.get("name") or d.get("service")
+            if key and _t1_is_active(d):
+                idx.setdefault(key, col)
+    return idx
+
+
 def _active_t1_providers(db) -> Set[str]:
-    """Providers with at least one ACTIVE account in llm_providers (T1)."""
-    return {d["provider"] for d in
-            db.llm_providers.find({"is_active": {"$ne": False}}, {"provider": 1})}
+    """Active providers across all T1 tiers (T1 is the absolute SoT foundation)."""
+    return set(_active_t1_index(db))
 
 
 def _detect_cascade_out(db) -> List[str]:
-    """SoT invariant for LLM-MODEL providers only: an LLM provider that is in T1 but
-    is_active=False, OR that has T3 models yet is not active in T1, must be hard-deleted
-    (T1 is_active=False ⇒ its T2 + T3 must not exist).
-
-    Scoped to LLM providers so this NEVER touches T2 service/tool providers (tavily,
-    serper, github, telegram, binance, google, …) which legitimately live in T2 with
-    no T1 llm_providers entry and no T3 models. System free-media providers
-    (nvidia/edge/wrapper-nvidia — served via wrapper/local, no T1 credential) are exempt."""
+    """SoT invariant (all tiers): a T2 (providers) or T3 (models) doc whose T1 source is
+    NOT active — deactivated (is_active=False / status disabled) OR absent in every T1
+    collection — must be hard-deleted. T1 is_active=False ⇒ its T2 + T3 must not exist.
+    System free-media providers (nvidia/edge/wrapper-nvidia — served via wrapper/local,
+    no T1 credential) are exempt. Rebuilds happen via _rebuild_missing_t2 when T1 active."""
     active = _active_t1_providers(db)
-    all_t1 = {d["provider"] for d in db.llm_providers.find({}, {"provider": 1})}
-    inactive_t1 = all_t1 - active                          # LLM providers explicitly deactivated in T1
-    orphan_model_provs = set(db.models.distinct("provider")) - active  # has T3 but not active in T1
-    return sorted((inactive_t1 | orphan_model_provs) - SYSTEM_EXEMPT_PROVIDERS)
+    have = set(db.providers.distinct("provider")) | set(db.models.distinct("provider"))
+    return sorted(have - active - SYSTEM_EXEMPT_PROVIDERS)
+
+
+def _rebuild_missing_t2(db, dry_run: bool = False) -> List[str]:
+    """Active T1 entry (any tier) WITHOUT a T2 providers doc → (re)build it. This makes
+    T2 rebuildable the moment a previously-deactivated T1 entry flips back to active."""
+    active = _active_t1_index(db)
+    have = set(db.providers.distinct("provider"))
+    rebuilt = []
+    for prov, src in active.items():
+        if prov in have or prov in SYSTEM_EXEMPT_PROVIDERS:
+            continue
+        if dry_run:
+            rebuilt.append(prov)
+            continue
+        doc = None
+        if src == "llm_providers":
+            try:
+                sys.path.insert(0, os.path.join(_HERE, "..", "reconcile"))
+                from sync_providers_from_llm_providers import consolidate_provider
+                sibs = list(db.llm_providers.find({"provider": prov}))
+                doc = consolidate_provider(prov, sibs, db.providers.find_one({"provider": prov}))
+            except Exception:
+                doc = None
+        if doc is None:
+            t1 = db[src].find_one({"$or": [{"provider": prov}, {"name": prov}, {"service": prov}]}) or {}
+            doc = {"provider": prov, "is_active": True, "status": "active",
+                   "category": t1.get("category"), "docs_url": t1.get("docs_url"),
+                   "t1_source": src, "t1_source_key": prov, "t1_source_at": now_utc(),
+                   "note": "rebuilt from T1 (active)"}
+        db.providers.update_one({"provider": prov}, {"$set": doc}, upsert=True)
+        rebuilt.append(prov)
+    return rebuilt
 
 
 def run_sync(mode: str = "full", provider: Optional[str] = None,
@@ -340,11 +393,14 @@ def run_sync(mode: str = "full", provider: Optional[str] = None,
         targets = changed
 
     results, removed_results = [], []
-    # cascade-out providers INACTIVE or REMOVED in llm_providers (T1) — T1 is_active=False
-    # ⇒ its T2 + T3 must not exist. Runs on full/changed sweeps (i.e. the 6h timer).
+    # SoT mirror (all tiers): T2/T3 exists IFF its T1 source is active. Cascade-out
+    # deactivated/absent T1 (T1 is_active=False ⇒ T2+T3 gone); rebuild T2 for any active
+    # T1 that lost its T2. Runs on full/changed sweeps (the 6h timer) + the daemon.
+    rebuilt = []
     if not provider:
         for rp in _detect_cascade_out(db):
             removed_results.append(cascade_out_provider(db, rp, dry_run=dry_run))
+        rebuilt = _rebuild_missing_t2(db, dry_run=dry_run)
 
     if targets:
         with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(targets))) as ex:
