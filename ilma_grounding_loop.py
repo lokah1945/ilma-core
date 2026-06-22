@@ -9,10 +9,50 @@ Version: 2.0
 """
 
 import re
+import sys
+import math
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+
+# ── Semantic (embedding) relevance — upgrade from pure lexical token-overlap
+# (2026-06-22). Uses the verified free wrapper-nvidia embeddings; cached; falls
+# back silently to lexical if embeddings are unavailable. Catches paraphrase /
+# synonym support that token-overlap misses — closes the "lexical-only grounding"
+# military-grade gap without adding a hard dependency.
+_EMB_CACHE: Dict[str, Optional[list]] = {}
+_EMB_DISABLED = False
+
+
+def _embed(text: str) -> Optional[list]:
+    global _EMB_DISABLED
+    if _EMB_DISABLED or not text:
+        return None
+    key = text[:400]
+    if key in _EMB_CACHE:
+        return _EMB_CACHE[key]
+    vec = None
+    try:
+        if "/root/.hermes/profiles/ilma" not in sys.path:
+            sys.path.insert(0, "/root/.hermes/profiles/ilma")
+        from ilma_subagent_router import get_router
+        r = get_router().execute_capability("embedding", input_text=text[:2000])
+        if r.get("success"):
+            vec = r.get("vector")
+    except Exception:
+        _EMB_DISABLED = True  # don't retry per-claim if the backend is down
+    _EMB_CACHE[key] = vec
+    return vec
+
+
+def _cosine(a: list, b: list) -> float:
+    if not a or not b or len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a)) or 1e-9
+    nb = math.sqrt(sum(y * y for y in b)) or 1e-9
+    return max(0.0, min(1.0, dot / (na * nb)))
 
 # Common stopwords excluded from relevance scoring (audit 2026-06-20 Q4)
 _GROUNDING_STOPWORDS = {
@@ -131,6 +171,16 @@ class AntiHallucinationGroundingLoop:
         # only evidence with meaningful overlap counts; saturating sum (~2 strong pieces => 1.0)
         total = sum(r for r in rels if r >= 0.15)
         strength = min(1.0, total / 1.5)
+        # SEMANTIC boost: embed claim vs the concatenated evidence (1+1 embed calls,
+        # cached) and lift strength toward the cosine similarity — catches paraphrased
+        # support that lexical overlap misses. No-op if embeddings unavailable.
+        ev_join = " ".join(str(e) for e in (evidence or []) if not str(e).startswith("http"))[:2000]
+        if ev_join:
+            cv, ev = _embed(claim.content), _embed(ev_join)
+            if cv and ev:
+                sem = _cosine(cv, ev)
+                # cosine ~0.5+ on related text; scale so 0.55->~0.6, 0.8->~1.0
+                strength = max(strength, min(1.0, (sem - 0.25) / 0.55)) if sem > 0.25 else strength
         # distinct credible-looking source domains add a capped bonus (no network fetch)
         domains = set()
         candidates = list(verification_sources or []) + [

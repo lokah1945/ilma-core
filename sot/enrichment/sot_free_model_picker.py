@@ -49,6 +49,20 @@ MONGO = dict(
     serverSelectionTimeoutMS=10000,
 )
 
+# endpoint_type → (path, input_modality, output_modality) — single source so the
+# derivable fields (endpoint_path/input_modality/output_modality) need not be stored.
+_ENDPOINT_DERIVE = {
+    "chat-completions":     ("/v1/chat/completions", "text", "text"),
+    "image-generations":    ("/v1/images/generations", "text", "image"),
+    "image-edits":          ("/v1/images/edits", "image+text", "image"),
+    "video-generations":    ("/v1/video/generations", "text", "video"),
+    "audio-speech":         ("/v1/audio/speech", "text", "audio"),
+    "audio-transcriptions": ("/v1/audio/transcriptions", "audio", "text"),
+    "embeddings":           ("/v1/embeddings", "text", "vector"),
+    "rerank":               ("/v1/rerank", "text+text", "ordered"),
+    "moderations":          ("/v1/moderations", "text", "boolean"),
+}
+
 # Capability → endpoint_type (matches sot_enrich_capabilities_v2)
 _CAP_TO_ENDPOINT = {
     "chat": "chat-completions",
@@ -178,9 +192,10 @@ class SOTFreePicker:
                 "provider": d.get("provider"),
                 "model_id": d.get("model_id"),
                 "endpoint_type": d.get("endpoint_type"),
-                "endpoint_path": d.get("endpoint_path"),
-                "input_modality": d.get("input_modality"),
-                "output_modality": d.get("output_modality"),
+                # derived from endpoint_type (fields dropped 2026-06-22 — fully determined)
+                "endpoint_path": _ENDPOINT_DERIVE.get(d.get("endpoint_type"), (d.get("endpoint_path") or "/v1/chat/completions", "text", "text"))[0],
+                "input_modality": _ENDPOINT_DERIVE.get(d.get("endpoint_type"), ("", "text", "text"))[1],
+                "output_modality": _ENDPOINT_DERIVE.get(d.get("endpoint_type"), ("", "text", "text"))[2],
                 "primary_cap": d.get("primary_cap"),
                 "quality_tier": d.get("quality_tier"),
                 "is_free_final": d.get("is_free_final"),

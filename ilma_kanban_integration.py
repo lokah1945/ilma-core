@@ -104,19 +104,33 @@ class ILMAKanban:
         self._current_task_id: Optional[str] = None
         self._model_optimizer = None  # lazy-load
 
-        # Verify hermes kanban is available
-        r = subprocess.run(["hermes", "kanban", "--help"],
-                          capture_output=True, text=True, timeout=10)
-        if r.returncode != 0:
-            raise RuntimeError("Hermes kanban not available. Install hermes-agent v0.13.0+")
-
-        # Check if kanban DB exists
-        kanban_db = Path("/root/.hermes/kanban.db")
-        if not kanban_db.exists():
-            subprocess.run(["hermes", "kanban", "init"], capture_output=True, timeout=10)
-
-        # Sync free model list for worker routing
-        self._sync_free_models()
+        # Probe hermes kanban — DEGRADE GRACEFULLY instead of hard-raising (2026-06-22).
+        # The gateway runs its own embedded kanban dispatcher; a CLI probe failing must
+        # not crash ILMA construction/import. Callers check `self.available`.
+        self.available = False
+        try:
+            r = subprocess.run(["hermes", "kanban", "--help"],
+                               capture_output=True, text=True, timeout=10)
+            self.available = (r.returncode == 0)
+        except Exception:
+            self.available = False
+        if not self.available:
+            import logging as _lg
+            _lg.getLogger("ilma.kanban").warning(
+                "Hermes kanban CLI unavailable — kanban integration degraded "
+                "(gateway embedded dispatcher handles boards; serial fallback for delegation).")
+        else:
+            kanban_db = Path("/root/.hermes/kanban.db")
+            if not kanban_db.exists():
+                try:
+                    subprocess.run(["hermes", "kanban", "init"], capture_output=True, timeout=10)
+                except Exception:
+                    pass
+        # Sync free model list for worker routing (guarded)
+        try:
+            self._sync_free_models()
+        except Exception:
+            pass
 
     def _sync_free_models(self) -> None:
         """Sync free model list from ILMA registry."""
