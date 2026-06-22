@@ -109,7 +109,7 @@ def _query_free(db, capability: str, provider: Optional[str] = None,
         "$and": [
             q_or,
             {"$or": [
-                {"capabilities_v2": capability},
+                {"capabilities": capability},
                 {"endpoint_type": ep},
             ]},
         ],
@@ -197,7 +197,7 @@ class SOTFreePicker:
                 "free_tier_score": d.get("free_tier_score"),
                 "score": d.get("score"),
                 "score_tier": d.get("score_tier"),
-                "capabilities": d.get("capabilities_v2") or d.get("capabilities"),
+                "capabilities": d.get("capabilities"),
                 # policy warning if model isn't strictly classified FREE
                 "policy_warning": (None
                                    if d.get("is_free")

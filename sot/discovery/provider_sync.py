@@ -488,7 +488,7 @@ def sync_provider(pname: str, dry_run: bool = False) -> Dict[str, Any]:
 # free_tier dropped (consolidated to is_free; billing_classify owns the verdict)
             "is_active": True,
             "status": "active",
-            "capabilities": infer_capabilities(mid),
+            # capabilities owned solely by sot_enrich_capabilities_v2 (single authority, #15 dedup 2026-06-23); provider_sync no longer infers a duplicate vocab.
             "specialization": infer_specialization(mid),
             "discovered_via": "provider_direct",
             "discovered_at": now,

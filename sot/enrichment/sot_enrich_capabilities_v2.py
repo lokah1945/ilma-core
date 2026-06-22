@@ -447,8 +447,8 @@ def writeback(db, results: List[Dict[str, Any]], dry_run: bool = False) -> int:
             "free_tier_score": r["free_tier_score"],
             "input_modality": r["input_modality"],
             "output_modality": r["output_modality"],
-            "capabilities_v2": r["capabilities"],
-            "capabilities_v2_enriched_at": r["updated_at"],
+            "capabilities": r["capabilities"],
+            "capabilities_enriched_at": r["updated_at"],
         }})
         n += 1
     return n
@@ -463,7 +463,7 @@ def run(provider: str = None, only_missing: bool = False, dry_run: bool = False)
     if provider:
         q["provider"] = provider
     if only_missing:
-        q["capabilities_v2"] = {"$exists": False}
+        q["capabilities"] = {"$exists": False}
     results = [analyze_model(d) for d in db.models.find(q)]
     written = writeback(db, results, dry_run=dry_run)
     return {"provider": provider or "ALL", "analyzed": len(results), "written": written}
@@ -525,7 +525,7 @@ def main():
         if args.only_missing and d.get("endpoint_type"):
             continue
         if args.capability and args.capability not in (d.get("capabilities") or []) \
-                and args.capability not in (d.get("capabilities_v2") or []):
+                and args.capability not in (d.get("capabilities") or []):
             continue
         r = analyze_model(d)
         results.append(r)

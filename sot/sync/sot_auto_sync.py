@@ -370,16 +370,16 @@ def _rebuild_missing_t2(db, dry_run: bool = False) -> List[str]:
         if dry_run:
             rebuilt.append(prov)
             continue
-        doc = None
+        # #13 dedup: ONE canonical T2 builder for llm_providers — consolidate_provider
+        # (rich: status aggregation, key counts, t1_source). Fail LOUD, never silently
+        # degrade to a thin doc. Non-llm tiers (search/infra/system) have no consolidate
+        # builder → minimal T1-derived doc (their only path).
         if src == "llm_providers":
-            try:
-                sys.path.insert(0, os.path.join(_HERE, "..", "reconcile"))
-                from sync_providers_from_llm_providers import consolidate_provider
-                sibs = list(db.llm_providers.find({"provider": prov}))
-                doc = consolidate_provider(prov, sibs, db.providers.find_one({"provider": prov}))
-            except Exception:
-                doc = None
-        if doc is None:
+            sys.path.insert(0, os.path.join(_HERE, "..", "reconcile"))
+            from sync_providers_from_llm_providers import consolidate_provider
+            sibs = list(db.llm_providers.find({"provider": prov}))
+            doc = consolidate_provider(prov, sibs, db.providers.find_one({"provider": prov}))
+        else:
             t1 = db[src].find_one({"$or": [{"provider": prov}, {"name": prov}, {"service": prov}]}) or {}
             doc = {"provider": prov, "is_active": True, "status": "active",
                    "category": t1.get("category"), "docs_url": t1.get("docs_url"),

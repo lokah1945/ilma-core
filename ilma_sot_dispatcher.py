@@ -195,7 +195,7 @@ def lookup_models_by_hermes_cap(hermes_cap: str, strict: bool = True, limit: int
             "provider": d["provider"],
             "primary_cap": d.get("primary_cap"),
             "endpoint_type": d.get("endpoint_type"),
-            "capabilities_v2": d.get("capabilities_v2", []),
+            "capabilities": d.get("capabilities", []),
             "hermes_caps": d.get("hermes_caps", []),
             "score": d.get("score"),
         })

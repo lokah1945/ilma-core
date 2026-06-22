@@ -340,12 +340,16 @@ def main():
         "orphan_providers_in_models": sorted(models_providers - set(sot.keys())),
     }
 
-    # Run each step in isolation — partial failure does not abort
+    # Run each step in isolation — partial failure does not abort.
+    # #14 dedup (2026-06-23): sot_auto_sync.cascade_out_provider is the SINGLE live
+    # cascade OWNER (T1 is_active=false ⇒ delete T2+T3). reconcile's cascade-out steps
+    # are forced AUDIT-ONLY here (apply=False) so they never mutate/thrash against it —
+    # they only report. cascade_in (build) + enum/integrity may still apply.
     steps = {}
     for name, fn in [
         ("cascade_in",          lambda: reconcile_cascade_in(db, sot, models_providers, args.apply)),
-        ("cascade_out_orphan",  lambda: reconcile_cascade_out_orphan(db, sot, args.apply)),
-        ("cascade_out_stale",   lambda: reconcile_cascade_out_stale(db, sot, args.apply)),
+        ("cascade_out_orphan",  lambda: reconcile_cascade_out_orphan(db, sot, False)),  # audit-only
+        ("cascade_out_stale",   lambda: reconcile_cascade_out_stale(db, sot, False)),   # audit-only
         ("enum_discovered_via", lambda: reconcile_enum_discovered_via(db, args.apply)),
         ("data_integrity",      lambda: reconcile_integrity(db, args.apply)),
     ]:
