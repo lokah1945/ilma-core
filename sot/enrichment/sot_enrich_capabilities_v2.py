@@ -276,7 +276,7 @@ def infer_free_tier_score(model_doc: Dict[str, Any]) -> float:
     score = 0.0
     if model_doc.get("is_free") is True:       score += 0.4
     if model_doc.get("is_free_final") is True: score += 0.5   # this is the SOT final verdict
-    if model_doc.get("billing_class") == "free": score += 0.3
+    if model_doc.get("is_free_final") is True: score += 0.3  # was billing_class=="free" (dropped)
     # Pricing signals (input + output both 0 ⇒ free)
     try:
         inp = float(model_doc.get("price_per_m_input") or 0)
@@ -399,7 +399,7 @@ def analyze_model(model_doc: Dict[str, Any]) -> Dict[str, Any]:
         "quality_tier":       infer_quality_tier(mid),
         "free_tier_score":    infer_free_tier_score(model_doc),
         "is_free_final":      bool(model_doc.get("is_free_final")),
-        "billing_class":      model_doc.get("billing_class"),
+        "billing_class":      ("free" if model_doc.get("is_free_final") else "paid"),  # derived (field dropped)
         "score":              model_doc.get("score"),
         "score_tier":         model_doc.get("score_tier"),
         "status":             model_doc.get("status"),

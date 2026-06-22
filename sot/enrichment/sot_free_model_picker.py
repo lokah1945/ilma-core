@@ -86,13 +86,14 @@ def _query_free(db, capability: str, provider: Optional[str] = None,
     # Map capability → endpoint_type if not provided
     ep = endpoint_type or _CAP_TO_ENDPOINT.get(capability, "chat-completions")
 
+    # billing_class consolidated into is_free_final (2026-06-22): verified bijection
+    # billing_class=="free" ⟺ is_free_final==True, so is_free_final alone is the gate.
     if strict:
-        q_or = {"is_free_final": True, "billing_class": "free"}
+        q_or = {"is_free_final": True}
     else:
         # Allow soft fallback (raw is_free=True, SOT not yet reclassified)
         q_or = {"$or": [
             {"is_free_final": True},
-            {"billing_class": "free"},
             {"is_free": True, "is_free_final": False},
         ]}
     base_q: Dict[str, Any] = {
@@ -183,7 +184,8 @@ class SOTFreePicker:
                 "primary_cap": d.get("primary_cap"),
                 "quality_tier": d.get("quality_tier"),
                 "is_free_final": d.get("is_free_final"),
-                "billing_class": d.get("billing_class"),
+                # derived from is_free_final (billing_class field dropped 2026-06-22)
+                "billing_class": ("free" if d.get("is_free_final") else "paid"),
                 "free_tier_score": d.get("free_tier_score"),
                 "score": d.get("score"),
                 "score_tier": d.get("score_tier"),

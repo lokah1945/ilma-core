@@ -119,9 +119,11 @@ def run(provider: str = None, dry_run: bool = False) -> dict:
         reasons[reason] = reasons.get(reason, 0) + 1
         if dry_run:
             continue
+        # billing_class field DROPPED 2026-06-22 — it was a 1:1 string mirror of
+        # is_free_final ("free"⟺True, verified 0 mismatches). Runtime derives it.
         ops.append(pymongo.UpdateOne(
             {"_id": m["_id"]},
-            {"$set": {"is_free_final": cls == "free", "billing_class": cls,
+            {"$set": {"is_free_final": cls == "free",
                       "free_reason": reason, "billing_classified_at": now}}))
     if not dry_run and ops:
         for i in range(0, len(ops), 1000):
