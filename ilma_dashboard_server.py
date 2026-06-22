@@ -189,11 +189,20 @@ def main():
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--host", default="0.0.0.0")
     a = ap.parse_args()
-    get_map(True)  # build fresh on boot
+    # Serve immediately from the cached map (data/ilma_system_map.json). The
+    # initial fresh build runs in the background so a slow Mongo connect can't
+    # delay the bind. Refreshes every 10 min thereafter.
+    if not MAP_JSON.exists():
+        try:
+            get_map(True)
+        except Exception:
+            pass
 
-    # Background refresher: keep the self-map current (every 10 min) so the
-    # auto-refreshing GUI and ILMA's own reads always see live state.
     def _refresher():
+        try:
+            get_map(True)   # first fresh build (async, non-blocking to bind)
+        except Exception:
+            pass
         while True:
             time.sleep(600)
             try:
