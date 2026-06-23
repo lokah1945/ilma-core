@@ -14,7 +14,10 @@ class ILMAMaster:
     def process_request(self,prompt:str,task_type:Optional[str]=None,override_model:Optional[str]=None,context:Optional[Dict[str,Any]]=None):
         try: return asyncio.run(self.process_request_async(prompt,task_type,override_model,context))
         except RuntimeError:
-            from ilma_model_router import route_task_simple,execute_call
-            model_id,provider,reason=route_task_simple(prompt,task_type,override_model); response=execute_call(model_id,provider,prompt); return {'status':'success' if 'Error:' not in str(response) else 'error','model':model_id,'provider':provider,'reason':reason,'response':response,'policy_applied':self.policy,'tier':self.tier}
+            # sync fallback — UNIFIED on the self-healing SubAgentRouter (no ProviderKernel
+            # bypass; 2026-06-23): re-routes past failed models + correct circuit breaker.
+            from ilma_subagent_router import get_router
+            r=get_router().route_and_execute(message=prompt,task_type_or_desc=task_type or prompt[:80],allow_paid=False)
+            return {'status':'success' if r.get('success') else 'error','model':r.get('model',''),'provider':(r.get('decision') or {}).get('provider',''),'reason':'subagent_router_self_heal','response':r.get('content') or r.get('error',''),'policy_applied':self.policy,'tier':self.tier}
 class ILMAMasterOrchestrator(ILMAMaster): pass
 if __name__=='__main__': print(json.dumps(ILMAMaster().process_request(' '.join(sys.argv[1:])),indent=2,ensure_ascii=False) if len(sys.argv)>1 else "Usage: python3 ilma_master_orchestrator.py 'Your prompt'")

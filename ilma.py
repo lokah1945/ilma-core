@@ -498,22 +498,26 @@ def route_and_execute(message: str, prefer_free: bool = True) -> Dict[str, Any]:
     response = None
     execution_success = False
 
+    # Execute through the self-healing SubAgentRouter (avoid_models re-route + circuit
+    # breaker) — UNIFIED with the gateway/orchestrator path, no ProviderKernel bypass
+    # (DUP removed 2026-06-23: this CLI path used execute_call directly and never
+    # self-healed past a failed model).
     try:
-        from ilma_model_router import execute_call
-        direct_result = execute_call(
-            model_id=primary_model,
-            provider=provider,
+        from ilma_subagent_router import get_router
+        _res = get_router().route_and_execute(
             message=message,
+            task_type_or_desc=task_type or message[:80],
+            allow_paid=not prefer_free,
         )
-        if isinstance(direct_result, str) and direct_result and not direct_result.startswith("Error:"):
-            response = direct_result
+        if _res.get("success") and _res.get("content"):
+            response = _res["content"]
             execution_success = True
-            print(f"[PIPELINE] Direct execution successful ({len(response)} chars)")
+            primary_model = _res.get("model", primary_model)
+            print(f"[PIPELINE] execution successful ({len(response)} chars) via {primary_model}")
         else:
-            print(f"[PIPELINE] Direct execution returned: {str(direct_result)[:120]}")
-
+            print(f"[PIPELINE] router returned no content: {str(_res.get('error',''))[:120]}")
     except Exception as e:
-        print(f"[PIPELINE] Direct execution failed: {e}")
+        print(f"[PIPELINE] execution failed: {e}")
         import traceback
         traceback.print_exc()
     
