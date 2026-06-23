@@ -820,9 +820,22 @@ def _phase_implement(task: str, state: ECCIntegrationState) -> dict:
         "task_preview": task[:150],
     }
     
+    # REAL execution (2026-06-23): produce the actual implementation via the self-healing
+    # FREE router instead of only describing the delegation (was a facade).
+    impl_output = ""
+    try:
+        from ilma_subagent_router import get_router
+        _r = get_router().route_and_execute(message=task, task_type_or_desc=(task_type or "general").lower(), allow_paid=False)
+        if _r.get("success"):
+            impl_output = _r.get("content", "")
+    except Exception as _e:
+        logger.warning(f"[ECC] implement exec failed: {_e}")
     return {
         **exec_context,
-        "implementation_summary": f"Delegated {delegate_type} to appropriate agent for {len(targets)} target(s)",
+        "output": impl_output,
+        "model": (_r.get("model") if "_r" in dir() else None),
+        "implementation_summary": (f"Implemented {delegate_type} ({len(impl_output)} chars) for {len(targets)} target(s)"
+                                   if impl_output else f"Prepared {delegate_type} delegation for {len(targets)} target(s)"),
     }
 
 

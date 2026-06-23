@@ -20,7 +20,7 @@ LAYER MAPPING (matches ilma_runtime_wiring.py layers):
   LAYER_5_REASONING     → (none — already in wiring)
   LAYER_6_KNOWLEDGE     → ilma_skill_indexer, ilma_skill_ingestion
   LAYER_7_AUTONOMY      → ilma_optimizer_daemon
-  LAYER_8_SPECIALIZED   → ilma_health_monitor, ilma_health_check,
+  LAYER_8_SPECIALIZED   → ilma_health_check,
                           ilma_production_monitor, ilma_telemetry_analyzer,
                           ilma_safe_rollback, ilma_notification_dispatcher
 
@@ -95,7 +95,6 @@ _ORPHAN_SPECS: List[Dict[str, str]] = [
     {"module": "ilma_optimizer_daemon",         "layer": "LAYER_7",  "purpose": "Comprehensive optimizer daemon (8-step cycle)",   "callable": "main",         "cli": "optimize-all"},
 
     # LAYER_8 — specialized/admin tools
-    {"module": "ilma_health_monitor",           "layer": "LAYER_8",  "purpose": "Runtime health tracker + anomaly detection",      "callable": "HealthMonitor",   "cli": "health-monitor"},
     {"module": "ilma_health_check",             "layer": "LAYER_8",  "purpose": "One-shot system health check",                   "callable": "main",         "cli": "health-check"},
     {"module": "ilma_production_monitor",       "layer": "LAYER_8",  "purpose": "Production-readiness monitor",                  "callable": "main",         "cli": "prod-monitor"},
     {"module": "ilma_telemetry_analyzer",       "layer": "LAYER_8",  "purpose": "Telemetry analysis and trend reports",           "callable": "main",         "cli": "telemetry-analyze"},

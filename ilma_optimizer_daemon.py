@@ -182,7 +182,7 @@ def scan_capabilities() -> Dict[str, Any]:
             "verification": ["ilma_judge_system", "ilma_actor_critic_core", "ilma_grounding_loop"],
             "reasoning": ["ilma_cognition_kernel", "ilma_reasoning_runtime"],
             "knowledge": ["ilma_knowledge_graph", "ilma_knowledge_ingestion", "ilma_learning_engine"],
-            "health": ["ilma_health_manager", "ilma_health_monitor"],
+            "health": ["ilma_health_manager"],
         }
         
         for cap, files in cap_patterns.items():

@@ -233,7 +233,11 @@ class ContinuityTracker:
 
     def _get_total_chapters(self) -> int:
         """Get total chapters (placeholder - would be injected)."""
-        return 25  # Default
+        # honest count: distinct chapters seen via register_chapterAppearance (was hardcoded 25)
+        seen = set()
+        for app in getattr(self, "_chapter_appearances", {}).values():
+            seen.update(app)
+        return max(len(seen), 1)
 
     def check_consistency(self) -> List[Dict[str, Any]]:
         """Check for continuity issues."""
