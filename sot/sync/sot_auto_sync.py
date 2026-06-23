@@ -45,7 +45,7 @@ import provider_sync  # noqa: E402
 
 logger = logging.getLogger("ilma.sot.autosync")
 
-MONGO = dict(host="172.16.103.253", port=27017, username="quantumtraffic",
+MONGO = dict(host="127.0.0.1", port=27017, username="ilma_sync",
              password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")), authSource="admin", directConnection=True,
              serverSelectionTimeoutMS=10000)
 DB_NAME = "credentials"

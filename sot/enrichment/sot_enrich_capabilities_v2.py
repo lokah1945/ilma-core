@@ -48,8 +48,8 @@ import sot_ops  # evidence_id, audit_coll  # noqa: E402
 logger = logging.getLogger("ilma.sot.enrich_v2")
 
 MONGO = dict(
-    host="172.16.103.253", port=27017,
-    username="quantumtraffic",
+    host="127.0.0.1", port=27017,
+    username="ilma_sync",
     password=(__import__("os").environ.get("ILMA_MONGO_PASS")
               or next((_l.split("=",1)[1].strip()
                        for _l in open("/root/.hermes/.env")

@@ -39,14 +39,11 @@ logger = logging.getLogger("ilma.sot.free_picker")
 
 DB_NAME = "credentials"
 MONGO = dict(
-    host="172.16.103.253", port=27017,
-    username="quantumtraffic",
-    password=(__import__("os").environ.get("ILMA_MONGO_PASS")
-              or next((_l.split("=",1)[1].strip()
-                       for _l in open("/root/.hermes/.env")
-                       if _l.startswith("ILMA_MONGO_PASS=")), "")),
+    host="127.0.0.1", port=27017,
+    username="ilma_sync",
+    password=(__import__("os").environ.get("ILMA_MONGO_LOCAL_PASS", "ilma_sync_2026_local_rs1")),
     authSource="admin", directConnection=True,
-    serverSelectionTimeoutMS=10000,
+    serverSelectionTimeoutMS=5000,
 )
 
 # endpoint_type → (path, input_modality, output_modality) — single source so the

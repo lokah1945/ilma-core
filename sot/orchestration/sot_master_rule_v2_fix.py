@@ -25,7 +25,7 @@ NOW = datetime.now(timezone.utc).isoformat()
 EVIDENCE = "ILMA-EVID-20260614-MASTERRULE-V2-FIX-001"
 
 db = get_db()
-print(f"DB: credentials @ 172.16.103.253:27017")
+print(f"DB: credentials @ 127.0.0.1:27017")
 print(f"Evidence: {EVIDENCE}\n")
 
 # ── 1. Fix _meta.schema_info ────────────────────────────────────────────────

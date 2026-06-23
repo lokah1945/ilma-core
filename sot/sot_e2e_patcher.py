@@ -20,7 +20,7 @@ import argparse
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Set
 
-MONGO_HOST = "172.16.103.253"
+MONGO_HOST = "127.0.0.1"
 MONGO_PORT = 27017
 MONGO_USER = "quantumtraffic"
 MONGO_PASS = (__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), ""))

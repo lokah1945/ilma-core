@@ -73,9 +73,9 @@ def main():
     if args[0] == "--mongo":
         import pymongo
         client = pymongo.MongoClient(
-            host="172.16.103.253",
+            host="127.0.0.1",
             port=27017,
-            username="quantumtraffic",
+            username="ilma_sync",
             password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
             serverSelectionTimeoutMS=5000
         )
@@ -91,9 +91,9 @@ def main():
     elif args[0] == "--sample":
         import pymongo
         client = pymongo.MongoClient(
-            host="172.16.103.253",
+            host="127.0.0.1",
             port=27017,
-            username="quantumtraffic",
+            username="ilma_sync",
             password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
             serverSelectionTimeoutMS=5000
         )
@@ -112,9 +112,9 @@ def main():
     elif args[0] == "--all":
         import pymongo
         client = pymongo.MongoClient(
-            host="172.16.103.253",
+            host="127.0.0.1",
             port=27017,
-            username="quantumtraffic",
+            username="ilma_sync",
             password=(__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
             serverSelectionTimeoutMS=5000
         )
