@@ -41,10 +41,10 @@ class MongoConnectionManager:
         return cls._instance
 
     def get_client(self,
-                   host: str = "172.16.103.253",
+                   host: str = "127.0.0.1",
                    port: int = 27017,
-                   username: str = "quantumtraffic",
-                   password: str = (__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), "")),
+                   username: str = "ilma_sync",
+                   password: str = (__import__("os").environ.get("ILMA_MONGO_LOCAL_PASS") or "ilma_sync_2026_local_rs1"),
                    authSource: str = "admin",
                    serverSelectionTimeoutMS: int = 5000,
                    socketTimeoutMS: int = 30000,
