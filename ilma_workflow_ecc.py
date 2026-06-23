@@ -302,7 +302,7 @@ def analyze_4w1h(task: str) -> dict:
     
     # Who - infer scope
     who = "owner"
-    if any(w in task_lower for w in ["tim|team|kami|we", "group"]):
+    if any(w in task_lower for w in ["tim", "team", "kami", "we", "group"]):
         who = "team"
     
     # Where - infer location/context
@@ -1803,8 +1803,9 @@ def run_workflow(task: str) -> dict:
     else:
         # Execute based on workflow type (standard phases)
         phases = get_workflow_phases(workflow)
+        state.phase_outputs = []
         for phase in phases:
-            execute_phase(phase, task, state)
+            state.phase_outputs.append(execute_phase(phase, task, state))
     
     # STEP 7: VERIFICATION
     print(f"\n{C_Y}[7/8] ✅ MEMVERIFIKASI - Verifikasi hasil...{C_RESET}")
@@ -1876,6 +1877,7 @@ def run_workflow(task: str) -> dict:
         "analysis": analysis,
         "workflow": workflow,
         "phases_completed": state.phases_completed,
+        "phase_outputs": getattr(state, "phase_outputs", []),
         "verification": verification,
         "learning": {
             "integrated": "LAYER_9_SELF_IMPROVE",

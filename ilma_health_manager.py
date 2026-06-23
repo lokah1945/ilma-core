@@ -645,24 +645,24 @@ class HealthManager:
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 elapsed = (time.time() - started) * 1000
-                if 200 <= resp.status_code < 300:
+                if 200 <= resp.status < 300:
                     # SUCCESS — mark all sibling models AVAILABLE
                     self._set_provider_status(provider, ModelStatus.AVAILABLE,
                                               reset_failures=True)
                     return {"category": "healthy", "provider": provider,
                             "latency_ms": round(elapsed, 1)}
-                if resp.status_code == 429:
+                if resp.status == 429:
                     self._set_provider_status(provider, ModelStatus.RATE_LIMITED,
                                               cooldown_seconds=60)
                     return {"category": "rate_limited", "provider": provider,
                             "status_code": 429}
-                if resp.status_code in (401, 403):
+                if resp.status in (401, 403):
                     self._set_provider_status(provider, ModelStatus.ERROR,
                                               cooldown_seconds=300)
                     return {"category": "auth_error", "provider": provider,
-                            "status_code": resp.status_code}
+                            "status_code": resp.status}
                 return {"category": "unavailable", "provider": provider,
-                        "status_code": resp.status_code}
+                        "status_code": resp.status}
         except urllib.error.HTTPError as e:
             elapsed = (time.time() - started) * 1000
             if e.code == 429:
