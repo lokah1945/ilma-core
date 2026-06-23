@@ -204,7 +204,7 @@ def write_intelligence(dry_run: bool = False) -> Dict[str, Any]:
                 "provenance": f"master_json:{master.get('_enricher_version','unknown')}",
                 "pricing": _build_pricing(m),
                 "context_window": m.get("context_window"),
-                "is_free": bool(m.get("is_free") or m.get("free_tier") or m.get("billing") == "free"),
+                "is_free": bool(m.get("is_free")),  # single canonical field (free_tier/billing dropped)
                 "trust_score": _safe_float(m.get("trust_score"), 0.0, 1.0),
                 "benchmarks": {
                     "score": m.get("score"),

@@ -272,7 +272,7 @@ _CAP_MODALITY = {
 # ── Pricing hint → free_tier_score (0..1) ─────────────────────────────────────
 def infer_free_tier_score(model_doc: Dict[str, Any]) -> float:
     """Heuristik FREE likelihood; 1.0 = strongest FREE signal.
-    Inputs: is_free, billing_class, is_free, price fields, raw suffix."""
+    Inputs: is_free (single canonical verdict), price fields, raw suffix."""
     score = 0.0
     if model_doc.get("is_free") is True: score += 0.6   # single canonical free verdict
     # Pricing signals (input + output both 0 ⇒ free)

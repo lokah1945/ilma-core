@@ -606,7 +606,7 @@ def patch_model_no_intel(db) -> int:
             "score_source": "runtime_audit_fix",
             "capabilities": m.get("capabilities", []),
             "specialization": m.get("specialization", "general"),
-            "is_free": bool(m.get("is_free") or m.get("free_tier")),
+            "is_free": bool(m.get("is_free")),
             "context_window": m.get("context_window"),
             "enriched_at": now,
             "enrichment_version": "runtime_audit_1.0",

@@ -94,7 +94,7 @@ def _allowed(provider: str, model: str, registry: dict) -> bool:
         return False
     if mi.get("unavailable"):
         return False
-    if not (mi.get("is_free") or mi.get("free_tier")):
+    if not (mi.get("is_free")):
         return False
     return True
 

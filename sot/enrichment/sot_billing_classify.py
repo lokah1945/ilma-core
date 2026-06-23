@@ -17,8 +17,8 @@ Trap-safe policy (when not explicitly free → PAID):
      cerebras) or confirmed per-model $0 pricing; the provider-level is_free/free_tier
      flag is NOT trusted (it falsely freed all of paid Together AI). Else PAID.
 
-Writes to each models doc: is_free_final(bool), billing_class('free'|'paid'),
-free_reason(str), billing_classified_at.
+Writes to each models doc: is_free(bool, SINGLE canonical verdict),
+free_reason(str), billing_classified_at. (free_tier/is_free_final/billing_class consolidated.)
 
 CLI: python3 sot_billing_classify.py --full | --provider X | --dry-run | --stats
 """
@@ -65,7 +65,7 @@ def _price(v) -> float:
 
 
 def classify(model: dict, free_bypass: set) -> tuple:
-    """Return (billing_class, reason). Trap-safe policy.
+    """Return (verdict, reason) where verdict is 'free'|'paid' (stored as bool is_free). Trap-safe.
 
     `free_bypass` = providers whose T1 (llm_providers) has free_bypass=True — every model
     under them is forced FREE regardless of per-model pricing (e.g. minimax is upstream-paid

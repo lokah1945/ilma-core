@@ -166,8 +166,8 @@ class SOTFreePicker:
     def list_models(self, capability: str, k: int = 5, strict: bool = False,
                     **filters) -> List[Dict[str, Any]]:
         """Return list of free-capable models.
-        strict=True → only is_free_final=True & billing_class='free'. Else empty on no hit.
-        strict=False (default) → soft fallback to raw is_free=True for ramp-up phase."""
+        Free gate = single canonical is_free=True (free_tier/is_free_final consolidated).
+        `strict` retained for API compat; is_free is already the trap-safe verdict."""
         key = self._cache_key(capability=capability, k=k, strict=strict, **filters)
         cached = self._get_cached(key)
         if cached is not None:

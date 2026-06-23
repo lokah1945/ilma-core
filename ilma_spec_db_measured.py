@@ -57,7 +57,7 @@ def main():
         if prov in ("blackbox", "perplexity"):
             continue
         for mid, mi in pv.get("models", {}).items():
-            if not (mi.get("is_free") or mi.get("free_tier")):
+            if not (mi.get("is_free")):
                 continue
             if mi.get("deprecated") or mi.get("unavailable"):
                 continue

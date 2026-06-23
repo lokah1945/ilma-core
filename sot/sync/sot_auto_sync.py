@@ -248,7 +248,7 @@ def _enrich_provider(provider: str, dry_run: bool = False) -> Dict[str, Any]:
         b = sot_billing_classify.run(provider=provider, dry_run=dry_run)
         return {"provider": provider, "enriched": r.get("enriched"),
                 "tiers": r.get("tier_distribution"),
-                "capabilities_v2": (cap or {}).get("written") if cap else "n/a",
+                "capabilities_enriched": (cap or {}).get("written") if cap else "n/a",
                 "billing": {"free": b.get("free"), "paid": b.get("paid")}}
     except Exception as e:
         logger.warning(f"[autosync] enrich {provider} failed: {e}")

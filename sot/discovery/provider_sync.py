@@ -27,6 +27,7 @@ def get_mongo_client():
     return pymongo.MongoClient(
         host=MONGO_HOST, port=MONGO_PORT,
         username=MONGO_USER, password=MONGO_PASS,
+        authSource="admin", directConnection=True,
         serverSelectionTimeoutMS=10000
     )
 
@@ -523,7 +524,7 @@ def sync_provider(pname: str, dry_run: bool = False) -> Dict[str, Any]:
                     "provider": pname, "model_id": mid,
                     "event_type": "model_updated", "actor": "provider_sync",
                     "source_collection": "models",
-                    "delta": {"fields": [k for k in doc.keys() if existing.get(k) != doc[k]]}
+                    "delta": {"fields": [k for k in doc.keys() if existing.get(k) != doc[k] and k not in ("refreshed_at","_sot_last_sync","discovered_at","last_verified")]}
                 })
 
     # Write audit batch (only non-empty)

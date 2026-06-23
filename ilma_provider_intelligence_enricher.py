@@ -125,9 +125,8 @@ def detect_is_free(model_id: str, model_data: Dict, free_allowlist: Set[str]) ->
     if provider in HARDCODED_FREE_PROVIDER_MODELS:
         return True
 
-    # Reject if billing indicates paid
-    billing = str(model_data.get("billing") or "").lower()
-    if billing in ("paid", "subscription", "metered", "premium", "enterprise"):
+    # Reject if the single canonical billing verdict says not-free
+    if model_data.get("is_free") is False:
         return False
 
     # Reject if pricing is explicitly set and non-zero
@@ -161,7 +160,7 @@ def detect_is_free(model_id: str, model_data: Dict, free_allowlist: Set[str]) ->
         return True
 
     # Accept if explicit free flag AND no paid indicators
-    if model_data.get("is_free") is True or model_data.get("free_tier") is True:
+    if model_data.get("is_free") is True:
         return True
 
     # Accept if :free suffix in model name
