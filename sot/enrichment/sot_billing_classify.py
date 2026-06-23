@@ -9,11 +9,11 @@ delegated work (sub-agents, sub-processes, parallel tasks, kanban, etc.) can pic
 best FREE model dynamically and cheaply.
 
 Trap-safe policy (when not explicitly free → PAID):
-  1. force_free hardcode (providers.force_free=True)  → FREE  (bypasses all)
+  1. free_bypass (T1 llm_providers.free_bypass=True)  → FREE  (bypasses all)
   2. paid-keyword in id/name (pro/premium/turbo/...)    → PAID
   3. MIXED providers (openrouter/blackbox/opencode) are trap-prone (price can read $0
      while billing) → FREE only via explicit ':free' or '-free' suffix, else PAID
-  4. direct providers → free ONLY via force_free (verified all-free, e.g. nvidia/groq/
+  4. direct providers → free ONLY via free_bypass (verified all-free, e.g. nvidia/groq/
      cerebras) or confirmed per-model $0 pricing; the provider-level is_free/free_tier
      flag is NOT trusted (it falsely freed all of paid Together AI). Else PAID.
 
@@ -107,12 +107,9 @@ def classify(model: dict, free_bypass: set) -> tuple:
 
 
 def _free_bypass_providers(db) -> set:
-    """Providers force-FREE at the provider level. SoT = T1 llm_providers.free_bypass=True
-    (Bos control). Merged with legacy T2 providers.force_free=True for transition so no
-    existing free provider regresses. T1 free_bypass is the canonical control going forward."""
-    t1 = {d["provider"] for d in db.llm_providers.find({"free_bypass": True}, {"provider": 1})}
-    t2 = {d["provider"] for d in db.providers.find({"force_free": True}, {"provider": 1})}
-    return t1 | t2
+    """Providers force-FREE at the provider level. SINGLE SoT = T1 llm_providers.free_bypass=True
+    (Bos/admin control). The legacy T2 providers.force_free was consolidated into this 2026-06-23."""
+    return {d["provider"] for d in db.llm_providers.find({"free_bypass": True}, {"provider": 1})}
 
 
 def run(provider: str = None, dry_run: bool = False) -> dict:

@@ -636,7 +636,7 @@ class SubAgentRouter:
                     out_path: Optional[str] = None, allow_paid: bool = False,
                     edit: bool = False, **kw) -> Dict[str, Any]:
         """FREE-first image generation. Order:
-        1. wrapper-nvidia genai (local, force_free, key-pooled) — FLUX.1-schnell
+        1. wrapper-nvidia genai (local, free_bypass, key-pooled) — FLUX.1-schnell
         2. nvidia genai direct (ai.api.nvidia.com) with NVIDIA_API_KEY
         3. together /v1/images/generations (only if allow_paid — Together is paid in SOT)
         4. xAI (only if allow_paid)

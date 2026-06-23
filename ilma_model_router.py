@@ -475,8 +475,9 @@ class ILMAUnifiedRouter:
         """
         if "is_free" in model_data:
             return model_data.get("is_free") is True
-        # Legacy fallback (pre-classification docs): conservative default → PAID.
-        return model_data.get("force_free") is True
+        # Pre-classification docs: trap-safe default → PAID (is_free is the only gate;
+        # provider-level free override lives in T1 free_bypass, applied at classify time).
+        return False
 
     def is_model_runtime_allowed(self, provider: str, model_id: str, allow_paid: bool = False) -> bool:
         """Validate a concrete provider/model before execution or manual override."""
@@ -729,7 +730,7 @@ class ILMAUnifiedRouter:
                 "free_bypass":        prov_meta.get("free_bypass", False),
                 # Hardcode free override (providers.force_free) — admin marks a provider
                 # as free regardless of real billing (e.g. minimax paid plan, nvidia/ollama).
-                "force_free":         prov_meta.get("force_free", False),
+                "free_bypass":        prov_meta.get("free_bypass", False),
                 "base_url":           llm_meta.get("base_url") or prov_meta.get("base_url", ""),
                 "api_key":            llm_meta.get("api_key", ""),  # present in master for routing context
                 "provider_status":    prov_meta.get("status", "active"),
