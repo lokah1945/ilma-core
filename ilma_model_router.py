@@ -536,7 +536,7 @@ class ILMAUnifiedRouter:
         # Circuit breaker
         self._failure_count: Dict[str, int] = {}
         self._cooldown_until: Dict[str, float] = {}
-        self.CIRCUIT_THRESHOLD = 3
+        self.CIRCUIT_THRESHOLD = CircuitBreakerPolicy.DISABLE_THRESHOLD  # 5 — align _is_healthy w/ policy
         self.CIRCUIT_COOLDOWN = 300  # seconds
 
         # ── PHASE 1: LATENCY OPTIMIZATION — CANDIDATE POOL CACHE ─────────────

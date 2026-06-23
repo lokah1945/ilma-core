@@ -69,7 +69,8 @@ def _ground_sections(drafted: Dict[str, str], claims: List[Dict[str, Any]],
         from ilma_grounding_loop import AntiHallucinationGroundingLoop, ClaimType, GroundingStatus
         loop_cls = AntiHallucinationGroundingLoop
     except Exception as e:
-        return {"available": False, "error": str(e), "passed": True, "overall_score": 1.0,
+        return {"available": False, "error": str(e), "passed": True, "overall_score": None,
+                "note": "grounding_unavailable_not_verified",
                 "sections": {}, "worst_section": None, "ungrounded": []}
 
     # evidence corpus = research claim texts + source titles (the verified knowledge)

@@ -264,8 +264,7 @@ class ILMAOrchestrator:
             try:
                 cap_res = self.subagent.execute_capability(
                     _cap, prompt, allow_paid=False,
-                    audio_path=getattr(self, "_pending_audio_path", None) or
-                               (force_model if _cap == "stt" else None))
+                    audio_path=getattr(self, "_pending_audio_path", None))
                 elapsed_ms = (time.time() - start_ts) * 1000
                 self.execution_log.append({
                     "ts": start_ts, "prompt_preview": prompt[:80],
