@@ -37,6 +37,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
+import logging as _lg; logger = _lg.getLogger("ilma.ecc")
 
 # ─── PATHS ─────────────────────────────────────────────────────────────────
 ILMA_ROOT = Path("/root/.hermes/profiles/ilma")

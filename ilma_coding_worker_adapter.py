@@ -113,7 +113,6 @@ class CodingTaskResult:
     latency_ms: float = 0.0
     error_type: str = ""
     error_message: str = ""
-    confidence_score: float = 0.0
     production_ready: bool = False
     limitations: List[str] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())

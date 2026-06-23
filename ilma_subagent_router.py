@@ -78,6 +78,8 @@ def _provider_key_dp(provider: str):
                 return k
     if provider == "minimax":
         return env.get("MINIMAX_API_KEY")
+    if provider in ("groq", "cerebras"):
+        return env.get(f"{provider.upper()}_API_KEY") or _media_provider_key_dp(provider)
     if provider == "ollama":
         ks = creds.get("ollama", {}).get("keys")
         return (ks[0] if isinstance(ks, list) else ks) if ks else None
@@ -87,6 +89,18 @@ def _provider_key_dp(provider: str):
         o = creds.get("openrouter", {})
         return o.get("call_key") or (o.get("keys") or [None])[0]
     return None
+
+def _canonical_error_type(err: str) -> str:
+    """Map a raw error string to a circuit-breaker token (BUG-1 fix 2026-06-23) so 429/401
+    /empty get correct cooldowns instead of the default 10s soft."""
+    e = (err or "").lower()
+    if "429" in e or "rate" in e: return "rate_limit"
+    if "401" in e or "authentic" in e: return "authentication_error"
+    if "403" in e or "permission" in e: return "permission_error"
+    if "empty" in e: return "empty_content"
+    if "timeout" in e or "timed out" in e: return "timeout"
+    return "unknown_error"
+
 
 # (base_url, needs_key)  — endpoints proven callable 2026-06-01
 # wrapper-nvidia added 2026-06-22: the local force-free NVIDIA proxy (key-pooled)
@@ -99,6 +113,8 @@ _DIRECT_ENDPOINTS_DP = {
     "minimax": "https://api.minimax.io/v1/text/chatcompletion_v2",
     "ollama":  "https://ollama.com/v1/chat/completions",
     "openrouter": "https://openrouter.ai/api/v1/chat/completions",
+    "groq":    "https://api.groq.com/openai/v1/chat/completions",
+    "cerebras": "https://api.cerebras.ai/v1/chat/completions",
 }
 
 
@@ -493,7 +509,7 @@ class SubAgentRouter:
         if result.get("success") and result.get("content"):
             self.router.mark_success(model)
         else:
-            self.router.mark_failure(model, result.get("error", ""))
+            self.router.mark_failure(model, _canonical_error_type(result.get("error", "")))
 
         result["latency_ms"] = elapsed_ms
         return result

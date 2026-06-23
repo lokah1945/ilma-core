@@ -435,6 +435,19 @@ TASK_ALIASES: Dict[str, str] = {
 
 # Tasks that REQUIRE a specialist: a model lacking the capability is hard-excluded
 # from the candidate pool (with graceful fallback if no specialist exists).
+# Non-chat endpoints/caps — excluded from chat/text routing (BUG-2 fix). These serve
+# /v1/{rerank,embeddings,images,video,audio,moderations}, not /v1/chat/completions.
+_NON_CHAT_ENDPOINTS = {"rerank", "reranking", "embeddings", "embedding", "moderations",
+                       "image-generations", "image-edits", "video-generations",
+                       "audio-speech", "audio-transcriptions"}
+_NON_CHAT_CAPS = {"rerank", "embedding", "image", "image_edit", "video", "tts", "stt",
+                  "music", "safety_filter"}
+# model-id substrings that mark a non-chat specialist (MASTER may lack endpoint_type)
+_NON_CHAT_ID_PATTERNS = ("rerank", "reranker", "embed", "embedqa", "nv-embed", "bge-",
+                         "-tts", "tts-", "/tts", "whisper", "stable-diffusion", "sdxl",
+                         "flux", "dall-e", "-asr", "parakeet", "magpie", "moderation",
+                         "-guard", "nemoretriever", "arctic-embed")
+
 HARD_CAPABILITY_TASKS: Dict[str, str] = {
     "vision": "vision", "audio": "audio", "video": "video",
 }
@@ -1514,6 +1527,17 @@ class ILMAUnifiedRouter:
                 # Only models with is_active=True may be selected.
                 # is_active=None or is_active=False → skip.
                 if mdata.get("is_active") is not True:
+                    continue
+
+                # ── CHAT-ONLY GUARD (BUG-2 fix 2026-06-23) ─────────────────────────
+                # get_best_model routes TEXT/chat tasks → must never pick a non-chat
+                # specialist (rerank/embedding/image/video/audio/moderation) which serves
+                # a different endpoint and would error/garbage on /chat/completions.
+                # endpoint_type/primary_cap may be absent in the MASTER record, so also
+                # match the model-id pattern (robust regardless of enrichment coverage).
+                if (mdata.get("endpoint_type") in _NON_CHAT_ENDPOINTS
+                        or mdata.get("primary_cap") in _NON_CHAT_CAPS
+                        or any(p in mid.lower() for p in _NON_CHAT_ID_PATTERNS)):
                     continue
 
                 # Strict free filter. Paid models are reachable only when allow_paid=True is
