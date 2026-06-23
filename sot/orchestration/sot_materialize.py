@@ -126,7 +126,7 @@ def materialize_master(dry_run: bool = False) -> Dict[str, Any]:
             "models": {},
             "provider_info": {
                 "name": pname,
-                "free_tier": bool(cat.get("free_tier", False)),
+                "free_bypass": bool(cat.get("free_bypass", False)),
             },
         }
         if prov_info.get("base_url"):
@@ -356,7 +356,7 @@ def materialize_api_key(dry_run: bool = False,
                 "keys": [],
                 "url": cat.get("base_url", existing.get("url")),
                 "url_endpoint": existing.get("url_endpoint", cat.get("base_url")),
-                "free_tier": bool(cat.get("free_tier", False)),
+                "free_bypass": bool(cat.get("free_bypass", False)),
                 "_sot_source": "credentials.llm_providers+providers",
             }
             out["llm"][provider] = block

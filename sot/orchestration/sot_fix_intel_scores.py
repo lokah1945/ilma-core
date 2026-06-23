@@ -23,7 +23,7 @@ def derive_composite_score(doc: dict) -> float:
         score += 10
 
     # Free penalty (no proven cost-to-quality)
-    if doc.get("is_free", False) or doc.get("free_tier", False):
+    if doc.get("is_free", False):
         score -= 5
 
     # Disabled penalty

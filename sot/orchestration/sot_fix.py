@@ -175,14 +175,13 @@ def fix_intel_3_is_free_sync(dry_run: bool = False) -> Dict[str, Any]:
     Models is the source of truth. Intel inherits.
     """
     mismatches = []
-    for d in models_coll().find({}, {"provider": 1, "model_id": 1, "is_free": 1, "free_tier": 1}):
+    for d in models_coll().find({}, {"provider": 1, "model_id": 1, "is_free": 1}):
         intel = intelligence_coll().find_one(
             {"provider": d["provider"], "model_id": d["model_id"]},
-            {"is_free": 1, "free_tier": 1}
+            {"is_free": 1}
         )
-        if intel and (intel.get("is_free") != d.get("is_free") or
-                      intel.get("free_tier") != d.get("free_tier")):
-            mismatches.append((d["provider"], d["model_id"], d.get("is_free"), d.get("free_tier")))
+        if intel and intel.get("is_free") != d.get("is_free"):
+            mismatches.append((d["provider"], d["model_id"], d.get("is_free")))
 
     if not dry_run and mismatches:
         for provider, model_id, is_free, free_tier in mismatches:
@@ -268,7 +267,7 @@ def fix_cap_drift(dry_run: bool = False) -> Dict[str, Any]:
                     {"$eq": ["$model_id", "$$m"]},
                     {"$gt": [{"$size": {"$ifNull": ["$capabilities", []]}}, 0]}
                 ]}}},
-                {"$project": {"capabilities": 1, "specialization": 1, "is_free": 1, "free_tier": 1, "_id": 0}}
+                {"$project": {"capabilities": 1, "specialization": 1, "is_free": 1, "_id": 0}}
             ],
             "as": "intel"
         }},
@@ -338,8 +337,7 @@ def fix_master_orphan_sync(dry_run: bool = False) -> Dict[str, Any]:
                 "model_name": mid,
                 "is_active": is_active,
                 "disabled": disabled,
-                "is_free": bool(m.get("is_free", m.get("free_tier", False))),
-                "free_tier": bool(m.get("free_tier", False)),
+                "is_free": bool(m.get("is_free", False)),  # single canonical field
                 "status": m.get("status", "disabled" if disabled else "active") if not disabled else "disabled",
                 "disabled_reason": m.get("disabled_reason"),
                 "capabilities": m.get("capabilities", []),

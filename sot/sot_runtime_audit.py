@@ -447,15 +447,7 @@ def audit_is_free_free_tier(db) -> List[Dict]:
     """DEFECT-12: is_free != free_tier (when both exist)"""
     defects = []
     bad = 0
-    for d in db["models"].find(
-        {"$and": [
-            {"is_free": {"$exists": True}},
-            {"free_tier": {"$exists": True}},
-        ]},
-        {"provider": 1, "model_id": 1, "is_free": 1, "free_tier": 1, "_id": 0}
-    ).limit(5000):
-        if d.get("is_free") != d.get("free_tier"):
-            bad += 1
+    # free_tier consolidated into is_free (2026-06-23) — defect class retired, no-op.
     if bad > 0:
         defects.append({
             "type": "IS_FREE_FREE_TIER_MISMATCH",

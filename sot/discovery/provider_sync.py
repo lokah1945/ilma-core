@@ -307,7 +307,7 @@ def get_provider_meta(pname: str) -> Dict[str, Any]:
     multi_account (bool), aggregate_status (str).
     Falls back to PROVIDER_CONFIGS if SOT unavailable.
     """
-    meta = {"free_tier": PROVIDER_CONFIGS.get(pname, {}).get("free_tier", False),
+    meta = {"free_bypass": False,  # provider-level free override (T1 free_bypass)
             "key_count": 0,
             "act_key_count": 0,
             "multi_account": False,
@@ -323,14 +323,9 @@ def get_provider_meta(pname: str) -> Dict[str, Any]:
         meta["act_key_count"] = len(act_keys)
         meta["multi_account"] = len(sibs) > 1
         meta["aggregate_status"] = "active" if act_keys else "INVALID"
-        # FIX 2026-06-19 (audit H2): free_tier lives in providers (Tier-2), not in the
-        # 9-field llm_providers credential store. Read it from the authoritative tier.
-        try:
-            pdoc = get_providers_coll().find_one({"provider": pname}, {"free_tier": 1})
-            if pdoc and pdoc.get("free_tier") is not None:
-                meta["free_tier"] = bool(pdoc["free_tier"])
-        except Exception:
-            pass
+        # free_bypass (T1 llm_providers) is the single provider-level free control
+        # (consolidated 2026-06-23; replaced the legacy provider-tier free_tier flag).
+        meta["free_bypass"] = any(bool(s.get("free_bypass")) for s in sibs)
     except Exception:
         pass
     return meta
@@ -451,9 +446,9 @@ def sync_provider(pname: str, dry_run: bool = False) -> Dict[str, Any]:
         if not key:
             return {"status": "error", "reason": "no_api_key"}
 
-    # Read SOT meta (free_tier) — DRY: status becomes models.status, not duplicated
+    # Read SOT meta — status→models.status; provider free_bypass seeds is_free
     prov_meta = get_provider_meta(pname)
-    sot_free_tier = prov_meta.get("free_tier", cfg.get("free_tier", False))
+    sot_free_bypass = prov_meta.get("free_bypass", False)
 
     try:
         raw_models = fetch_models(pname)
@@ -475,8 +470,8 @@ def sync_provider(pname: str, dry_run: bool = False) -> Dict[str, Any]:
         if not mid:
             continue
 
-        # FIX 2026-06-19 (audit H-2): single source of truth — only is_free, free_tier mirrors it
-        is_free = bool(sot_free_tier or m.get("free_tier", False))
+        # seed is_free from provider free_bypass; sot_billing_classify writes the FINAL verdict
+        is_free = bool(sot_free_bypass)
 
         doc = {
             "provider": pname,

@@ -705,7 +705,7 @@ class ILMAUnifiedRouter:
                 "provider":           provider_name,
                 "status":             intel.get("status", "active"),
                 "is_active":          intel.get("is_active", True),
-                "is_free":            model_meta.get("is_free", intel.get("is_free", llm_meta.get("free_tier", False))),  # Phase R: per-model is_free from models collection (authoritative)
+                "is_free":            model_meta.get("is_free", intel.get("is_free", llm_meta.get("free_bypass", False))),  # Phase R: per-model is_free from models collection (authoritative)
                 # FINAL free/paid verdict precomputed in the models SOT (sot_billing_classify).
                 # This is what the runtime free gate reads — trap-safe, zero runtime cost.
                 "is_free":      model_meta.get("is_free", False),
@@ -726,7 +726,7 @@ class ILMAUnifiedRouter:
                 "quality_score":      intel.get("quality_score", 0.0),
                 "enriched_at":        intel.get("enriched_at", ""),
                 # Provider context
-                "free_tier":          prov_meta.get("free_tier", False),
+                "free_bypass":        prov_meta.get("free_bypass", False),
                 # Hardcode free override (providers.force_free) — admin marks a provider
                 # as free regardless of real billing (e.g. minimax paid plan, nvidia/ollama).
                 "force_free":         prov_meta.get("force_free", False),
@@ -754,7 +754,7 @@ class ILMAUnifiedRouter:
 
             master["providers"].setdefault(provider_name, {
                 "models": {},
-                "free_tier": record["free_tier"],
+                "free_bypass": record["free_bypass"],
                 "base_url": record["base_url"],
                 "status": record["provider_status"],
             })

@@ -8,7 +8,7 @@ Runs idempotent backfill operations to fix:
   F2. Populate last_verified from discovered_at + 24h
   F3. Populate model_intelligence per-dimension scores (quality/speed/cost/context)
   F4. Reconcile capabilities across 4 collections (pick model_intelligence as canonical)
-  F5. Reconcile is_free vs free_tier (set free_tier=True when is_free=True)
+  F5. Drop legacy free_tier (consolidated into single is_free)
   F6. Remove 'chat' from embedding models
   F7. Mark invalid keys + resolve unverified + orphan evidence_ids
   F9. Backfill enrichment_version on model_enrichment NULL docs
