@@ -119,3 +119,106 @@ Add to optimizer's Step 6 (Health Check):
 - 1000/1000 loop iterations clean
 
 These complement the existing health score (model health, direct API probe, disk, git sync, wiring integrity) by adding "data is usable by runtime, not just well-formed".
+
+## SOT Runtime Audit Cleanup Recipe (2026-07-02)
+
+When `sot_runtime_audit.py --audit` reports defects that `--patch` cannot auto-fix, apply these manual fixes in order. Each is idempotent.
+
+### 1. Orphan aliases (pointing to removed providers)
+
+Symptom: `[7/12] alias integrity... N defects` where `--patch` reports `Patch alias incomplete... 0 fixed`.
+
+Root cause: aliases reference providers that no longer exist in `models` collection (e.g. `minimax`, `together` after provider purge).
+
+Fix:
+```python
+import pymongo, os
+MONGO_PASS = os.environ.get('ILMA_MONGO_PASS') or next(
+    (_l.split('=',1)[1].strip() for _l in open('/root/.hermes/.env') if _l.startswith('ILMA_MONGO_PASS=')), ''
+)
+client = pymongo.MongoClient(host='127.0.0.1', port=27017, username='ilma_sync', password=MONGO_PASS)
+db = client['credentials']
+
+valid_provs = set(d['provider'] for d in db['models'].find({}, {'provider': 1, '_id': 0}))
+deleted = 0
+for a in db['model_alias'].find({}):
+    if a.get('canonical_provider') and a['canonical_provider'] not in valid_provs:
+        db['model_alias'].delete_one({'_id': a['_id']})
+        deleted += 1
+print(f'Deleted {deleted} orphan aliases')
+```
+
+### 2. Out-of-range composite_score
+
+Symptom: `[2/12] intelligence.score invalid... N defects` (typically 1).
+
+Root cause: a model has `composite_score > 100` or `< 0` (e.g. `antigravity/sarvamai/sarvam-m: 386`).
+
+Fix:
+```python
+db['model_intelligence'].update_many({'composite_score': {'$gt': 100}}, [{'$set': {'composite_score': 100}}])
+db['model_intelligence'].update_many({'composite_score': {'$lt': 0}}, [{'$set': {'composite_score': 0}}])
+```
+
+### 3. Missing TTL index on model_benchmark
+
+Symptom: smoke test fails on `benchmark_ttl_present: False`.
+
+Root cause: `fetched_at` stored as ISO string, not BSON datetime — TTL index requires BSON datetime.
+
+Fix:
+```python
+from datetime import datetime
+# Convert string → BSON datetime
+for doc in db['model_benchmark'].find({'fetched_at': {'$type': 'string'}}):
+    try:
+        dt = datetime.fromisoformat(doc['fetched_at'].replace('Z', '+00:00'))
+        db['model_benchmark'].update_one({'_id': doc['_id']}, {'$set': {'fetched_at': dt}})
+    except Exception: pass
+
+# Create TTL index (30 days)
+db['model_benchmark'].create_index('fetched_at', expireAfterSeconds=2592000, name='bm_fetched_ttl')
+```
+
+### 4. Smoke test hardcoded model assumption
+
+Symptom: `MiniMax-M3_intel: False` even though system is healthy.
+
+Root cause: smoke test hardcoded `model_id = "MiniMax-M3"` but that provider was removed. Also had `0 <= (score or -1) <= 100` bug — `0.0 or -1` returns `-1` because `0.0` is falsy.
+
+Fix in `sot/sot_runtime_audit.py` smoke test section:
+```python
+# Replace hardcoded MiniMax-M3 lookup with dynamic active model
+active_model = db["models"].find_one({"status": "active", "is_active": True})
+if active_model:
+    m3 = db["model_intelligence"].find_one({"model_id": active_model["model_id"]})
+    results["active_model_intel"] = m3 is not None
+    if m3:
+        score = m3.get("composite_score")
+        results["active_model_score"] = score
+        # Explicit None check (0.0 is valid score, not falsy fallback)
+        results["active_model_in_range"] = score is not None and 0 <= score <= 100
+```
+
+### Verification sequence
+
+```bash
+cd /root/.hermes/profiles/ilma
+python3 sot/sot_runtime_audit.py --audit   # expect 0 defects
+python3 sot/sot_runtime_audit.py --smoke   # expect SMOKE TEST PASS
+python3 sot/sot_runtime_audit.py --loop 100 # expect 100/100 clean
+```
+
+### Git push gotcha
+
+`state.db.compact` (251MB) exceeds GitHub's 100MB limit. Add to `.gitignore` before pushing:
+```bash
+git rm --cached state.db.compact
+echo "state.db.compact" >> .gitignore
+git add .gitignore && git commit --amend --no-edit
+git push origin master  # branch is 'master', not 'main'
+```
+
+Evidence: `ILMA-EVID-RUNTIME-AUDIT-20260702-031622` — 192 defects → 0, smoke PASS, 100/100 loop clean.
+
+**Session detail**: See `references/sot-runtime-audit-cleanup-2026-07-02.md` for the full transcript, defect table, and evidence IDs from this cleanup session.
