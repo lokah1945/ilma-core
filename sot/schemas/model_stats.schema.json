@@ -3,11 +3,31 @@
   "title": "model_stats",
   "description": "Aggregate statistics per model (reserved for future use; currently empty).",
   "type": "object",
-  "required": ["provider", "model_id"],
+  "required": [
+    "provider",
+    "model_id"
+  ],
   "properties": {
-    "provider": { "type": "string", "minLength": 1 },
-    "model_id": { "type": "string", "minLength": 1 },
-    "stats":    { "type": "object" },
-    "updated_at": { "type": ["string", "null"], "format": "date-time" }
-  }
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stats": {
+      "type": "object"
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  },
+  "_orphan": true,
+  "_orphan_reason": "No matching MongoDB collection",
+  "_orphan_marked": "2026-07-01T16:27:41"
 }

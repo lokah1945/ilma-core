@@ -1,12 +1,18 @@
 ---
 name: ilma-sot-cascade-pipeline
-description: "SOT-driven cascade pipelines for MongoDB: when `llm_providers` is single source of truth and downstream must follow dynamically. Covers 5-step reconcile llm_providers→models (cascade-in/out-orphan/out-stale/enum-normalize/integrity), sibling-aggregation for key_status, recent-sync safety net, 4-report deliverable pattern, idempotency requirement, fail-safe per-item, anti-pattern WORKING_PROVIDERS hardcode, slim llm_providers (8-field credential-only), Tier 1→Tier 2 provider consolidation w/ CURATED_ONLY_PREFIXES. Verified 2026-06-19 #2: models 972→1954, 27 orphan patcher fields scrubbed, provider_status dropped, llm_providers ramped 23→8 fields."
+description: "SOT-driven cascade pipelines for MongoDB: when `llm_providers` is single source of truth and downstream must follow dynamically. Covers 5-step reconcile llm_providers→models, 4-phase cascade enforcement engine (zombie kill + missing create + integrity + verify), free_bypass cascade handling, is_active=None backfill, sibling-aggregation for key_status, recent-sync safety net, 4-report deliverable pattern, idempotency requirement, fail-safe per-item, CURATED_ONLY_PREFIXES. Enforcement #3 2026-07-01: aligned=True, 0 violations, 402 active models."
 triggers:
   - "audit sot pipeline"
   - "cascade pipeline llm_providers"
   - "reconcile models from llm_providers"
   - "sot-driven cascade"
   - "cascade delete downstream collection"
+  - "sot cascade enforcement"
+  - "cascade enforcement engine"
+  - "enforce cascade integrity"
+  - "t1 t2 t3 alignment fix"
+  - "fix is_active disabled_at contradiction"
+  - "backfill aggregate_status providers"
   - "foreign key migration mongodb"
   - "models collection cleanup"
   - "orphan provider cleanup"
@@ -374,6 +380,11 @@ for name, fn in [
 ## CLI Surface
 
 ```bash
+# Cascade Enforcement Engine (4-phase unified: zombie kill + missing create + integrity + verify)
+python3 sot/sync/sot_cascade_enforcement.py              # dry-run (default, safe)
+python3 sot/sync/sot_cascade_enforcement.py --apply       # execute all 4 phases
+python3 sot/sync/sot_cascade_enforcement.py --json        # JSON output for CI
+
 # Default = dry-run (preview only, safe)
 python3 reconcile_from_<name>.py
 
@@ -552,6 +563,151 @@ python3 reconcile_from_<name>.py --json
   `(provider, account_email)` pairs, zero dup, safe to add. Index name
   convention: `uq_<fields>`.
 
+- **P-CASCADE-21 (aggregate_status never backfilled — verified 2026-07-01)**:
+  `provider_sync.py` sets `aggregate_status` only on NEW providers discovered
+  during sync. Existing `providers` docs created before the field was added
+  (or created by `sync_providers_from_llm_providers.py`) will have
+  `aggregate_status=None` forever. This makes T2 cascade-status useless
+  for 100% of existing docs.
+
+  **Fix:** After `sync_providers_from_llm_providers.py --apply`, run a
+  backfill pass:
+  ```python
+  for doc in db.providers.find({"aggregate_status": None}):
+      # Re-derive from T1 sibling aggregation
+      siblings = list(db.llm_providers.find({"provider": doc["provider"]}))
+      live = _aggregate_provider_live(siblings)
+      status = "active" if live else "disabled"
+      db.providers.update_one({"_id": doc["_id"]},
+          {"$set": {"aggregate_status": status, "_backfilled_at": now()}})
+  ```
+  Without this, any router query on `aggregate_status` returns empty/confusing
+  results for ALL providers.
+
+- **P-CASCADE-22 (is_active/disabled_at contradiction — verified 2026-07-01)**:
+  688 out of 1241 models (55%) have `is_active=True` AND `disabled_at` exists.
+  Root cause: deactivation scripts set `disabled_at` timestamp but forget to
+  flip `is_active=False`. Any router filtering `is_active=True` will include
+  these disabled models as routing candidates.
+
+  **Fix (data_integrity step enhancement):**
+  ```python
+  # Already in Step 5 but needs explicit coverage:
+  contradiction = db.models.count_documents(
+      {"is_active": True, "disabled_at": {"$exists": True}})
+  if contradiction > 0:
+      db.models.update_many(
+          {"is_active": True, "disabled_at": {"$exists": True}},
+          {"$set": {"is_active": False,
+                    "deactivation_reason": "disabled_at_isactive_contradiction_fix",
+                    "fixed_at": now()}})
+  ```
+  Add this as a **required sub-step** in the `data_integrity` step. Also add
+  a **guard in `sot_sync_daemon`** to automatically flip `is_active=False`
+  whenever `disabled_at` is set on any model.
+
+- **P-CASCADE-23 (T1 key_status → T2 is_active cascade broken — verified 2026-07-01)**:
+  5 providers in T2 have `is_active=True` but T1 `key_status ∈ {INVALID, SERVER_ERROR, TIMEOUT}`.
+  Specifically: blackbox, groq, byteplus, felo, bluesminds. The `sync_providers_from_llm_providers.py`
+  script computes `is_active` from sibling aggregate but **existing T2 docs were never updated**
+  after keys went INVALID. The cascade is write-on-create, not write-on-change.
+
+  **Fix:** `sync_providers_from_llm_providers.py` must be run with `--apply`
+  AFTER any key validation run that changes `key_status`. The script's sibling
+  aggregation logic is correct — the problem is operational: nobody re-runs it
+  after key status changes. **Add to cron or run manually after each
+  `ilma_validate_keys.py --all` session.**
+
+- **P-CASCADE-24 (is_free_final consolidated away — schema/doc drift, verified 2026-07-01)**:
+  `sot_billing_classify.py` (2026-06-22) intentionally `$unset`s `is_free_final`
+  and `free_tier`, consolidating into `is_free` as the single canonical billing
+  field. Runtime (`ilma_model_router`) correctly reads `is_free`. But
+  `SOT_ARCHITECTURE.md` and some skill docs still reference `is_free_final` as
+  "the final billing verdict field." This is cosmetic but causes confusion.
+
+  **Fix:** Search all docs/skills for `is_free_final` references and update to
+  `is_free (canonical since 2026-06-22, is_free_final unset)`. The field
+  `is_free_final` must NOT be re-added — the consolidation was intentional.
+
+- **P-CASCADE-25 (T2 `provider_name` field never existed — verified 2026-07-01)**:
+  Some scripts and doc references mention `providers.provider_name` as the
+  primary key. In reality, the field is `provider` (string). There is NO
+  `provider_name` field in any of the 35 T2 documents. If any code queries
+  `provider_name`, it returns 0 results silently.
+
+  **Rule:** Always use `providers.provider` as the join key. If code references
+  `provider_name`, patch it to use `provider`.
+
+- **P-CASCADE-26 (free_bypass providers cascade as live — verified 2026-07-01)**:
+  Providers with `free_bypass=True` in T1 `llm_providers` MUST be treated as "live" for cascade
+  purposes, even when `key_status=INVALID`. Example: `groq` has `key_status=INVALID` +
+  `free_bypass=True` → still active (route through xAI proxy, not direct key).
+
+  When building T2 from T1 (fallback path without sync module), the `_build_t2_from_t1` function
+  must check:
+  ```python
+  has_free_bypass = any(s.get("free_bypass") is True for s in siblings)
+  if act_keys > 0 or has_free_bypass:
+      status = "active"; is_active = True; effective_act_keys = max(act_keys, 1)
+  else:
+      status = "INVALID"; is_active = False; effective_act_keys = 0
+  ```
+
+  Without this, free_bypass providers get `status="INVALID"` + `is_active=False` in T2, and
+  the cascade engine marks them as "missing T2" → creates a duplicate INVALID T2 doc.
+
+- **P-CASCADE-27 (T2 is_active=None legacy drift — verified 2026-07-01)**:
+  19 out of 39 T2 `providers` docs had `status="active"` but `is_active=None` (not `True`).
+  Root cause: these docs were created by `sync_providers_from_llm_providers.py` which sets
+  `status` but never explicitly set `is_active=True`. The `is_active` field was added later
+  but the sync script's upsert didn't include it for existing docs.
+
+  **Impact:** Any verification or runtime check using `is_active is True` (strict) will miss
+  these providers even though they're functionally active. The cascade enforcement engine's
+  Phase B ("missing T2" check) won't flag them because `t2_active - t1_live = ∅`, but
+  integrity verification scripts using strict `is_active is True` see 5 violations.
+
+  **Fix (backfill):**
+  ```python
+  db.providers.update_many(
+      {'status': 'active', 'is_active': None},
+      {'$set': {'is_active': True, '_backfilled_is_active_at': now}})
+  db.providers.update_many(
+      {'status': {'$ne': 'active'}, 'is_active': None},
+      {'$set': {'is_active': False, '_backfilled_is_active_at': now}})
+  ```
+  Also: `sync_providers_from_llm_providers.py` MUST include `is_active` in its upsert
+  document (not just `status`) going forward.
+
+- **P-CASCADE-28 (Cascade enforcement engine — 4-phase unified approach, verified 2026-07-01)**:
+  A single engine script `sot_cascade_enforcement.py` handles ALL cascade violations in one pass:
+
+  | Phase | Purpose | Actions |
+  |-------|---------|---------|
+  | A (Zombie Kill) | T1 inactive → remove downstream | Deactivate T2 zombie, deprecate T2 orphan (curated), deactivate T3 zombie models, deactivate T3 orphan models |
+  | B (Missing Create) | T1 active → ensure downstream | Create missing T2 from T1 siblings (with free_bypass), update T2 status, trigger T3 sync |
+  | C (Data Integrity) | Fix contradictions + backfill | Fix is_active+disabled_at contradictions, backfill aggregate_status, clean stale fields |
+  | D (Verify) | Post-enforcement alignment check | Re-check all violations, report alignment status |
+
+  **Safety guard:** Max 50% of active models can be deactivated in one run (configurable).
+  **Dry-run by default.** Use `--apply` to execute mutations.
+  **Location:** `sot/sync/sot_cascade_enforcement.py`
+
+  Important: Phase D runs the SAME checks as the enforcement logic. If Phase D reports
+  `aligned=True`, the DB is fully consistent. If not, there are violations the engine
+  couldn't fix (e.g. missing T3 models for providers without sync endpoints).
+
+- **P-CASCADE-29 (Missing T3 after cascade enforcement is expected — verified 2026-07-01)**:
+  After running `sot_cascade_enforcement.py --apply`, Phase D will show `missing_t3_remaining`
+  for providers that have no sync endpoint (no way to fetch their model catalog). These are
+  not violations — they're providers where:
+  - API endpoint unknown or placeholder (cloudflare_ai, minimax, z.ai)
+  - Service is wrapper-level not provider-level (aimlapi)
+  - API requires paid access only (some mid-tier providers)
+
+  The engine logs these as `skipped_no_sync_endpoint`. They're acceptable as-is; models
+  will be populated when credentials/endpoints become available.
+
 ## Verification Recipe
 
 Paska-apply, verifikasi:
@@ -567,7 +723,7 @@ Paska-apply, verifikasi:
 
 ## Verified status
 
-**2026-06-19 (Audit #1)** — `sot/reconcile/reconcile_from_llm_providers.py`:
+**2026-06-19 (Audit #1)** —
 - 672 anomalies fixed in 1 pass (models 978 → 972)
 - 6 orphan-docs removed (google)
 - 168 INVALID-provider docs marked disabled (blackbox, bluesminds, groq)
@@ -609,6 +765,73 @@ Paska-apply, verifikasi:
   - `pre_reconcile_20260619/` — 5 koleksi pre-fix #1
   - `llm_providers_pre_slim_<date>.json` — pre-fix #2
 
+**2026-07-01 (Enforcement #3 — Cascade enforcement engine + full alignment)** —
+`sot/sync/sot_cascade_enforcement.py` (4-phase unified engine):
+- Phase A: 1 T2 zombie deactivated (opencode), 1 T2 orphan deprecated (google), 68 T3 zombie models deactivated (byteplus 48 + opencode 20)
+- Phase B: 5 missing T2 created (aimlapi, groq, minimax, ollama, together) — groq via free_bypass handling
+- Phase C: 620 is_active+disabled_at contradictions fixed, 23 aggregate_status backfilled
+- Post-apply: 19 T2 `is_active=None` → `True` backfill (legacy schema drift)
+- Phase D: **aligned=True** — 0 violations forward + reverse
+- Active models: 402/1241 (true count after contradiction fix)
+- T2 active providers: 36, T3 active providers: 7
+
+- **P-CASCADE-30 (Logging injection pitfall — verified 2026-07-01)**:
+  When adding `import logging` + `logger = logging.getLogger(__name__)` to files that lack
+  logging, a naive "find the last `import`/`from` line and insert after it" approach
+  **WILL BREAK** files where the last import is inside a function body or `if __name__`
+  block. The injected lines get wrong indentation (module-level code inserted at
+  function-level indent), causing `SyntaxError: unexpected indent` or
+  `SyntaxError: from __future__ imports must occur at the beginning of the file`.
+
+  **Verified failure mode:** A regex-based injector scanned for the last line matching
+  `^import |^from ` without checking indent level, injected `import logging` inside
+  an `if __name__ == "__main__"` block, broke 6 out of 8 target files. Additionally,
+  one file had `from __future__ import annotations` on line 51 — the injector placed
+  logging before it, violating Python's `__future__` import-first rule.
+
+  **Correct approach:**
+  1. Use `ast.parse()` to find top-level import statements (no indent / no parent scope).
+  2. Insert `import logging` + `logger = logging.getLogger(__name__)` after the
+     **last top-level import** (one with zero indent, not inside any function/class/main block).
+  3. **Explicit check:** If any `from __future__` import exists, the logging import
+     MUST come after it — never before. `__future__` imports must be first in file.
+  4. Verify with `ast.parse(content)` after write to catch indentation errors immediately.
+
+  **Recovery pattern** if naive injector already broke files:
+  ```python
+  import re
+  content = re.sub(r'\nimport logging\nlogger = logging.getLogger\(__name__\)', '', content)
+  # Then re-insert at correct location using AST-aware approach
+  ```
+
+- **P-CASCADE-31 (SOT production audit methodology — S1–S10, verified 2026-07-01)**:
+  When Bos asks for "SOT deep audit" or "optimize SOT" or "pastikan semua wiring terhubung",
+  use this systematic 10-step audit → fix → verify pipeline. Each step produces findings
+  that feed into the fix phase. Audit FIRST, fix SECOND, verify THIRD. Never mix phases.
+
+  | Step | Name | Purpose | Key Checks |
+  |------|------|---------|------------|
+  | S1 | Inventory | Map all files, LOC, packages | `.py` file count, packages, LOC |
+  | S2 | Orphan classify | Find files with zero importers | CLI-only (ok) vs TRUE-ORPHAN (fix) |
+  | S3 | Wiring audit | Broken imports, missing `__init__.py` | Absolute→relative import fixes, pkg init |
+  | S4 | Pipeline integrity | Import smoke test for all modules | `importlib.import_module()` on each |
+  | S5 | Runtime health | MongoDB alive, stale fields, systemd | Collection counts, stale field cleanup |
+  | S6 | Dead code | Empty dirs, orphan quarantine, overlap | Remove empty dirs, quarantine orphans |
+  | S7 | Schema coverage | Collections vs schemas, stale DB fields | Schema stubs for uncovered, clean stale |
+  | S8 | Hardening | Logging, try/except, systemd services | Add logging (P-CASCADE-30 safe!), services |
+  | S9 | Integration | Dispatcher + runtime wiring + cascade | Verify cross-module wiring is intact |
+  | S10 | Final e2e | 9/9 checklist verification | Imports, MongoDB, schema, stale, dirs, pkg, quarantine, integration, cascade |
+
+  **Fix script pattern:** Write a single `/tmp/sot_apply_fixes.py` that handles ALL
+  fixes in dependency order (empty dirs → quarantine → schema → stale fields → logging
+  → systemd). Run once, verify with S10 e2e check. If logging injection breaks files
+  (P-CASCADE-30), fix those first before re-running S10.
+
+  **Session results (2026-07-01):** 27 fixes applied, 5 empty dirs removed,
+  1 orphan quarantined, 6 schema stubs created, 3 stale MongoDB fields cleaned
+  (is_free_final, _status_cascaded_v3, aggregate_status backfill), 8 files got
+  logging, 1 systemd service installed. Final: **9/9 checks PASSED**.
+
 ## Cross-references
 
 - `ilma-runtime-mongodb-migration` — sibling skill for MongoDB-driven
@@ -632,6 +855,19 @@ Paska-apply, verifikasi:
 - `references/sot-session-2026-06-23-zai-insert.md` — companion to
   REC #1-#6 (probe validator, schema widen P-CASCADE-18, unique index
   P-CASCADE-20, DB alias drift P-CASCADE-19, felo diagnosis REC #6)
+- `references/sot-e2e-audit-2026-07-01.md` — Full T1→T2→T3 pipeline
+  E2E audit: document counts, C1-C5 critical issues (aggregate_status dead,
+  7 T1→T2 orphans, 5 zombie T2 providers, 688 is_active/disabled_at
+  contradictions, 215 missing llm_provider_ref), billing classify stats,
+  reconcile dry-run results, priority recommendations, health scorecard
+- `references/sot-cascade-enforcement-2026-07-01.md` — **NEW** Cascade enforcement
+  engine build+apply session: 4-phase engine architecture, dry-run vs apply
+  results, free_bypass handling (P-CASCADE-26), is_active=None backfill
+  (P-CASCADE-27), before/after state, E2E aligned verification (0 violations)
+- `references/sot-production-audit-s1-s10-2026-07-01.md` — **NEW** Full S1–S10
+  production audit methodology: 3-phase (audit→fix→verify) pipeline, logging
+  injection pitfall detail (P-CASCADE-30), fix script pattern, session results
+  (27 fixes, 9/9 final e2e), MongoDB tier state, evidence IDs
 
 ## Pointer to operator-side skill
 

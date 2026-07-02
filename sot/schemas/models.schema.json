@@ -300,6 +300,52 @@
     "free_reason": {
       "type": "string",
       "description": "why is_free_final was set (force_free:provider, mixed_free_suffix, mixed_no_free_suffix, paid_keyword, price>0, direct_flag, no_free_evidence)"
+    },
+    "_sync_generation": {
+      "type": "integer",
+      "description": "Sync generation counter"
+    },
+    "_sync_source": {
+      "type": "string",
+      "description": "Source of last sync"
+    },
+    "_sync_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last sync timestamp"
+    },
+    "billing_classified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Billing class timestamp"
+    },
+    "capabilities_enriched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Capabilities enrichment timestamp"
+    },
+    "endpoint_path": {
+      "type": "string",
+      "description": "API endpoint path"
+    },
+    "endpoint_type": {
+      "type": "string",
+      "description": "API endpoint type"
+    },
+    "free_tier_score": {
+      "type": "number",
+      "description": "Free-tier suitability score"
+    },
+    "hermes_caps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Hermes capability tags"
+    },
+    "input_modality": {
+      "type": "string",
+      "description": "Primary input modality"
     }
   }
 }

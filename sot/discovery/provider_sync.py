@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import logging
+logger = logging.getLogger(__name__)
 """
 provider_sync.py — SOT Discovery Engine
 Writes to: MongoDB credentials.models collection
@@ -20,7 +22,7 @@ from typing import Any, Dict, List, Optional
 # ── MongoDB connection ────────────────────────────────────────────────────────
 MONGO_HOST = "127.0.0.1"
 MONGO_PORT = 27017
-MONGO_USER = "quantumtraffic"
+MONGO_USER = "ilma_sync"
 MONGO_PASS = (__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), ""))
 
 def get_mongo_client():

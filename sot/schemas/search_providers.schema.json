@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "search_providers",
+  "description": "Search provider registry",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "account_id": {
+      "type": "string"
+    },
+    "api_key": {
+      "type": "string"
+    },
+    "added": {
+      "type": "string"
+    },
+    "added_by": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "docs_url": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "_auto_generated": true,
+  "_generated_at": "2026-07-01T16:27:41"
+}

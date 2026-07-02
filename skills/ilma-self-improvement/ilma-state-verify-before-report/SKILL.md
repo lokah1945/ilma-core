@@ -13,8 +13,8 @@ triggers:
   - "apa yang sedang running"
   - "audit duplikat"
   - "respondouble"
-version: 1.2.0
-last_updated: 2026-06-20
+version: 1.4.0
+last_updated: 2026-07-02
 ---
 
 # State-Verify-Before-Report (SVBR)
@@ -375,6 +375,239 @@ curl -s http://127.0.0.1:9100/v1/chat/completions \
 
 A 200 with non-empty `content` = live path. Empty / 500 / timeout = wrapper broken.
 
+### P-17: Big-batch patch antipattern — verify per sub-step, not per end-of-patch
+
+**Trigger**: About to ship a multi-stage patch (PATCH A → PATCH B → ... → PATCH H) to a long-running daemon. **DO NOT** wire all changes then restart "to save time".
+
+**Concrete failure (Sesi 2026-07-01 wrapper-nvidia Phase 3, RC-1 LOCKED SPEC)**:
+- Drafted PATCH A–H as monolithic plan covering: new request_runtime.js (~280 LOC), Set→Map migration, sub-budget enforcement, client classification, releaseOnce guard, /admin/requests endpoint, stall watcher.
+- Total diff before restart: **459 lines** across 2 files + 1 new file
+- Restarted once. Three real bugs shipped:
+  1. `acquire(model, signal, reqBody)` at `src/key_pool.js:487` — callers (`proxyPost` line ~848, `catchAll` line ~1453 after edit) pass 2-arg, so `reqBody=undefined`. Both my edit and the cross-edit hits the same bug, but only the second fix was merged.
+  2. Admin endpoints (`/admin/queue`, `/admin/requests`) attach `RequestContext` in `handleRequest`, transition `received → ???` but never call `releaseOnce` — leaving 8+ entries stuck in active map for the lifetime of the process, spamming `[LIFECYCLE-STALL]` warnings every 3 seconds.
+  3. `releaseOnce` only wired in stream-completion paths in 1 of 3 stream call sites (`handleChatCompletions`, `handleAnthropicMessages`, `handleCatchAll`) — but my second pass missed `catchAll`'s write-failure branch, leaving releaseOnce unfired on that terminal.
+
+**Verifying rule**: after **each** individual patch (one `patch` / commit), not after the whole bundle:
+1. `node -c <file>` syntax check
+2. Record file MD5 (`md5sum`) before & after
+3. (If daemon is running) — restart component-level check first; do NOT bundle next patch without verifying the running service has stable observability.
+4. Output evidence trail (EVIDENCE section) per patch.
+
+Specifically for daemon ports / `.env`-driven configs:
+- before patch 1: `curl -s http://localhost:9100/health` → 200 + record baseline timestamp + RSS
+- after patch 1: same curl → 200 + record new RSS + diff ≤ ±5 MB → if delta > ±5 MB → STOP, audit
+- before patch 2: same baseline repeat
+- …
+
+**Anti-pattern**: "I'll batch 8 patches and restart once to save 7 restarts." This converts a recoverable error (1 patch) into an unrecoverable state (8 patches unknown which broke).
+
+**Trigger**: any time a patch plan includes > 3 sub-patches, an audit endpoint, OR more than 100 LOC. Default to "patch → restart → health check → next patch" rhythm.
+
+### P-18: Rollback-first discipline — when observability degrades, STOP adding code
+
+**Trigger**: During any patch, the running service's observability shows degradation. **STOP IMMEDIATELY**, do not continue adding patches to "fix" it.
+
+**Rule**: If after a patch:
+- `/health` returns 200 but a real proxy returns 500
+- new `[ERROR]` lines appear in process log matching any code you touched
+- `kill -0 <PID>` (process check) becomes unstable
+- `/admin/queue` shows inflight/waiting leak likely
+
+Then **STOP** adding patches. The DEBUG shortcut is:
+```bash
+# 1. Capture pre-patch baseline
+git log --oneline -5
+# 2. Find last commit with /health 200 + /admin/queue 200 + 1 successful real proxy
+# 3. Roll back to that commit ONLY the source files
+git checkout <healthy_commit> -- src/<file1> src/<file2>
+# 4. Restart daemon
+kill <PID>; sleep 2; <restart command>
+# 5. Verify same observability baseline before continuing
+curl -fs http://localhost:<port>/health && curl -fs -H "X-Admin-Token: ..." http://localhost:<port>/admin/queue
+```
+
+**Never** "patch forward to fix the broken patch" — that propagates the bug and obscures which patch introduced which regression.
+
+**Concrete failure (Sesi 2026-07-01 wrapper-nvidia Phase 3)**: 3 patches in post-patch audit showed `[ERROR] reqBody is not defined` AND each attempt to "fix it" by editing more files introduced ANOTHER regression — round 1 wrong signature, round 2 wrong fix point, round 3 added defense without removing the source. The right move after seeing the first `[ERROR] reqBody` was to roll back the daemon and re-derive, not patch again.
+
+This compounds with P-17: if you patch forward instead of rolling back, you can no longer tell which patch introduced the regression because N patches have been stacked.
+
+### P-13b: For long-running Node daemon, the cwd + listen port come from `/proc`, not memory
+
+When auditing a wrapper/sidecar/daemon whose bootstrap files you don't
+control (or whose systemd unit is missing / different name), two paths
+are usually wrong:
+
+1. **guessing the install dir** (`/opt/<name>`, `~/projects/<name>`) — often
+   produces `No such file or directory` because the real path is `/root/<name>`
+   or `/srv/<name>` or `/var/lib/<name>`.
+2. **guessing the port** (8080, 3000, 5000) — if the daemon was started
+   without `--user` systemd, the unit file is hidden from
+   `systemctl --user status <name>`.
+
+**Recover by reading the live process table — never guess:**
+
+```bash
+# 1. Find the pid by command substring
+ps aux | grep -E "node /.*index\\.js|node /.*server\\.js" | grep -v grep
+
+# 2. Real cwd (resolves symlinks too — fixes /opt vs /root mismatch)
+readlink -f /proc/<PID>/cwd
+
+# 3. Real cmdline (resolve "what binary, with what path")
+cat /proc/<PID>/cmdline | tr '\0' ' '; echo
+
+# 4. Listen port + binding flags (faster than ss, no perms needed)
+cat /proc/<PID>/environ | tr '\0' '\n' \
+  | grep -E "^(LISTEN_PORT|LISTEN_HOST|PORT=|HOST=|NODE_ENV=)"
+
+# 5. Optionally confirm socket is bound
+ss -tlnp 2>/dev/null | grep -E "<PORT>|node" | head
+```
+
+**Concrete failure (Sesi 2026-07-01, PHASE 2.5 wrapper-nvidia audit):**
+I assumed `cwd=/opt/wrapper-nvidia` and `port=8080`. Both wrong.
+- Actual cwd: `/root/wrapper/nvidia` (read via `readlink -f /proc/313238/cwd`)
+- Actual port: `9100` (read via `grep LISTEN_PORT /proc/313238/environ`)
+- `systemctl --user status wrapper` returned `Unit wrapper.service could not be found`
+  even though the process was alive (PPID=1 = orphan, no unit at all)
+
+After the probe, subsequent reads (`read_file` on
+`/root/wrapper/nvidia/src/index.js`, `curl http://localhost:9100/admin/queue`)
+worked first try. The lesson: **the first 60 seconds of any
+"cek State" task on an unfamiliar daemon should be `/proc` archaeology,
+not config-file archaeology.** Config files lie (and may not exist); the
+kernel doesn't.
+- **Bonus command for "find any node process listening":**
+
+```bash
+for pid in $(pgrep -f node 2>/dev/null); do
+  port=$(cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep -E "^(LISTEN_)?PORT=" | head -1)
+  cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
+  echo "$pid  $cwd  $port"
+done
+```
+
+This produces a one-line map of every Node process without needing the install dir, port, or systemd unit name — useful when a system has 5+ sidecars and you only know them by behavior.
+
+---
+
+### P-17: Workspace duality — root artifacts ≠ canonical src/ (Hermes wrapper style)
+
+**Trigger**: Repo has BOTH a tracked `src/` tree AND duplicated root-level files (`./index.js`, `./key_pool.js`, etc.) of older date. The runtime only ever loads from the canonical tree, but humans (and grep) see both.
+
+**Symptoms**:
+- `git ls-files` shows canonical only; `ls` shows root-artifact files with older mtime.
+- Editing the root file has no runtime effect (runtime loads `src/`).
+- `git status` lists the root file as `??` (untracked), making it look like "uncommitted work".
+- Patches in `src/` work; patches in root don't.
+
+**Audit recipe (run on first contact with any daemonized Node project)**:
+
+```bash
+# 1. What does the runtime actually load? (proof beats assumption)
+PID=$(pgrep -f "node.*src/index.js" | head -1)
+cat /proc/$PID/cmdline | tr '\0' ' '; echo
+
+# 2. Are there shadow copies at repo root? Compare size/mtime/hash to canonical.
+ROOT_FILES=$(ls -la index.js key_pool.js package.json 2>/dev/null | head)
+if [ -n "$ROOT_FILES" ]; then
+  echo "ROOT ARTIFACTS DETECTED:"
+  ls -la index.js key_pool.js 2>/dev/null
+  echo
+  echo "Canonical vs root diff:"
+  for f in index.js key_pool.js; do
+    if [ -f "$f" ] && [ -f "src/$f" ]; then
+      echo "  $f:  root mtime=$(stat -c %Y $f)  src mtime=$(stat -c %Y src/$f)"
+      md5sum "$f" "src/$f"
+    fi
+  done
+fi
+
+# 3. Is the root file tracked by git?
+git ls-files | grep -E "^(index|key_pool)\.js$" && echo "ROOT FILES ARE TRACKED" || echo "ROOT FILES UNTRACKED (likely backups/duplicates)"
+```
+
+**Rule (Lock)**: When patching a daemon-backed repo, ALWAYS:
+
+1. Identify the canonical tree from runtime args (`/proc/<pid>/cmdline`).
+2. Run `git log --oneline` + `git diff --stat` ONCE before any patch.
+3. Use `git checkout <commit> -- <path>` for rollback, never re-touch root-level shadows.
+4. If root-level files look like backups (e.g. dated months earlier), MOVE them aside:
+   ```bash
+   mkdir -p .pre-phaseN-backups
+   cp <root-shadow> .pre-phaseN-backups/<root-shadow>.BAK
+   # do NOT delete — leave for soak cleanup
+   ```
+5. After EVERY patch, verify with:
+   ```bash
+   git diff --stat        # what you edited should match the canonical-tree file
+   md5sum src/<file>      # must equal what the running process loaded pre-patch + deltas
+   ```
+
+**Concrete failure (Sesi 2026-07-01, wrapper-nvidia PHASE 3 attempt)**:
+- Root artifacts: `/root/wrapper/nvidia/index.js` (59067 bytes, Jun 28) and `key_pool.js` (31886 bytes, Jun 28).
+- Canonical: `src/index.js` (97225 bytes, Jul 1) and `src/key_pool.js` (44371 bytes, Jul 1).
+- Runtime loads `src/index.js` per `/proc/324423/cmdline`.
+- Initial audit assumed `/opt/wrapper-nvidia`; actual cwd was `/root/wrapper/nvidia`.
+- Initial audit queried port `8080`; actual was `9100`.
+
+**Counter-example (the reverse trap)**:
+A future session might see only the root-level files (e.g. an old `git checkout` of `./index.js` while `src/index.js` is intact). Commands like `grep "X" index.js` would show nothing while `grep "X" src/index.js` does — confirming the canonical location matters.
+
+**Take-away**: For daemon-backed repos with parallel "shadow trees", the FIRST 60s of audit MUST establish canonical location via `/proc` archaeology (per P-13b), not file-tree archaeology. Files lie (and may not even be loaded); the kernel never does.
+
+---
+
+### P-18: Cross-handler parameter scope bug class (when patching adds reference to outer-scope param)
+
+**Trigger**: You patch one function/method to reference a parameter that is in scope at the CALL SITE (e.g. an outer function's parameter or a captured closure var), but the modified function/method ITSELF doesn't declare that parameter.
+
+**Symptoms**:
+- Runtime logs `[ERROR] <paramName> is not defined` even though the param is clearly declared higher up.
+- Different callsites of the SAME inner function work vs fail inconsistently — because some callsites pass the param into the outer scope, others don't.
+- `node -c` syntax check PASSES (reference is lexically legal), the bug only manifests at runtime when an unbound identifier resolves.
+
+**Concrete failure (Sesi 2026-07-01, PHASE 3 B)**: I patched `acquireSlot` in `key_pool.js` to reference `reqBody.__reqId`. But `acquireSlot` is defined as `async acquireSlot(model=null, signal=null, priority=DEFAULT_PRIORITY)` — no `reqBody` param. The outer `acquire(model, signal, reqBody)` did declare it, so the capture seemed valid at the lexical level. But callers in `proxyPost` line 848 (and `catchAll` line 1453) passed `pool.acquire(modelId, signal)` — i.e. `reqBody=undefined`. When `acquire` then forwarded to `acquireSlot` and the slot code reached the `reqBody.__reqId` line, `ReferenceError: reqBody is not defined` fired.
+
+**Audit recipe (before any patch adding an unqualified identifier reference)**:
+
+```bash
+# 1. Confirm the patched function ACTUALLY receives the param in its signature
+grep -nP "^  async (?:\w+)?\s*(?:acquireSlot|\w+)\s*\([^)]*\)" src/key_pool.js | head
+# Show: async acquireSlot(model = null, signal = null, priority = DEFAULT_PRIORITY) {
+
+# 2. Find ALL callsites of the patched function. Note argument counts.
+grep -nE "acquireSlot\s*\(" src/key_pool.js
+# Compare each callsite's arg-passing to the signature.
+
+# 3. Diff caller arg patterns: do any callers pass fewer args than signature?
+#    Those are the failure cases.
+```
+
+**Rule (Lock)**:
+1. NEVER reference a parameter in a function body unless it is declared in that function's own signature OR captured via explicit `closure.thatname` / `var thatname = closure.thatname` indirection.
+2. If a patch NEEDS outer-scope data, pass it explicitly through the function signature.
+3. Before patch commit, write a smoke test that hits BOTH the most-arg and least-arg callsites:
+   ```bash
+   # for each callsite in callers, run a probe with the LEAST signature variant
+   for cs in $(grep -nE "pool\.acquire\(" src/*.js | cut -d: -f1); do
+     echo "--- callsite line $cs ---"
+     sed -n "${cs}p" src/index.js
+   done
+   ```
+4. If a previously-suppressed `reqBody is not defined` style error appears in runtime log: search the patched function's signature for the referenced name. If absent, immediately add defensive defaulting:
+   ```js
+   const safeBody = (typeof reqBody === 'object' && reqBody) || {};
+   const rb = (typeof reqBody === 'object' && reqBody) || {};
+   ```
+   and re-run the smoke test.
+5. After fixing the FIRST ReferenceError of this class, audit EVERY other patch you made in the same patch-set for the same pattern — they're typically introduced in sets when the author was thinking about the outer-scope contract, not the inner-function's signature.
+
+**Take-away**: Adding a reference to `outer_param.field` inside an inner function is a CLASS of bug, not an isolated typo. When it surfaces, immediately grep the whole patch-set for sibling instances — `git diff --stat` then `git diff` followed by `grep -nE "outer_param\." <patched-file>` to catch all sibling references before the second runtime crash.
+install dir, port, or systemd unit name — useful when a system has 5+
+sidecars and you only know them by behavior.
+
 ### P-14: Single-send guarantee — verify YOUR OWN delivery state before claiming "selesai kirim"
 
 **Bos standing preference (2026-06-20, Sesi 2026-06-20):**
@@ -531,6 +764,30 @@ The Sesi 2026-06-20 case (50x reproduce) was primarily an
 agent-side loop bug, not a Hermes core race — even though core does
 have race conditions worth fixing.
 
+### P-16: Gateway-level duplicate delivery — 5 root causes + 4 patches (2026-06-25)
+
+Bos reported duplicate Telegram delivery (>2x same content). Deep analysis found
+5 gateway-level root causes (not agent-side re-emission like P-15B):
+
+| RC | File | Problem | Patch |
+|----|------|---------|-------|
+| RC-1 | `base.py` `_send_with_retry` | Whole-message retry re-sends chunks already delivered | P1: SHA-256 content-fingerprint dedup guard (30s TTL, 256-entry LRU) |
+| RC-2 | `run.py:13723` | `response_previewed` = True when stream consumer merely has content, not when content actually delivered | P2: Also require `final_content_delivered` flag |
+| RC-3 | `run.py:~16297` | Already_sent gate missing `_sc.already_sent` signal | P2: Add stream consumer's own flag as OR signal |
+| RC-4 | `stream_consumer.py:750-800` | CancelledError path sets flags without lock → race with gateway fallback | P3: `asyncio.Lock` + only set flags if best-effort edit succeeded |
+| RC-5 | `stream_consumer.py` `_send_fallback_final` | Multiple concurrent callers (CancelledError + gateway + edit failure) | P3: Lock wrapper with `_already_sent` gate |
+
+Key implementation patterns used:
+- **Content fingerprint**: `hashlib.sha256(f"{chat_id}:{content}".encode()).hexdigest()[:16]` — fast, collision-safe for dedup
+- **Lock-before-flag**: always acquire `_final_delivery_lock` before reading/mutating `_already_sent`, `_final_response_sent`, `_final_content_delivered`
+- **Defensive recording on timeout**: even uncertain deliveries get fingerprinted to prevent retry duplication
+
+**Important**: These patches fix gateway-side (P-15A). Agent-side re-emission (P-15B)
+remains a discipline issue — see P-14 single-ack rule.
+
+See `references/gateway-dedup-patches-2026-06-25.md` for full root cause analysis,
+code diffs, and verification checklist.
+
 ## Anti-patterns
 
 ❌ "Saya pakai MiniMax-M3 dari provider MiniMax." (jumped from header)
@@ -541,6 +798,77 @@ have race conditions worth fixing.
 ✅ "Berdasarkan config.yaml: default=`...` provider=`...`. Tapi kalau
     Bos tanya tentang active session, header bilang Model=`...` Provider=`...`."
 
+### P-19: Sync-state staleness — daemon alive ≠ sync actually working
+
+**Trigger**: Any "is two-way sync two-way?" or "is SOT cloud sync working?" inquiry. Specifically when the suspect component is a long-running change-stream daemon (`ilma_two_way_sync.py`, `ilma-sot-sync-daemon.service`) and the answer must be ground-truth, not "I see the process in `ps`".
+
+**Symptom of failure** (concrete, Sesi 2026-07-02 SOT cloud audit):
+- `ps aux | grep ilma_two_way` shows process alive with up-time of 7+ days
+- `systemctl is-active` says `active`
+- BUT: remote MongoDB auth silently fails at every reconnect attempt
+- The `last_remote_to_local_credentials` timestamp in `_two_way_sync` state-doc is **5+ days stale**
+- The `last_remote_to_local_QuantumTrafficDB` timestamp is **8+ days stale**
+- Result: `ps` says green, actual reality says red
+
+**Root cause classes** (each fails silently):
+
+1. **Env not inherited by orphan daemon** — when a daemon is launched without an systemd unit + `EnvironmentFile=`, it falls back to hard-coded defaults in the script (e.g. `REMOTE_USER = _env.get("ILMA_MONGO_USER", "quantumtraffic")`). Empty `REMOTE_PASS` → `"A password is required"` returned by `--status`. SCRAM-SHA-256 silently retries, never logs loudly enough to attract human attention.
+
+2. **Stale `.env` credentials** — Yapsi admin rotates the password; local `.env` not refreshed. Connection is reachable (TCP 27017 open, `ping` succeeds without auth) but every auth attempt returns `code 18 AuthenticationFailed`.
+
+3. **Wrong service identity** — entirely possible to confuse the two MongoDB daemons. `sot_sync_daemon.py` watches `llm_providers` (LOCAL T1→T2/3 cascade only — never talks to 172.16.103.253). `ilma_two_way_sync.py` is the LOCAL↔CLOUD engine. A green `sot_sync_daemon` proves nothing about cloud sync.
+
+**Verification ladder (3 layers — only layer 3 is ground truth)**:
+
+| Layer | Question | Tool | Catches |
+|---|---|---|---|
+| L1 — Process | Is the daemon running? | `ps -ef \| grep <name>` | Crash, killed process |
+| L2 — Process env | Did it inherit the right credentials? | `cat /proc/<PID>/environ \| grep ILMA_MONGO` | Env not inherited (orphan daemon launch) |
+| L3 — Outbound auth | Can it actually authenticate? | `python -c "from pymongo import MongoClient; ..."` with `.env` creds | Stale `.env`, wrong user, auth source mismatch |
+| L4 — State freshness | When did it last actually transfer data? | MongoDB query to `credentials.sot_sync_state` doc with `_id="_two_way_sync"`, look at `stats.last_local_to_remote_*` and `stats.last_remote_to_local_*` | Auth silently failing, drop-outs not surfacing |
+
+**L4 is the only ground truth**. L1+L2+L3 all green but stale `last_*` timestamps = sync broken.
+
+**Cheat-sheet for L4 (the state-doc probe)**:
+
+```python
+import os, json, pymongo
+env = {}
+with open("/root/.hermes/.env") as f:
+    for line in f:
+        line = line.strip()
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            env[k.strip()] = v.strip()
+
+local = pymongo.MongoClient("127.0.0.1", 27017,
+    username=env["ILMA_MONGO_USER"], password=env["ILMA_MONGO_PASS"],
+    authSource="admin", directConnection=True)
+
+# THE ground-truth probe
+doc = local["credentials"]["sot_sync_state"].find_one({"_id": "_two_way_sync"})
+stats = doc.get("stats", {})
+for direction, ts in stats.items():
+    age = ""
+    if ts:
+        from datetime import datetime, timezone, timedelta
+        delta = datetime.now(timezone.utc) - datetime.fromisoformat(ts)
+        hours = delta.total_seconds() / 3600
+        age = f"  ({hours:.1f}h ago / stale={'YES' if hours > 6 else 'no'})"
+    print(f"  {direction:50s} {ts}{age}")
+
+# Stale = sync is broken even if daemon is running.
+# Recommend a watchdog cron that raises alert when ANY direction > 6h stale.
+```
+
+**Rule (Lock)**: When a sync-engine inquiry arrives, NEVER report "alive" based on `ps` alone. Run L1→L4 every time. If L4 returns stale timestamps but L1-L3 look green, the report MUST say `sync STALE — daemon alive but no successful X→Y transfer in N days` and propose the corrective action (refresh Yapsi creds + restart with proper env).
+
+**Related skills**: `mongodb-two-way-sync` describes the engine and verification ladder; this pitfall adds the **state-staleness as ground-truth** lesson.
+
+See `references/sot-sync-staleness-2026-07-02.md` for full audit transcript.
+
+---
+
 ## See Also
 
 - `references/duplicate-delivery-audit-2026-06-20.md` — concrete
@@ -550,6 +878,13 @@ have race conditions worth fixing.
   `stream_consumer.py` (8 finalize points: 555, 637, 655, 676, 747, 894, 985, 1317)
   + fix proposals. Read this before reporting "response terkirim" for any
   long (>2 KB) or tool-using response.
+- `references/gateway-dedup-patches-2026-06-25.md` — deep gateway-level
+  duplicate-delivery fix (4 files, 6 root causes, SHA-256 content fingerprint
+  dedup, asyncio.Lock atomic flag, per-chunk overflow tracking). Read this
+  alongside the 2026-06-20 audit when investigating any duplicate Telegram
+  delivery that persists after agent-side discipline (P-14) is applied.
+- `references/sot-sync-staleness-2026-07-02.md` — full audit transcript from 2026-07-02 SOT cloud sync verification (env-not-inherited orphan daemon, 5+ day staleness detected via L4 state-doc probe, no-action report because credential fix requires Yapsi admin). Read this BEFORE claiming "two-way sync healthy" based on `ps` alone.
+- `references/cross-handler-param-scope-bug-class-2026-07-01.md` — P-18 trigger reference.
 - `references/repr-sandbox-masking-2026-06-19.md` — concrete Sesi
   2026-06-19 case where output sanitizer masked a live Token Plan key
   as `'sk-cp-...S-Ig'`, and the two-channel verify pattern that
@@ -568,3 +903,10 @@ have race conditions worth fixing.
   (legacy `/root/credential/api_key.json` path).
 - `ilma-runtime-mongodb-migration` — pymongo kwargs-vs-URI pitfall P-72
   and masking presence-check P-74 also apply here.
+- `safe-runtime-patching` — class-level skill covering per-patch evidence
+  gates, ≤30-LOC hotfix rule, GO/NO-GO matrix, and rollback-first protocol
+  when observability degrades. Read this BEFORE planning any multi-stage
+  patch to a production daemon (Apr 2026 wrapper-nvidia Phase 3 lesson).
+- `safe-runtime-patching/references/wrapper-nvidia-phase3-postmortem.md`
+  — concrete transcript of Phase-3 destabilization (459-line patch, 3 bugs,
+  rollback to `f3ede13`) — the case study this skill was extracted from.

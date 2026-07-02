@@ -41,7 +41,7 @@ DB_NAME = "credentials"
 MONGO = dict(
     host="127.0.0.1", port=27017,
     username="ilma_sync",
-    password=(__import__("os").environ.get("ILMA_MONGO_LOCAL_PASS", "ilma_sync_2026_local_rs1")),
+    password=(__import__("os").environ.get("ILMA_MONGO_LOCAL_PASS")),
     authSource="admin", directConnection=True,
     serverSelectionTimeoutMS=5000,
 )

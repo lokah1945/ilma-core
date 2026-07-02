@@ -403,18 +403,33 @@ class SubAgentRouter:
         stateless: bool = False,
     ) -> Dict[str, Any]:
         """Route + execute with automatic re-routing on circuit trip.
-        
+
         Self-healing: If selected model is circuit-tripped or returns empty,
         re-route to healthy model automatically. Continues until working model
         found or all candidates exhausted.
-        
+
         Routing is pure data-driven: model selected based on composite score
         (capability×0.35 + intelligence×0.30 + context×0.10 + trust×0.15 +
         freshness×0.10). No hardcoded primary model.
         """
+        # FIX: Add timeout protection to prevent infinite loops
+        import time as _time
+        start_time = _time.time()
+        MAX_EXECUTION_TIME = 300  # 5 minutes maximum
+
         tried: set = set()  # Models that failed (tracked persistently)
 
         while len(tried) < 20:  # Safety limit
+            # FIX: Check execution timeout
+            if _time.time() - start_time > MAX_EXECUTION_TIME:
+                logger.warning(f"[SUBAGENT] Execution timeout after {MAX_EXECUTION_TIME}s")
+                return {
+                    "success": False,
+                    "content": "",
+                    "model": list(tried)[-1] if tried else "",
+                    "error": f"Execution timeout after {MAX_EXECUTION_TIME} seconds",
+                    "timeout": True,
+                }
             # Route fresh each time — ensures we always pick the current best.
             # Pass tried models as avoid_models so re-routing skips failed ones
             # (else a broken top model like MiniMax is re-picked forever).
@@ -483,6 +498,7 @@ class SubAgentRouter:
             "model": tried_list[-1] if tried_list else "",
             "error": f"No working model after {len(tried_list)} attempts. Tried: {tried_list}",
             "all_failed": True,
+            "error_type": "exhausted",
         }
 
     
@@ -627,6 +643,9 @@ class SubAgentRouter:
                                 f"(SOT pick: {provider}/{model})",
                        "needs_backend": True}
         except Exception as e:
+            logger.error(f"[CAP] Capability execution failed for {cap}: {e}")
+            res = {"success": False, "error": f"{type(e).__name__}: {e}"}
+        except Exception as e:
             res = {"success": False, "error": f"{type(e).__name__}: {e}"}
 
         res.setdefault("capability", cap)
@@ -636,6 +655,10 @@ class SubAgentRouter:
                                "is_free": (decision or {}).get("is_free"),
                                "endpoint_type": (decision or {}).get("endpoint_type"),
                                "score": (decision or {}).get("score")}
+        # FIX: Ensure we always return a valid response structure
+        if not res.get("success"):
+            res["success"] = False
+            res["content"] = res.get("content", "") or ""
         return res
 
     def _image_out_path(self, out_path: Optional[str], ext: str = "jpg") -> str:

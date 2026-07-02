@@ -358,6 +358,15 @@ def _load_master_from_mongodb(self) -> Dict:
   always do `find_one({})` first and inspect actual keys before counting
   on a field. See PITFALL 22 in `ilma-comprehensive-report-writing`.
 
+- **P-75** (Phase MongoDB-Local, 2026-06-23): After installing a local MongoDB
+  replica set (rs1) with two-way sync to remote Yapsi (172.16.103.253), ALL
+  ILMA runtime reads must default to LOCAL (127.0.0.1:27017). Centralized
+  config lives at `sot/ilma_mongo_config.py` — import `MONGO`, `MONGO_LOCAL`,
+  `MONGO_REMOTE`, `get_local_client()`, `get_remote_client()` from there.
+  NEVER hardcode `host="172.16.103.253"` or `username="quantumtraffic"` in
+  new code. The sync daemon (`ilma-sync-daemon.service`) keeps local ↔ remote
+  in sync via change streams; reading from local = zero network latency.
+
 ## Cross-references
 
 - `ilma-sot-migration-mongodb` — complementary skill (data-plane only,

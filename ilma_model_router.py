@@ -1729,8 +1729,8 @@ class ILMAUnifiedRouter:
                 "task_type":      task_type_or_desc,
                 "classified":     task,
                 "allow_paid":     allow,
-                "candidates":    len(candidates) if 'candidates' in dir() else 0,
-                "scored":         len(scored) if 'scored' in dir() else 0,
+                "candidates":    len(candidates) if candidates else 0,
+                "scored":         len(scored) if scored else 0,
                 "fallback_used":  fallback_used,
             }
             if best_result:

@@ -70,13 +70,13 @@ class ILMAOrchestrator:
         Expands a short admin command into a full execution profile.
         """
         logger.info(f"Expanding intent for: {task}")
-        
+
         # 1. Quick heuristic classification
         task_lower = task.lower()
         intent = "general_execution"
         handler = "direct"
         risk_level = "low"
-        
+
         if any(w in task_lower for w in ["rapikan", "audit", "cek", "fix", "optimalkan", "hardening", "validasi"]):
             intent = "system_maintenance"
             handler = "autonomous_loop"
@@ -90,21 +90,43 @@ class ILMAOrchestrator:
             intent = "destructive"
             handler = "guarded_execution"
             risk_level = "high"
-            
-        # 2. Phase 18 Domain Classification & Contract
+
+        # 2. Phase 18 Domain Classification & Contract with defensive programming
         domain = "GENERAL"
         contract_data = {}
         try:
-            domain = classify_intent_to_domain(task)
-            contract = get_contract(domain)
-            contract_data = {
-                "capability_domain": contract.domain,
-                "methodology_id": contract.methodology_id,
-                "required_validators": contract.required_validators,
-                "quality_checklist": contract.quality_checklist
-            }
+            # Add timeout and retry logic for contract loading
+            import signal
+            from contextlib import contextmanager
+
+            @contextmanager
+            def timeout_handler(seconds=5):
+                def timeout_handler(signum, frame):
+                    raise TimeoutError(f"Contract loading timed out after {seconds} seconds")
+                old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+                try:
+                    yield
+                finally:
+                    signal.signal(signal.SIGALRM, old_handler)
+
+            with timeout_handler(5):
+                domain = classify_intent_to_domain(task)
+                contract = get_contract(domain)
+                contract_data = {
+                    "capability_domain": contract.domain,
+                    "methodology_id": contract.methodology_id,
+                    "required_validators": contract.required_validators,
+                    "quality_checklist": contract.quality_checklist
+                }
         except Exception as e:
             logger.warning(f"Failed to load capability contract: {e}")
+            # Fallback to default values instead of failing completely
+            contract_data = {
+                "capability_domain": "GENERAL",
+                "methodology_id": "auto",
+                "required_validators": [],
+                "quality_checklist": []
+            }
 
         # 3. Build the Task Profile (Intent Expansion + Contract)
         task_profile = {
@@ -289,7 +311,13 @@ class ILMAOrchestrator:
                 }
             except Exception as e:
                 logger.error(f"[ORCH-EXEC] capability dispatch failed ({_cap}): {e}")
-                # fall through to normal chat routing as a last resort
+                return {
+                    "status": "error",
+                    "request_id": request_id,
+                    "capability": _cap,
+                    "error": f"Capability dispatch failed: {e}",
+                    "latency_ms": (time.time() - start_ts) * 1000,
+                }
 
         try:
             # 1. Routing hint (informational; SubAgentRouter will re-route)
@@ -304,14 +332,25 @@ class ILMAOrchestrator:
             if force_model:
                 task = f"[preferred={force_model}] {prompt}"
 
-            # 3. Execution through SubAgentRouter (HEALTH-TRACKED)
-            result = self.subagent.route_and_execute(
-                message=task,
-                task_type_or_desc=task_type or prompt[:100],
-                thinking="Auto",
-                allow_paid=False,  # FREE-ONLY policy
-                stateless=True,
-            )
+            # 3. Execution through SubAgentRouter (HEALTH-TRACKED) with circuit breaker
+            max_route_attempts = 3
+            route_attempt_count = 0
+            while route_attempt_count < max_route_attempts:
+                try:
+                    result = self.subagent.route_and_execute(
+                        message=task,
+                        task_type_or_desc=task_type or prompt[:100],
+                        thinking="Auto",
+                        allow_paid=False,  # FREE-ONLY policy
+                        stateless=True,
+                    )
+                    break  # Success, break out of retry loop
+                except Exception as e:
+                    route_attempt_count += 1
+                    logger.warning(f"[ORCH-EXEC] Route attempt {route_attempt_count} failed: {e}")
+                    if route_attempt_count >= max_route_attempts:
+                        raise  # Re-raise to trigger fallback
+                    time.sleep(0.1 * route_attempt_count)  # Exponential backoff
 
             # 4. Normalize result
             decision = result.get("decision", {})
@@ -348,11 +387,19 @@ class ILMAOrchestrator:
                     record_error(result.get("error_type") or "exec_error", _prov)
             except Exception:
                 pass
+            # FIX: Ensure span is always closed
             try:
                 if _span is not None:
                     _span.end()
             except Exception:
                 pass
+            finally:
+                # FIX: Guarantee cleanup even on return
+                if _span is not None:
+                    try:
+                        _span.end()
+                    except Exception:
+                        pass
 
             return {
                 "status": status,

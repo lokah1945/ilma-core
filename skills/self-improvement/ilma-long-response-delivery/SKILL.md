@@ -82,12 +82,32 @@ These are the specific failure modes observed on 2026-06-20:
 ## Evidence Anchors
 
 - 2026-06-20 audit of Telegram delivery duplication — `hermes-agent/gateway/stream_consumer.py` and `hermes-agent/gateway/run.py` were traced. Five delivery paths converge on the last chunk (overflow split, fresh-final, fallback-final, trailing footer, planned-restart startup notification). The fix in Hermes core is non-trivial and out of audit-only scope.
+- **2026-06-26 Hermes core patch session (P5-P6)** — 8 behavior patches (P5+P6) + 4 infra patches (P1-P4) deployed to `stream_consumer.py` and `telegram.py`. See `references/session-20260626-stream-consumer-sealed-split-fix.md` for full trace.
+- **2026-06-26 Hermes core patch session (P7)** — `_normalize_empty_agent_response` in `gateway/run.py` line ~9127 called before `already_sent` gate at line ~9476, injecting spurious "no response generated" fallback on every streaming-delivered turn. Fix: added `and not agent_result.get("already_sent")` guard. This was the **most impactful single fix** — it eliminated the visible duplicate message that all P1-P6 could not catch. See `references/session-20260626-p7-normalize-already-sent-fix.md` for full detail.
 - Gateway log file `/root/.hermes/profiles/master-chief/logs/gateway.log` line `2026-06-20 13:59:27,243` is Bos's previous duplicate-flag event, captured in agent log for cross-reference.
 - Telegram retry + flood handling in `hermes-agent/gateway/platforms/telegram.py:2555-2568` and `_send_with_retry` in `base.py:3423` are the runtime-level amplification paths.
 
+## Debugging Lessons (from 2026-06-26 Hermes core patch session)
+
+When tracing Telegram duplicate delivery in `stream_consumer.py`:
+
+1. **Separate sealed vs. stale IDs** — `_preview_message_ids` mixed two concerns: sealed chunks (carry final content, must keep) and continuation fragments (stale partials, must delete). Splitting into `_sealed_split_ids` + `_preview_message_ids` resolved the conflict.
+2. **Always reset sealed set on segment break** — `_reset_segment_state` must clear `_sealed_split_ids` or false-positive detection in `got_done` blocks legitimate sends.
+3. **Cleanup BEFORE tracking new IDs** — P6 #2 pattern: snapshot old preview IDs → cleanup stale → THEN track new IDs from current edit. If you track first, the cleanup deletes the just-tracked IDs.
+4. **Check sealed set when `_message_id is None`** — proactive split resets `_message_id`, but content was already delivered. The `got_done` path must check `_sealed_split_ids`, not just `_preview_message_ids`.
+5. **Fresh-final is safe for Telegram** — `_adapter_prefers_fresh_final` returns `False`, so `_try_fresh_final` never executes. No need to guard sealed chunks against fresh-final cleanup for Telegram.
+
+See `references/session-20260626-stream-consumer-sealed-split-fix.md` for full patch map and architecture diagram.
+
+6. **P7: `_normalize_empty_agent_response` must respect `already_sent`** — When streaming delivers content incrementally, the agent often returns an empty string. `_normalize_empty_agent_response()` in `gateway/run.py` line ~9127 was called BEFORE the `already_sent` gate at line ~9476. The normalize function saw empty response → injected "⚠️ Processing completed but no response was generated" → duplicate visible to user. **Fix:** `if not _intentional_silence and not agent_result.get("already_sent"):` — skip normalize when streaming already delivered. This was the **most impactful single fix** because it eliminated the spurious "no response generated" fallback message that appeared as a visible duplicate on every streaming-delivered turn.
+7. **Trace finalize flow end-to-end** — Don't stop at `got_done` in `stream_consumer.py`. The response then flows to `run.py` where `_normalize_empty_agent_response` (line ~9127) and `already_sent` gate (line ~9476) process it. If normalize emits a message before the gate blocks it, the duplicate is already sent.
+8. **Ordering matters: normalize BEFORE gate = bug** — Any function that can emit user-visible text must be gated by `already_sent` BEFORE execution, not after. The normalize-gate ordering in `run.py` was the latent bug that P1-P4 and P5-P6 could not catch because it was upstream of all dedup infrastructure.
+
+See `references/session-20260626-p7-normalize-already-sent-fix.md` for the P7 patch detail.
+
 ## What this skill does NOT cover
 
-- Fixing the underlying Hermes stream_final duplication bug (audit-only deliverable — patch payloads are gated behind Bos approval).
+- Fixing the underlying Hermes stream_final duplication bug (audit-only deliverable — patch payloads are gated behind Bos approval). **UPDATE 2026-06-26: Patches now deployed — see reference file. 7 total patches (P1 infrastructure through P7 behavior).**
 - Cron-triggered notifications (separate problem domain).
 - Other channels (Discord, Slack, WhatsApp) — same lesson likely applies but is unverified.
 

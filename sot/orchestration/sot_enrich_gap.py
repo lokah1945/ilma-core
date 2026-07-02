@@ -8,7 +8,7 @@ based on model_id heuristics (avoids API calls, idempotent).
 import re
 from datetime import datetime, timezone
 from pymongo import UpdateOne
-from orchestration.sot_ops import (
+from .sot_ops import (
     get_db, models_coll, audit_coll,
 )
 

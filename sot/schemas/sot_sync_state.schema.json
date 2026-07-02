@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "sot_sync_state",
+  "description": "SOT sync state tracking per provider",
+  "type": "object",
+  "properties": {
+    "resume_tokens": {
+      "type": "dict"
+    },
+    "last_reconcile": {
+      "type": "string",
+      "description": "NoneType"
+    },
+    "stats": {
+      "type": "dict"
+    }
+  },
+  "_auto_generated": true,
+  "_generated_at": "2026-07-01T16:27:41"
+}

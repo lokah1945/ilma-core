@@ -12,6 +12,7 @@ Feature flag: config.yaml `mongodb_connection_manager_enabled` (default: True)
 from __future__ import annotations
 
 import logging
+import os
 import random
 import threading
 import time
@@ -43,8 +44,8 @@ class MongoConnectionManager:
     def get_client(self,
                    host: str = "127.0.0.1",
                    port: int = 27017,
-                   username: str = "ilma_sync",
-                   password: str = (__import__("os").environ.get("ILMA_MONGO_LOCAL_PASS") or "ilma_sync_2026_local_rs1"),
+                   username: str = "",
+                   password: str = os.environ.get("ILMA_MONGO_LOCAL_PASS", ""),
                    authSource: str = "admin",
                    serverSelectionTimeoutMS: int = 5000,
                    socketTimeoutMS: int = 30000,
@@ -52,7 +53,10 @@ class MongoConnectionManager:
                    minPoolSize: int = 1,
                    retryWrites: bool = True,
                    directConnection: bool = True):
-        """Get or create MongoDB client. Returns cached instance if healthy."""
+        """Get or create MongoDB client. Returns cached instance if healthy.
+        
+        v1.1 FIX: If username/password are empty, skip auth entirely (no-auth MongoDB).
+        """
         if self._client is not None:
             return self._client
         return self._create_client(
@@ -63,25 +67,36 @@ class MongoConnectionManager:
         )
 
     def _create_client(self, **kwargs):
-        """Create a new MongoDB client with retry logic."""
+        """Create a new MongoDB client with retry logic.
+        
+        v1.1 FIX: Skip username/password when both are empty → no-auth connection.
+        """
         from pymongo import MongoClient
         from pymongo.errors import OperationFailure, ServerSelectionTimeoutError
 
         for attempt in range(self._max_retries):
             try:
-                self._client = MongoClient(
-                    host=kwargs.get("host"),
-                    port=kwargs.get("port"),
-                    username=kwargs.get("username"),
-                    password=kwargs.get("password"),
-                    authSource=kwargs.get("authSource"),
-                    serverSelectionTimeoutMS=kwargs.get("serverSelectionTimeoutMS", 5000),
-                    socketTimeoutMS=kwargs.get("socketTimeoutMS", 30000),
-                    maxPoolSize=kwargs.get("maxPoolSize", 10),
-                    minPoolSize=kwargs.get("minPoolSize", 1),
-                    retryWrites=kwargs.get("retryWrites", True),
-                    directConnection=True,  # Avoid replica set discovery issues
-                )
+                # v1.1: Build connection kwargs — skip auth if no credentials
+                conn_kwargs = {
+                    "host": kwargs.get("host"),
+                    "port": kwargs.get("port"),
+                    "serverSelectionTimeoutMS": kwargs.get("serverSelectionTimeoutMS", 5000),
+                    "socketTimeoutMS": kwargs.get("socketTimeoutMS", 30000),
+                    "maxPoolSize": kwargs.get("maxPoolSize", 10),
+                    "minPoolSize": kwargs.get("minPoolSize", 1),
+                    "retryWrites": kwargs.get("retryWrites", True),
+                    "directConnection": True,  # Avoid replica set discovery issues
+                }
+                _user = kwargs.get("username", "")
+                _pass = kwargs.get("password", "")
+                if _user and _pass:
+                    conn_kwargs["username"] = _user
+                    conn_kwargs["password"] = _pass
+                    conn_kwargs["authSource"] = kwargs.get("authSource", "admin")
+                else:
+                    logger.info("[MongoManager] No auth credentials provided — connecting without auth")
+
+                self._client = MongoClient(**conn_kwargs)
                 # Verify with ping
                 self._client.admin.command("ping")
                 self._last_connected = time.time()

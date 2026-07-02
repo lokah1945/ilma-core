@@ -1,0 +1,92 @@
+{
+  "jobs": [
+    {
+      "id": "2e8463c3e57f",
+      "name": "ILMA Daily Optimization",
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * *",
+        "display": "0 9 * * *"
+      },
+      "enabled": true,
+      "prompt": "Run ILMA comprehensive optimization...",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "enabled_toolsets": [
+        "terminal",
+        "file",
+        "web"
+      ],
+      "workdir": "/root/.hermes/profiles/ilma",
+      "no_agent": false,
+      "created_at": "2026-05-10T09:00:00Z",
+      "last_run": null,
+      "last_error": null,
+      "status": "pending",
+      "next_run_at": "2026-06-30T09:00:00+07:00",
+      "last_run_at": "2026-06-29T09:31:31.530568+07:00",
+      "last_status": "ok",
+      "last_delivery_error": null,
+      "fire_claim": null,
+      "state": "scheduled"
+    },
+    {
+      "id": "a115de75d3ef",
+      "name": "ILMA Hourly Optimizer",
+      "schedule": "0 * * * *",
+      "enabled": false,
+      "prompt": "Run comprehensive ILMA system optimization \u2014 Hermes update, capability scan, auto-wire, workflow/pipeline E2E check, wiring verification, health check, self-improvement cycle, git sync.\n\nExecute:\n```\ncd /root/.hermes/profiles/ilma && python3 ilma_optimizer_daemon.py\n```\n\nThe daemon handles all 8 steps internally. Report only the final summary output.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "enabled_toolsets": [
+        "terminal",
+        "file",
+        "web"
+      ],
+      "workdir": "/root/.hermes/profiles/ilma",
+      "no_agent": true,
+      "created_at": "2026-05-10T11:00:00Z",
+      "last_run": null,
+      "last_error": null,
+      "status": "pending",
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "next_run_at": "2026-06-06T05:03:56.304295+07:00",
+      "script": "python3 ilma_optimizer_daemon.py"
+    },
+    {
+      "id": "bf9ad9925449",
+      "name": "ILMA Model DB Sync (safe-build)",
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 0,12 * * *",
+        "display": "0 0,12 * * *"
+      },
+      "enabled": true,
+      "prompt": "Run DB sync.",
+      "skills": [],
+      "no_agent": true,
+      "script": "ilma_safe_build_and_push.sh",
+      "workdir": "/root/.hermes/profiles/ilma",
+      "created_at": "2026-06-04T22:00:00Z",
+      "last_run": null,
+      "last_error": "Script exited with code 1\nstderr:\n12:01:29 \u2705 MASTER saved (+ backup PROVIDER_INTELLIGENCE_MASTER_20260629_120129.json)\n12:01:29 \u2705 Benchmark DB saved (+ backup benchmark_database_20260629_120129.json)\nTraceback (most recent call last):\n  File \"/root/.hermes/profiles/ilma/scripts/ilma_model_db_manager.py\", line 1225, in <module>\n    mgr.full_sync()\n  File \"/root/.hermes/profiles/ilma/scripts/ilma_model_db_manager.py\", line 1103, in full_sync\n    r3 = self.enrich()\n         ^^^^^^^^^^^^^\n  File \"/root/.hermes/profiles/ilma/scripts/ilma_model_db_manager.py\", line 878, in enrich\n    aa_index = self.sync_artificialanalysis()\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.hermes/profiles/ilma/scripts/ilma_model_db_manager.py\", line 768, in sync_artificialanalysis\n    records = cache.get(\"records\", [])\n              ^^^^^^^^^\nAttributeError: 'list' object has no attribute 'get'\nstdout:\n[2026-06-29T05:00:57Z] STEP 1: BUILD \u2014 running /root/.hermes/profiles/ilma/scripts/ilma_model_db_manager.py --full-sync\n\n============================================================\nILMA MODEL DB MANAGER \u2014 FULL SYNC v6.0\n============================================================\n\n[STEP 1/3] sync_providers()...\n[ProviderSync] openrouter: 339 live models (+0 -0 ~339)\n[ProviderSync] opencode: 20 live models (+0 -0 ~20)\n[ProviderSync] nvidia: 121 live models (+0 -0 ~121)\n[ProviderSync] minimax: 8 live models (+0 -0 ~8)\n[ProviderSync] blackbox: \u274c <urlopen error timed out>\n[ProviderSync] ollama: \u274c <urlopen error [Errno 111] Connection refused>\n[ProviderSync] xai: 9 live models (+0 -0 ~9)\n[ProviderSync] openai: 120 live models (+0 -0 ~120)\n[ProviderSync] google: 50 live models (+0 -0 ~50)\n[ProviderSync] alibaba: 148 live models (+0 -0 ~148)\n[ProviderSync] groq: 17 live models (+0 -0 ~17)\n[ProviderSync] together: 267 live models (+0 -0 ~267)\n[ProviderSync] cerebras: 2 live models (+0 -0 ~2)\n[ProviderSync] nous: 266 live models (+0 -0 ~266)\n[ProviderSync] aimlapi: 616 live models (+0 -0 ~616)\n[ProviderSync] byteplus: 48 live models (+0 -0 ~48)\n[ProviderSync] bytez: \u274c HTTP 404: <!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /v1/models</pre>\n</body>\n</html>\n\n[ProviderSync] felo: \u274c HTTP 401: {\"detail\":{\"error_type\":\"unauthorized\",\"message\":\"Unauthorized\"}}\n[ProviderSync] cloudflare: configured but skip_sync=True\n[ProviderSync] artificial_analysis: configured but skip_sync=True\n[ProviderSync] \u2705 Synced 14/18 providers\n\n[STEP 3/4] run_passive_benchmark()...\n[PassiveBench] Parsed 0 usage entries\n[PassiveBench] 0 models aggregated \u2014 updated:0 added:0 unchanged:0 insufficient:0\n\n[STEP 4/4] enrich() \u2014 POLICY-AWARE + AA benchmark integration...\n[2026-06-29T05:01:30Z] STEP 1: BUILD FAILED (exit=0)",
+      "status": "pending",
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "next_run_at": "2026-06-30T00:00:00+07:00",
+      "skill": null,
+      "last_run_at": "2026-06-29T12:01:30.123464+07:00",
+      "last_status": "error",
+      "last_delivery_error": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-06-29T12:01:30.124357+07:00"
+}

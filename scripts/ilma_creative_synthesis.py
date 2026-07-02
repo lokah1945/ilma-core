@@ -108,7 +108,7 @@ class CreativeSynthesisEngine:
                 creativity_type=creativity_type,
                 novelty=novelty,
                 usefulness=usefulness,
-                connections=list(concepts) if 'concepts' in dir() else []
+                connections=list(concepts)
             )
             
             self.ideas.append(idea)

@@ -830,10 +830,12 @@ def _phase_implement(task: str, state: ECCIntegrationState) -> dict:
             impl_output = _r.get("content", "")
     except Exception as _e:
         logger.warning(f"[ECC] implement exec failed: {_e}")
+    # _r is initialized in try block, check if it exists using locals()
+    _model_value = _r.get("model") if '_r' in locals() and isinstance(_r, dict) else None
     return {
         **exec_context,
         "output": impl_output,
-        "model": (_r.get("model") if "_r" in dir() else None),
+        "model": _model_value,
         "implementation_summary": (f"Implemented {delegate_type} ({len(impl_output)} chars) for {len(targets)} target(s)"
                                    if impl_output else f"Prepared {delegate_type} delegation for {len(targets)} target(s)"),
     }
@@ -1894,7 +1896,7 @@ def run_workflow(task: str) -> dict:
         "verification": verification,
         "learning": {
             "integrated": "LAYER_9_SELF_IMPROVE",
-            "status": learning_status if 'learning_status' in dir() else "skipped",
+            "status": learning_status if learning_status else "skipped",
             "auto_tuned": True,
         },
         "elapsed_seconds": round(elapsed, 2),

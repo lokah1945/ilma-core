@@ -40,10 +40,38 @@ L7 Application Layer API Gateway that intelligently routes requests to optimal f
 ### Provider Chain (Failover)
 
 ```
-CODING → NVIDIA Qwen → OpenRouter DeepSeek → Groq Mixtral → HuggingFace Qwen
-CONTENT → OpenRouter Llama → NVIDIA Llama → Groq Llama → HuggingFace Llama
-REASONING → NVIDIA Qwen → Groq Mixtral → OpenRouter Mixtral
+CODING → NVIDIA Qwen → OpenRouter DeepSeek → Groq Mixtral → HuggingFace Qwen → OpenCode Zen Free
+CONTENT → OpenRouter Llama → NVIDIA Llama → Groq Llama → HuggingFace Llama → OpenCode Zen Free
+REASONING → NVIDIA Qwen → Groq Mixtral → OpenRouter Mixtral → OpenCode Zen Free
 ```
+
+### OpenCode Zen (Free-No-Auth Provider)
+
+OpenCode Zen offers **5 free models without authentication** — a
+zero-cost fallback when all other providers are rate-limited or down.
+
+| Model ID | Backend | Use Case |
+|----------|---------|----------|
+| `deepseek-v4-flash-free` | DeepSeek V4 Flash | CODING, REASONING |
+| `mimo-v2.5-free` | Xiaomi MiMo V2.5 | REASONING, RESEARCH |
+| `nemotron-3-ultra-free` | NVIDIA Nemotron 3 Ultra | REASONING, RESEARCH |
+| `north-mini-code-free` | Cohere North Mini Code | CODING |
+| `big-pickle` | DeepSeek V4 Flash | CODING, CONTENT |
+
+**Endpoint:** `https://opencode.ai/zen/v1` (NOT the legacy `/zen/go/v1`)
+**Auth:** Free models — none needed (omit Bearer header). Paid models — Bearer token required.
+**Limitation:** No streaming confirmed; max_tokens may be capped; no vision/image.
+
+**Usage:**
+```bash
+curl -s "https://opencode.ai/zen/v1/chat/completions" \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"deepseek-v4-flash-free","messages":[{"role":"user","content":"..."}],"max_tokens":50}'
+```
+
+This provider is **always available** as long as the OpenCode API is
+up — no key rotation, no quota exhaustion for free models. Ideal as
+last-resort failover in the provider chain.
 
 ### Features
 

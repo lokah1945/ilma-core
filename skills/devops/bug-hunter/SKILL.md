@@ -275,6 +275,33 @@ Path: `~/.hermes/profiles/ilma/bug_hunter_heuristics.json`
 }
 ```
 
+## Evolved Heuristics (from sessions, auto-accumulated)
+
+### H-2: asyncio race condition on delivery flags (class: race_condition)
+**First seen:** 2026-06-25 (gateway duplicate delivery bug)
+**Signature:** concurrent calls reading `_already_sent=False` and both proceeding
+**Auto-classify:** HIGH — causes user-visible duplicate messages
+**Suggested action:** Add `asyncio.Lock()` before reading/mutating shared delivery flags;
+only confirm delivery if the actual send call succeeded; split wrapper method
+with locked guard + unlocked implementation.
+**Playbook:** lock-before-flag pattern — `async with lock: if flag: return; await impl(); flag = True`
+
+### H-3: Content fingerprint dedup for message retry (class: retry_duplicate)
+**First seen:** 2026-06-25 (overflow_split retry re-sent chunks already on screen)
+**Signature:** `_send_with_retry` retry loop re-sends same content that was partially delivered
+**Auto-classify:** MEDIUM — requires both partial delivery + retry to trigger
+**Suggested action:** SHA-256 fingerprint of (chat_id, content) stored in LRU dict with TTL;
+check before each send attempt; record on success AND on timeout (defensive).
+**Playbook:** `hashlib.sha256(f"{chat_id}:{content}".encode()).hexdigest()[:16]` → `_recent_sends[fp] = time.monotonic()`
+
+### H-4: False-positive "already delivered" flags (class: flag_miscalibration)
+**First seen:** 2026-06-25 (`response_previewed = stream_consumer is not None and bool(full_response)`)
+**Signature:** flag named like "delivered" but actually means "content accumulated"
+**Auto-classify:** HIGH — suppresses the gateway's own fallback send, causing no-delivery
+**Suggested action:** Audit every `*_sent`/`*_delivered`/`*_previewed` flag: does it prove
+actual adapter send success, or just internal state? If后者, rename or add requirement.
+**Playbook:** `response_delivered = flag AND getattr(obj, "final_content_delivered", False)`
+
 ## Pitfalls (jangan dilanggar)
 
 ### ❌ Jangan Fix Tanpa Root Cause

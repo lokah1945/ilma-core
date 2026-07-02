@@ -17,7 +17,7 @@ This migration is IDEMPOTENT — safe to re-run.
 """
 import sys
 from datetime import datetime, timezone
-from orchestration.sot_ops import (
+from .sot_ops import (
     get_db, get_client, models_coll, benchmarks_coll, intelligence_coll,
     llm_providers_coll, providers_coll, audit_coll, jobs_coll
 )

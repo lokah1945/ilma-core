@@ -179,6 +179,39 @@
     "t1_source_status": {
       "type": "string",
       "description": "unmapped_no_t1_foundation when no T1 source exists."
+    },
+    "_aggregate_backfilled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "capabilities_summary": {
+      "type": "object"
+    },
+    "endpoints_updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "force_free": {
+      "type": "boolean"
+    },
+    "is_active": {
+      "type": "boolean"
+    },
+    "is_sot_for": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "key_purposes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "t1_source_at": {
+      "type": "string",
+      "format": "date-time"
     }
   }
 }

@@ -480,6 +480,16 @@ if strict.get("error"):
 
 Phase 73 implementation details (pitfalls, E2E verification transcript, SOT data-plane snapshot, Phase 73a roadmap): see `references/phase-73-dispatcher-build-2026-06-21.md`.
 
+Wrapper audit & SOT sync pattern (probe → chat-test → sync T3 → register T1): see `references/wrapper-audit-sync-pattern-2026-06-29.md`.
+
+## Local wrappers (verified 2026-06-29)
+
+| Wrapper | Port | Models | SOT T1 | SOT T3 | Systemd |
+|---------|------|--------|--------|--------|---------|
+| wrapper-nvidia | 9100 | 121 | ✅ registered | ✅ 121 synced | ❌ manual |
+| wrapper-antigravity | 9101 | 147 | ✅ registered | ✅ 147 synced | ❌ manual |
+| wrapper-cloudflare | 9104 | — | ✅ registered | — | ✅ |
+
 ## Cross-references
 
 - `ilma-sot-credential-retrieval` — operator read-only path on the

@@ -783,10 +783,11 @@ async def generate(
     except Exception as e:
         latency_ms = (time.perf_counter() - start) * 1000
         logger.error(f"[ilma_client] generate() exception: {e}")
+        # Variables are already initialized above, use them directly
         return GenerateResult(
             content="",
-            model_id=model_id if 'model_id' in dir() else "unknown",
-            provider=provider if 'provider' in dir() else "unknown",
+            model_id=model_id if model_id else "unknown",
+            provider=provider if provider else "unknown",
             latency_ms=latency_ms,
             success=False,
             error=str(e),

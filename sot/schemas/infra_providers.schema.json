@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "infra_providers",
+  "description": "Infrastructure provider registry",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "docs_url": {
+      "type": "string"
+    },
+    "api_endpoint": {
+      "type": "string"
+    },
+    "git_host": {
+      "type": "string"
+    },
+    "token_type": {
+      "type": "string"
+    },
+    "token_scopes_default": {
+      "type": "list"
+    },
+    "git_capabilities": {
+      "type": "dict"
+    },
+    "git_docs_url": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "integer"
+    },
+    "schema_note": {
+      "type": "string"
+    },
+    "accounts": {
+      "type": "dict"
+    },
+    "default_account": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "rotation_policy": {
+      "type": "dict"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "updated_by": {
+      "type": "string"
+    },
+    "evidence_id": {
+      "type": "string"
+    }
+  },
+  "_auto_generated": true,
+  "_generated_at": "2026-07-01T16:27:41"
+}

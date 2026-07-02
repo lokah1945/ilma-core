@@ -1,9 +1,9 @@
 {
-  "last_report_path": "/root/.hermes/profiles/ilma/logs/curator/20260620-003224",
-  "last_run_at": "2026-06-20T00:32:24.196509+00:00",
-  "last_run_duration_seconds": 1.759275,
+  "last_report_path": "/root/.hermes/profiles/ilma/logs/curator/20260627-003451",
+  "last_run_at": "2026-06-27T00:34:51.481529+00:00",
+  "last_run_duration_seconds": 1.952438,
   "last_run_summary": "auto: no changes; llm: skipped (consolidation off)",
-  "last_run_summary_shown_at": "2026-06-05T23:45:36.827586+00:00",
+  "last_run_summary_shown_at": "2026-06-27T00:34:51.481529+00:00",
   "paused": false,
-  "run_count": 6
+  "run_count": 7
 }

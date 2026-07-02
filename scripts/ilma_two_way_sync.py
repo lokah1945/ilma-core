@@ -93,22 +93,126 @@ def _load_env():
     return env
 
 
-# Local MongoDB config
+# Local MongoDB config — Permissive credential resolution from .env or env
+def _resolve_local_creds():
+    """Read local MongoDB credentials. Tries env first, then .env file."""
+    user = os.environ.get("ILMA_MONGO_LOCAL_USER") or os.environ.get("ILMA_MONGO_USER")
+    pwd  = os.environ.get("ILMA_MONGO_LOCAL_PASS") or os.environ.get("ILMA_MONGO_PASS")
+    if not user or not pwd:
+        # Fallback to .env file (no-shell required)
+        try:
+            env_path = "/root/.hermes/.env"
+            if os.path.exists(env_path):
+                with open(env_path) as _f:
+                    for ln in _f:
+                        ln = ln.strip()
+                        if "=" in ln and not ln.startswith("#"):
+                            k, v = ln.split("=", 1)
+                            k, v = k.strip(), v.strip()
+                            if k == "ILMA_MONGO_USER" and not user:
+                                user = v
+                            if k == "ILMA_MONGO_PASS" and not pwd:
+                                pwd = v
+        except Exception:
+            pass
+    if not user:
+        user = "ilma_sync"
+    if not pwd:
+        # Last-resort: try getpass-style keyring or raise
+        pwd = ""
+    return user, pwd
+
 LOCAL_HOST = "127.0.0.1"
 LOCAL_PORT = 27017
-LOCAL_USER = "ilma_sync"
-LOCAL_PASS = "ilma_sync_2026_local_rs1"
+LOCAL_USER, LOCAL_PASS = _resolve_local_creds()
 LOCAL_AUTH_DB = "admin"
 LOCAL_REPL_SET = "rs1"
 
-# Remote MongoDB config (loaded from .env)
+
+def _resolve_remote_from_sot():
+    """Pull remote MongoDB credential FROM SOT (credentials.infra_providers).
+    Priority: provider='mongodb-cloud' / accounts.bos.
+    Returns dict with host/port/username/password/auth_source/replica_set or None.
+    Falls back to .env when SOT lookup fails (daemon robustness).
+    """
+    try:
+        import pymongo
+        env = _load_env()
+        # Use whichever local credential key exists in .env:
+        # prefer ILMA_MONGO_LOCAL_USER, fall back to ILMA_MONGO_USER (both are 'ilma_sync'@rs1 here).
+        local_user = env.get("ILMA_MONGO_LOCAL_USER") or env.get("ILMA_MONGO_USER") or "ilma_sync"
+        local_pass = env.get("ILMA_MONGO_LOCAL_PASS") or env.get("ILMA_MONGO_PASS")
+        c = pymongo.MongoClient(
+            "127.0.0.1", 27017,
+            username=local_user, password=local_pass,
+            authSource="admin", directConnection=True,
+            serverSelectionTimeoutMS=4000,
+        )
+        doc = c["credentials"]["infra_providers"].find_one({"provider": "mongodb-cloud", "is_active": True})
+        c.close()
+        if doc:
+            accts = doc.get("accounts") or {}
+            acct = accts.get(doc.get("default_account")) or next(iter(accts.values()), None)
+            if acct:
+                # api_token can be either a URI string or a raw password — try URI parse first
+                tok = (acct.get("api_token") or "").strip()
+                host = doc.get("host") or "172.16.103.253"
+                port = int(doc.get("port") or 27017)
+                user, password = None, None
+                if tok.startswith("mongodb://") or tok.startswith("mongodb+srv://"):
+                    from urllib.parse import urlparse
+                    u = urlparse(tok)
+                    user = u.username
+                    password = u.password
+                    if u.port:
+                        port = u.port
+                    qs = (u.query or "")
+                    if qs:
+                        from urllib.parse import parse_qs
+                        q = parse_qs(qs)
+                        if "replicaSet" in q:
+                            # keep doc.replica_set if present
+                            pass
+                    if u.hostname:
+                        host = u.hostname
+                else:
+                    user = doc.get("default_account_username", "quantumtraffic")
+                    password = tok
+                return {
+                    "host": host,
+                    "port": port,
+                    "username": user,
+                    "password": password,
+                    "auth_source": doc.get("auth_source", "admin"),
+                    "replica_set": doc.get("replica_set", "rs0"),
+                    "source": "SOT:credentials.infra_providers[mongodb-cloud]",
+                    "evidence_id": doc.get("evidence_id"),
+                }
+    except Exception:
+        pass
+    return None
+
+
+# Remote MongoDB config — SOT-FIRST, .env-FALLBACK
+_SOT_REMOTE = _resolve_remote_from_sot()
 _env = _load_env()
-REMOTE_HOST = _env.get("ILMA_MONGO_HOST", "172.16.103.253")
-REMOTE_PORT = int(_env.get("ILMA_MONGO_PORT", "27017"))
-REMOTE_USER = _env.get("ILMA_MONGO_USER", "quantumtraffic")
-REMOTE_PASS = _env.get("ILMA_MONGO_PASS", "")
-REMOTE_AUTH_DB = _env.get("ILMA_MONGO_AUTHSRC", "admin")
-REMOTE_REPL_SET = "rs0"
+
+if _SOT_REMOTE:
+    REMOTE_HOST = _SOT_REMOTE["host"]
+    REMOTE_PORT = _SOT_REMOTE["port"]
+    REMOTE_USER = _SOT_REMOTE["username"]
+    REMOTE_PASS = _SOT_REMOTE["password"]
+    REMOTE_AUTH_DB = _SOT_REMOTE["auth_source"]
+    REMOTE_REPL_SET = _SOT_REMOTE["replica_set"]
+    _REMOTE_SOURCE = _SOT_REMOTE["source"]
+else:
+    REMOTE_HOST = _env.get("ILMA_MONGO_HOST", "172.16.103.253")
+    REMOTE_PORT = int(_env.get("ILMA_MONGO_PORT", "27017"))
+    REMOTE_USER = _env.get("ILMA_MONGO_USER", "quantumtraffic")
+    REMOTE_PASS = _env.get("ILMA_MONGO_PASS", "")
+    REMOTE_AUTH_DB = _env.get("ILMA_MONGO_AUTHSRC", "admin")
+    REMOTE_REPL_SET = "rs0"
+    _REMOTE_SOURCE = "ENV:.hermes/.env"
 
 # Databases to sync with conflict policy
 SYNC_DATABASES = {

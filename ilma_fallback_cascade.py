@@ -257,7 +257,7 @@ class FallbackCascadeEngine:
 
             except Exception as e:
                 error_type = classify_error(str(e))
-                elapsed_ms = (time.perf_counter() - start) * 1000 if 'start' in dir() else 0
+                elapsed_ms = (time.perf_counter() - start) * 1000 if start else 0
 
                 errors.append({
                     "model": f"{provider}/{model_id}",

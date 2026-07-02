@@ -502,24 +502,35 @@ Before doing anything else in each session:
 **Masalah:** TUI watchdog timeout karena sequential exec blocking.
 **Solusi:** Jangan pernah buat session diam >20 detik saat aktif bekerja.
 
-## 🛑 ANTI-DUPLICATE-FINAL RULES (CRITICAL — 2026-06-20)
+## 🛑 ANTI-DUPLICATE-FINAL RULES (CRITICAL — 2026-06-26 v2 — INFRASTRUCTURE PATCHED)
 
-**Bug:** Pada sesi workflow audit (12 KB response), final kesimpulan terkirim **50x identik** ke Telegram dalam waktu <60 detik. Root cause ada di banyak lapisan (stream consumer race + Telegram overflow_split flood retry + base.py _send_with_retry whole-message retry + footer trailing). Layer Hermes core belum di-patch.
+**Bug Awal:** Pada sesi workflow audit (12 KB response), final kesimpulan terkirim **50x identik** ke Telegram dalam waktu <60 detik. Root cause ada di banyak lapisan (stream consumer race + Telegram overflow_split flood retry + base.py _send_with_retry whole-message retry + footer trailing).
 
-**Aturan WAJIB ILMA untuk eliminasi duplikat:**
+**Status Infrastruktur (2026-06-26):** 4 patch berlapis DITERAPKAN di Hermes core:
+
+| Patch | File | Mekanisme | Status |
+|-------|------|-----------|--------|
+| P1 | `base.py` `_send_with_retry` | Content-fingerprint LRU dedup guard — skips send jika content sama ke chat_id sama dalam TTL | ✅ ACTIVE |
+| P2 | `run.py` line ~16310 | `already_sent` gate diperkuat: cek `_streamed + _previewed + _content_delivered + _sc_already_sent`. `response_previewed` sekarang pakai `final_content_delivered` bukan `bool(full_response)` | ✅ ACTIVE |
+| P3 | `stream_consumer.py` | `final_response_sent` atomic flag + `CancelledError` race fix + `_fallback_lock` mutual exclusion untuk fallback-send path | ✅ ACTIVE |
+| P4 | `telegram.py` `overflow_split` | Per-chunk delivery fingerprint — setiap chunk yang berhasil dikirim di-record ke dedup cache. Retry path melewati fingerprint ini → skip | ✅ ACTIVE |
+
+**Aturan WAJIB ILMA untuk eliminasi duplikat (behavior-level, komplementer ke infra patch):**
 
 1. **JANGAN Re-emit Final Response Body.**
    - Setelah turn tool-call selesai dan gateway push body via stream, JANGAN panggil `send_message` tool lagi dengan body yang sama.
+   - Infra dedup (P1) akan block, tapi jangan andalkan ini sebagai satu-satunya guard — behavior-level harus bersih juga.
    - Jika ragu, end turn dengan marker `✅ terkirim 1x` — SELESAI. Bukan dengan block kesimpulan penuh.
 
 2. **One-Message-Per-Turn Discipline.**
    - 1 turn = 1 konklusi final yang sampai ke user.
    - Tidak boleh ada pengulangan emit dengan teks yang sama byte-for-byte.
-   - Lihat skill `ilma-state-verify-before-report` untuk audit recipe.
+   - Infra P1 fingerprint guard akan catch ini, tapi best practice: jangan emit dua kali.
 
 3. **Konklusi Panjang (>2 KB) Harus di-Chunk dengan Sadar.**
-   - Jika konklusi panjang, formulakan dalam 1 message utuh dengan acknowledgment `Pesan lengkap` di awal, bukan break + repeat.
-   - Telegram overflow_split akan chunk otomatis; ILMA tidak boleh pre-chunk manual via multiple `send_message` call.
+   - Jika konklusi panjang, formulakan dalam 1 message utuh — Telegram overflow_split akan chunk otomatis.
+   - Infra P4 per-chunk fingerprint memastikan retry tidak kirim ulang chunk yang sudah delivered.
+   - ILMA TIDAK boleh pre-chunk manual via multiple `send_message` call.
 
 4. **Stop-After-Wrap Pattern.**
    - Setelah emit konklusi, stop. Tidak ada "Saya ulangi", "Sebagai ringkasan", "Berikut kesalahan saya", dll.
@@ -536,8 +547,12 @@ Before doing anything else in each session:
 
 6. **Audit saat Bos Report Duplicate (recipe dari skill):**
    ```bash
+   # Cek infra dedup logs
+   grep 'ILMA-DEDUP' /root/.hermes/hermes-agent/logs/*.log | tail -20
+   
    # Cek session DB duplikat eksplisit
    python3 -c "import sqlite3; ..."
+   
    # Cek request_dump flags
    LATEST=$(ls -t /root/.hermes/profiles/ilma/sessions/request_dump_* | head -1)
    python3 -c "import json; d=json.load(open('\$LATEST')); print({k: d.get(k) for k in ['final_response','already_sent','response_previewed','response_transformed']})"
@@ -547,8 +562,14 @@ Before doing anything else in each session:
 - [ ] Sudah cek apakah ini duplicate body dari pesan yang baru terkirim?
 - [ ] Marker `✅ terkirim 1x` ada di akhir?
 - [ ] Tidak ada rencana untuk follow-up "Sebagai catatan tambahan..."?
+- [ ] Infra dedup (P1-P4) aktif — tapi jangan rely solely, behavior must be clean
 
-**Referensi kode:** Lihat `skills/ilma-self-improvement/ilma-state-verify-before-report/references/duplicate-delivery-audit-2026-06-20.md` untuk evidence + Fix-3 (high risk).
+**Referensi kode:**
+- `gateway/platforms/base.py` — `_send_with_retry` dedup guard (P1)
+- `gateway/run.py` ~L16310 — `already_sent` gate (P2)
+- `gateway/stream_consumer.py` — `final_response_sent` + `_fallback_lock` (P3)
+- `gateway/platforms/telegram.py` — `overflow_split` per-chunk fingerprint (P4)
+- `skills/ilma-self-improvement/ilma-state-verify-before-report/references/duplicate-delivery-audit-2026-06-20.md`
 
 ### Rules:
 

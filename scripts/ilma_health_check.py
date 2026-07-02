@@ -346,7 +346,7 @@ class ILMAHealthCheck:
             ("ilma_capability_registry.py", "Capability Registry"),
             ("ilma_evidence_validator.py", "Evidence Validator"),
             ("scripts/ilma_db_pipeline.py", "DB Pipeline"),
-            ("scripts/ilma_benchmark_autoloop.py", "Benchmark Autoloop"),
+            ("scripts/ilma_passive_benchmark.py", "Passive Benchmark Enricher"),
         ]
 
         found: List[str] = []
@@ -359,9 +359,12 @@ class ILMAHealthCheck:
             else:
                 missing.append(desc)
 
+        # BUG-FIX 2026-07-01: initialize details to avoid UnboundLocalError
+        details = ""
         if missing:
             errors.append(f"Missing files: {missing}")
             status = "ERROR"
+            details = f"Pipeline wiring: {len(missing)} files missing"
         elif len(found) == len(critical_files):
             details = f"Pipeline wiring: all {len(found)} critical files present"
             status = "OK"

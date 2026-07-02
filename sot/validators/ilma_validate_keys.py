@@ -44,7 +44,7 @@ from sot_api_key_middleware import safe_update_provider  # noqa: E402
 # ── MongoDB connection (same pattern as the rest of SOT) ──────────────────────
 MONGO_HOST = "127.0.0.1"
 MONGO_PORT = 27017
-MONGO_USER = "quantumtraffic"
+MONGO_USER = "ilma_sync"
 MONGO_PASS = (__import__("os").environ.get("ILMA_MONGO_PASS")
               or next((_l.split("=", 1)[1].strip()
                        for _l in open("/root/.hermes/.env")

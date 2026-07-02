@@ -466,7 +466,7 @@ def phase_model_pipeline() -> OptimizationPhase:
             if rc == 0: steps_ok += 1; details.append("callable✅")
             else: details.append("callable❌")
         # 4b) specialization DB re-score (measured)
-        spec = ILMA_DIR / "ilma_spec_db_measured.py" if "ILMA_DIR" in dir() else None
+        spec = PROFILE_DIR / "ilma_spec_db_measured.py"
         try:
             import os as _os
             _sp = _os.path.join("/root/.hermes/profiles/ilma", "ilma_spec_db_measured.py")

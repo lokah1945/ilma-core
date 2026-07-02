@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import logging
+logger = logging.getLogger(__name__)
 """
 sot_fix.py — Fix known SOT bugs in MongoDB collections.
 ========================================================

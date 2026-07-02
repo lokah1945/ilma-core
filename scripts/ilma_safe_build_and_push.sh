@@ -96,11 +96,16 @@ esac
 log "STEP 3: PUSH — git add + commit + push"
 cd "$PROFILE" || { log "STEP 3: cannot cd to $PROFILE"; exit 1; }
 
-# Add SOT (always tracked).  Skip benchmark_database.json if gitignored
-# (git add fails on gitignored files; that's expected, not an error).
+# Add SOT (always tracked). The SOT may be gitignored by design (large file);
+# in that case upstream workflow expects force-add so the artifact ships.
 if ! git add ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json 2>>"$LOG"; then
-    log "STEP 3: git add SOT FAILED"
-    exit 1
+    log "STEP 3: plain git add skipped (gitignored) — trying force add"
+    if ! git add -f ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json 2>>"$LOG"; then
+        log "STEP 3: git add SOT FAILED (even with -f)"
+        exit 1
+    else
+        log "STEP 3: SOT force-added successfully"
+    fi
 fi
 # Try to add benchmark only if not gitignored
 if ! git check-ignore ilma_model_router_data/benchmark_database.json >/dev/null 2>&1; then

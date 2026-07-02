@@ -21,6 +21,7 @@ Evidence: Patch _run_browser_command as sentinel, call browser_click
 import sys
 import json
 import asyncio
+import os
 import unittest.mock as mock
 from unittest.mock import patch, MagicMock
 from io import StringIO

@@ -8,7 +8,7 @@ DO NOT replace original model_id. Just compute and store.
 import re
 from datetime import datetime, timezone
 from pymongo import UpdateOne
-from orchestration.sot_ops import get_db, audit_coll
+from .sot_ops import get_db, audit_coll
 
 
 def normalize(mid: str) -> str:

@@ -11,7 +11,7 @@ compute a heuristic composite_score based on:
 """
 from datetime import datetime, timezone
 from pymongo import UpdateOne
-from orchestration.sot_ops import get_db, audit_coll
+from .sot_ops import get_db, audit_coll
 
 
 def derive_composite_score(doc: dict) -> float:

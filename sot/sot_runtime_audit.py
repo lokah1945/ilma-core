@@ -34,11 +34,13 @@ import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, Set
 from collections import Counter
+import logging
+logger = logging.getLogger(__name__)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 MONGO_HOST = "127.0.0.1"
 MONGO_PORT = 27017
-MONGO_USER = "quantumtraffic"
+MONGO_USER = "ilma_sync"
 MONGO_PASS = (__import__("os").environ.get("ILMA_MONGO_PASS") or next((_l.split("=",1)[1].strip() for _l in open("/root/.hermes/.env") if _l.startswith("ILMA_MONGO_PASS=")), ""))
 DB_NAME = "credentials"
 MASTER_PATH = "/root/.hermes/profiles/ilma/ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json"
@@ -779,12 +781,18 @@ def run_runtime_smoke_test(db) -> Dict[str, Any]:
         if target:
             results["alias_resolved_to"] = target.get("status")
 
-    # Scenario 3: Active model exists
-    m3 = db["model_intelligence"].find_one({"model_id": "MiniMax-M3"})
-    results["MiniMax-M3_intel"] = m3 is not None
-    if m3:
-        results["MiniMax-M3_score"] = m3.get("composite_score")
-        results["MiniMax-M3_in_range"] = 0 <= (m3.get("composite_score") or -1) <= 100
+    # Scenario 3: Active model exists (use any active model, not hardcoded MiniMax-M3)
+    active_model = db["models"].find_one({"status": "active", "is_active": True})
+    if active_model:
+        m3 = db["model_intelligence"].find_one({"model_id": active_model["model_id"]})
+        results["active_model_intel"] = m3 is not None
+        if m3:
+            score = m3.get("composite_score")
+            results["active_model_score"] = score
+            # Use explicit None check (0.0 is valid score, not falsy fallback)
+            results["active_model_in_range"] = score is not None and 0 <= score <= 100
+    else:
+        results["active_model_intel"] = None  # no active model to test
 
     # Scenario 4: Score > 0 for at least 50% of models
     n_total = db["model_intelligence"].count_documents({})
