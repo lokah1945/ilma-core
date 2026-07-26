@@ -832,6 +832,47 @@ Paska-apply, verifikasi:
   (is_free_final, _status_cascaded_v3, aggregate_status backfill), 8 files got
   logging, 1 systemd service installed. Final: **9/9 checks PASSED**.
 
+- **P-CASCADE-32 (SOT dispatcher `is_free` key mismatch — verified 2026-07-26)**:
+  `sot_free_model_picker.list_models()` returned dict with key `is_free_final`
+  (back-compat alias) but **NOT** `is_free`. `ilma_sot_dispatcher.sot_dispatch()`
+  reads `chosen.get("is_free", False)` → always `False` for every model, even
+  FREE ones. Symptom: dispatcher reports `is_free: False` while `billing_class`
+  is correct → any upstream logic gating on `is_free` thinks ALL models are paid.
+  **Fix:** picker MUST include `"is_free": d.get("is_free")` in returned dict
+  (canonical field); keep `is_free_final` as alias only.
+  Verify: `ilma_sot_dispatcher.py --capability chat --strict` → `is_free: True`
+  for a known-free model (e.g. antigravity/Gemini 3.5 Flash).
+
+- **P-CASCADE-33 (Picker `get_db()` crashes when `ILMA_MONGO_LOCAL_PASS` unset — verified 2026-07-26)**:
+  `sot_free_model_picker.MONGO` hardcodes
+  `password=os.environ.get("ILMA_MONGO_LOCAL_PASS")` → `None` when env absent
+  (manual CLI session, not gateway). `MongoClient(**MONGO)` with `password=None`
+  raises ClientOptions error → dispatcher dies → ILMA cannot dispatch ANY model.
+  Local mongod is **no-auth** (verified running 2026-07-04). **Fix:** in
+  `get_db()`, if `kwargs.get("password")` falsy, pop `password`/`username`/
+  `authSource` and connect without credentials. Never pass `password=None`.
+  Verify: `ilma_sot_dispatcher.py --capability image` with env unset returns a
+  model, not traceback.
+
+- **P-CASCADE-34 (Old audit reports lie — re-verify LIVE — verified 2026-07-26)**:
+  Prior SOT audit (2026-07-24) reported T1/T2/T3 "IDENTICAL / aligned=True".
+  Re-verify LIVE 2026-07-26 found **671 `is_active=True` + `disabled_at`**
+  contradictions (regression) + 5 T1→T2 cascade mismatches. 07-01 enforcement
+  fix was non-durable (sync/billing re-classify re-introduced contradictions).
+  **Rule:** NEVER trust a prior audit report as proof of current state. Always
+  re-run `sot_cascade_enforcement.py --json` (dry-run) + dispatcher E2E at the
+  start of any "audit SOT" task. If `contradictions_remaining > 0` or
+  `aligned: false`, apply enforcement (after backup).
+
+- **P-CASCADE-35 (Backup Mongo collections before apply — bson serialization — verified 2026-07-26)**:
+  `json.dumps(docs)` FAILS on Mongo docs (`ObjectId`/`datetime` not
+  JSON-serializable → `TypeError`). **Fix:** `from bson.json_util import dumps`;
+  `open(fn,'w').write(dumps(docs))`. Backup: `llm_providers, providers, models,
+  model_intelligence, model_benchmark, model_audit_trail` (P-CASCADE-10) under
+  `/root/ilma_sot_audit_backup/`. Live 2-way sync unit is
+  `ilma-sync-daemon.service` (NOT `ilma-two-way-sync.service`).
+  See `references/sot-audit-2026-07-26-dispatcher-regression.md` for full transcript.
+
 ## Cross-references
 
 - `ilma-runtime-mongodb-migration` — sibling skill for MongoDB-driven
@@ -864,6 +905,10 @@ Paska-apply, verifikasi:
   engine build+apply session: 4-phase engine architecture, dry-run vs apply
   results, free_bypass handling (P-CASCADE-26), is_active=None backfill
   (P-CASCADE-27), before/after state, E2E aligned verification (0 violations)
+- `references/sot-audit-2026-07-26-dispatcher-regression.md` — **NEW** Live audit
+  that found 671 contradictions (regression from 07-01 fix) + 2 dispatcher bugs
+  (is_free key mismatch P-CASCADE-32, get_db password=None crash P-CASCADE-33).
+  Includes working cloud-connect snippet + bson backup recipe.
 - `references/sot-production-audit-s1-s10-2026-07-01.md` — **NEW** Full S1–S10
   production audit methodology: 3-phase (audit→fix→verify) pipeline, logging
   injection pitfall detail (P-CASCADE-30), fix script pattern, session results
