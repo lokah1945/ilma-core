@@ -139,9 +139,45 @@ READ-ONLY re-audit that actively tries to DISPROVE the self-claim:
 enterprise" are NOT evidence. Verify independently. A red test, a duplicated
 security fix, or unpinned deps each downgrade the score.
 
+## Technique 8 — Post-pull runtime staleness check (2026-07-27)
+
+After `git pull`, the running processes may STILL be on the PRE-pull commit. Each
+wrapper's `/health` `git_commit` and `runtime/<svc>.commit` reflect the commit the
+process was built from — NOT the new HEAD. Detect staleness precisely:
+
+```bash
+cd /root/wrapper
+HEAD=$(git rev-parse HEAD)
+for svc in nvidia-python nous opencode blackbox model-registry; do
+  rc=$(cat runtime/$svc.commit 2>/dev/null)
+  if git merge-base --is-ancestor "$rc" "$HEAD" 2>/dev/null && [ "$rc" != "$HEAD" ]; then
+    echo "$svc STALE: runtime $rc < HEAD $HEAD (restart needed to load fixes)"
+  else
+    echo "$svc current"
+  fi
+done
+```
+
+**2026-07-27 finding:** pulled to `f8f3e1b`, but all 5 services reported
+`git_commit: 1ad8845` (ancestor of HEAD). Fix `ddfc711` (NameError `name 'status'
+is not defined` in proxy_openai retry) was therefore NOT active in runtime. A
+`git pull` does NOT update running services — this is a real gap. Per audit-only
+convention (mem_013), ILMA does NOT restart; it reports staleness and recommends
+`systemctl --user restart wrapper-*`. Restarting is the owner's call.
+
+**Rule:** always check runtime-commit-vs-HEAD ancestry after pull; if stale, flag
+it in the report with the restart command. Full recipe:
+`references/post-pull-audit-recipe.md`.
+
 ## Pitfalls
-- **V-audit report location:** write hard re-audit reports to `/root/audit_report/`,
-  never `/root/wrapper/audit_report/` (would be committed into the synced repo).
+- **V-audit report location:** default is `/root/audit_report/` (outside the synced
+  repo, avoids polluting git history). **BUT honor an explicit Bos override** — on
+  2026-07-27 Bos directed `simpan report /root/wrapper/audit_report` and the dir
+  already existed there, so the report was written to
+  `/root/wrapper/audit_report/AUDIT_REBUILD_2026-07-27.md`. If Bos names a path,
+  follow it; do not "correct" him back to `/root/audit_report/`. Tradeoff: reports
+  inside `/root/wrapper/` appear in `git status` and may get committed/pushed unless
+  gitignored.
   See `references/hard-reaudit-probe-recipe.md` for the full probe kit.
 - **Self-claimed "100/100" is not a pass.** A red pytest, duplicated/weaker
   security helper, or unpinned `requirements.txt` each downgrade the score. The
@@ -182,6 +218,32 @@ security fix, or unpinned deps each downgrade the score.
   `python3 -c "import ast; ast.parse(open('productions/production_audit.py').read())"`
   after every edit. The session that introduced the smoke-log regression was
   caused by exactly this — a big indentation-fixing patch that dropped the log line.
+- **Hybrid-reasoning models return empty `content` at tiny `max_tokens`.** On
+  2026-07-27, `tencent/hy3:free` (Nous) and `big-pickle` (OpenCode) returned
+  `content:''` with `finish_reason:'length'` on a `max_tokens:5` probe — NOT a
+  failure. The model had put its reasoning in the `reasoning` field and was
+  truncated before emitting content. Re-probe with `max_tokens:40` to confirm real
+  output (`content:'HELLO_TEST'`, `finish_reason:'stop'`). Never judge a wrapper
+  "broken" from a sub-10-token probe; always re-probe with adequate budget.
+- **NVIDIA exhaustion returns HTTP 200 + error BODY, not 503.** Unlike opencode.ai
+  ("No capacity" 503), NVIDIA NIM returns `{"error":{"message":"All API keys
+  exhausted for model ..."}}` with HTTP 200. Extend the external-outage rule (M-02):
+  treat a body containing `"All API keys exhausted"` OR `"No capacity"` as BLOCKED
+  (external upstream quota/capacity), regardless of status code. The wrapper relays
+  correctly; the upstream NVIDIA key pool is exhausted.
+- **model-registry may report `providers_loaded:[]` while healthy.** On 2026-07-27
+  `/health` showed `providers_loaded:[]` and `model_substitution:false` even though
+  the service was `active running` and `worker_running:true`. This is degraded
+  observability (registry not wired to a provider source at runtime), NOT a hard
+  failure. Flag as LOW/non-blocking; investigate registry wiring separately.
+- **Verify topology with `ss`/`systemctl`, never from memory.** Ports drift between
+  sessions (2026-07-27 confirmed nous=9102, opencode=9103, nvidia-python=9101; old
+  memory said 9106/9107/9100). Run `ss -tlnp | grep 910` + `systemctl --user
+  list-units --type=service | grep wrapper` at the START of every audit. Do not
+  trust stored port numbers.
+- **`git pull` does not restart services** (see Technique 8). After any pull, check
+  runtime-commit-vs-HEAD ancestry; a stale runtime means pulled fixes are not yet
+  live. Report staleness; do not silently assume the new code is running.
 
 ## Verification (end of every audit)
 ```bash
