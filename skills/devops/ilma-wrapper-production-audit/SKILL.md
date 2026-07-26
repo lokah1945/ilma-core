@@ -64,6 +64,7 @@ uncommitted working tree) is acceptable to note; a FAIL is not.
 Do NOT use a single global `.deployed_commit`. Every service writes its own
 marker in `ExecStartPre`, compared independently against that service's runtime
 `git_commit` from `/health`. See `references/deployment-commit-markers.md`.
+- `references/wrapper-latency-debug-glm.md` — side-by-side benchmark recipe + GLM thinking-injection root cause + pre/post-patch evidence (2026-07-27)
 
 ### 2. Compare runtime vs DEPLOYED MARKER, never vs HEAD — H-03
 The audit must compare each wrapper's `/health` `git_commit` against
@@ -169,6 +170,61 @@ convention (mem_013), ILMA does NOT restart; it reports staleness and recommends
 it in the report with the restart command. Full recipe:
 `references/post-pull-audit-recipe.md`.
 
+## Technique 9 — Latency/performance debugging (side-by-side benchmark) — 2026-07-27
+
+When Bos reports "call via wrapper is slow but curl is fast", DO NOT guess. Isolate the
+layer with a timed side-by-side benchmark. Wrapper overhead is usually tiny; the real
+cause is almost always **model behavior** (e.g. forced reasoning), **key
+exhaustion/pacing**, or a client path difference (Anthropic `/v1/messages` thinking vs
+OpenAI `/v1/chat/completions`).
+
+**Reproducible benchmark (proven on wrapper-nvidia 9101, glm-5.2, 2026-07-27):**
+```bash
+cd /root/wrapper/nvidia-python
+KEY=$(grep '^NVIDIA_API_KEY_1=' .env | head -1 | cut -d'=' -f2- | sed "s/^[\"']//;s/[\"']$//")
+# A. curl DIRECT (no wrapper) — baseline
+curl -s -o /tmp/a.json -w "direct time=%{time_total}s\n" \
+  https://integrate.api.nvidia.com/v1/chat/completions \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hi"}],"model":"z-ai/glm-5.2","max_tokens":200,"stream":false}'
+# B. via WRAPPER (token wrapper-local-key)
+curl -s -o /tmp/b.json -w "wrapper time=%{time_total}s\n" \
+  http://127.0.0.1:9101/v1/chat/completions \
+  -H "Authorization: Bearer wrapper-local-key" -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hi"}],"model":"z-ai/glm-5.2","max_tokens":200,"stream":false}'
+```
+**Interpretation rules:**
+- If `wrapper ≈ direct` (both 4–5s) → wrapper is NOT the bottleneck; the model itself is
+  slow (reasoning/thinking). Fix = opt the model out of default thinking (see Pitfalls).
+- If `wrapper >> direct` (e.g. 30s+ vs 0.3s) → check `key_pool` pacing: run 8 sequential
+  requests; if each is ~0.001s the pacing queue is fine and the slowness is per-request
+  model behavior, not saturation.
+- `call_plan` in `common/model/registry.py` is PURE LOCAL (no network) — never blame it for latency.
+
+Full recipe + evidence table: `references/wrapper-latency-debug-glm.md`.
+
+## Git workflow for /root/wrapper (commit + push audit_report) — 2026-07-27
+
+`audit_report/` is gitignored (`.gitignore` line ~21). To commit a report inside the
+repo you MUST force-add it. And `github` remote often has commits the local tree lacks
+after a cloud push — rebase, don't force-push.
+
+```bash
+cd /root/wrapper
+# 1. force-add gitignored audit_report + the patched source
+git add nvidia-python/src/main.py audit_report/AUDIT_*.md --force
+git commit -m "fix(wrapper-nvidia): <short summary>"
+# 2. remote may be ahead (cloud push) — fetch, stash untracked, rebase, pop, push
+git fetch github
+git stash push -u -m "ilma-audit-stash"        # protects runtime/*.commit etc
+git rebase github/main                           # replay local commit on top of remote
+git stash pop
+git push github main                             # fast-forward clean
+```
+**Pitfall:** a plain `git push github main` is REJECTED (non-fast-forward) if `github/main`
+advanced. Never `git push --force` — rebase preserves both histories. If rebase refuses
+("unstaged changes"), stash first (the `runtime/*.commit` marker is untracked/modified).
+
 ## Pitfalls
 - **V-audit report location:** default is `/root/audit_report/` (outside the synced
   repo, avoids polluting git history). **BUT honor an explicit Bos override** — on
@@ -244,6 +300,18 @@ it in the report with the restart command. Full recipe:
 - **`git pull` does not restart services** (see Technique 8). After any pull, check
   runtime-commit-vs-HEAD ancestry; a stale runtime means pulled fixes are not yet
   live. Report staleness; do not silently assume the new code is running.
+- **GLM latency trap — `REASONING_CONFIGS` forces `thinking:True`.** In
+  `nvidia-python/src/main.py`, the `glm` entry in `REASONING_CONFIGS` had
+  `params: {thinking: True}` with `requires_reasoning: False`. Every GLM call via the
+  Anthropic `/v1/messages` path (Claude Code `thinking:enabled`) therefore injected
+  `chat_template_kwargs:{thinking:True}`, making GLM **reason first** → +4–5s vs a
+  direct curl (which defaults to no-thinking, sub-second). Fix = set `thinking: False`
+  + add `opt_out_default_thinking: True` so GLM is fast by default; reasoning stays
+  available on explicit client request. Also: `ensure_nonempty_content` previously
+  replaced reasoning-only replies with the dead-end string
+  `'[No text response; the model returned reasoning only.]'` — surface the model's own
+  `reasoning_content` as `content` instead. Benchmark proof: wrapper GLM default
+  dropped 4.7s → 0.007s post-patch. See `references/wrapper-latency-debug-glm.md`.
 
 ## Verification (end of every audit)
 ```bash
