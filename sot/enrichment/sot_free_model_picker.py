@@ -84,7 +84,15 @@ def _now():
 
 
 def get_db():
-    return pymongo.MongoClient(**MONGO)[DB_NAME]
+    # Build client kwargs; if no password is configured (e.g. local no-auth
+    # mongod, or ILMA_MONGO_LOCAL_PASS unset), connect without credentials.
+    # Hardcoding password=None into MongoClient raises ClientOptions error.
+    kwargs = dict(MONGO)
+    if not kwargs.get("password"):
+        kwargs.pop("password", None)
+        kwargs.pop("username", None)
+        kwargs.pop("authSource", None)
+    return pymongo.MongoClient(**kwargs)[DB_NAME]
 
 
 # ── Query: free candidate for capability ──────────────────────────────────────
@@ -188,6 +196,7 @@ class SOTFreePicker:
                 "output_modality": _ENDPOINT_DERIVE.get(d.get("endpoint_type"), ("", "text", "text"))[2],
                 "primary_cap": d.get("primary_cap"),
                 "quality_tier": d.get("quality_tier"),
+                "is_free": d.get("is_free"),  # canonical billing field
                 "is_free_final": d.get("is_free"),  # back-compat alias → canonical is_free
                 # derived from is_free_final (billing_class field dropped 2026-06-22)
                 "billing_class": ("free" if d.get("is_free") else "paid"),

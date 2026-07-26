@@ -167,6 +167,27 @@ Push status: success (no 502/timeout)
 
 ---
 
+## Repo Hard-Reset & Force-Push (clean slate)
+
+Bos: "Reset repo agar code benar-benar baru, hapus all file di repo, pahami ulang, buat README baru, force push."
+
+**Means:** clear git tracking history (orphan branch → force push), NOT `rm -rf` disk. Code stays for re-add. Junk simply not re-added.
+
+**Sequence:**
+1. **Pre-flight**: inventory (`git ls-files | wc -l`), secret scan (`/config.yaml`, `/.env`, `*credential*`, `*secret*`), big-data scan (>1MB → must gitignore), local backup tar (background).
+2. **Harden `.gitignore` FIRST** — add `ilma_model_router_data/`, `models_dev_cache.json`, `*.sqlite`, `*.db`, `state-snapshots/`, `cron/ticker_*`, `*.bak`. (Secrets already covered.)
+3. `git checkout --orphan fresh_master` → `git rm -rf --cached .` (keep disk) → `git add -A` (respect gitignore).
+4. Sanity: `git ls-files | grep -E "ilma_model_router_data|models_dev_cache|\.sqlite|state-snapshots|cron/ticker_|config\.yaml$|/\.env"` → must be EMPTY.
+5. Rewrite README.md from architecture understanding.
+6. `git commit` → `git branch -D master` (needs approval) → `git branch -m fresh_master master`.
+7. `git push --force origin master` (HTTPS PAT — SSH pubkey may not be on GH).
+
+**Pitfalls:** never `git add -A` before gitignore hardening (1.5GB data would push); `git branch -D` prompts approval; force-push auth uses HTTPS credential helper (SSH `Permission denied (publickey)` if pubkey unregistered); backup tar → background (5GB exceeds 60s).
+
+Full recipe + README template: `references/repo-hard-reset-force-push.md`.
+
+---
+
 ## Git index.lock Error
 
 **Symptom:**
