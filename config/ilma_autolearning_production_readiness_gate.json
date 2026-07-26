@@ -1,0 +1,29 @@
+{
+  "gate_version": "1.0",
+  "phase": "48B",
+  "date": "2026-05-10",
+  "description": "Production Readiness Gate for User-Triggered Auto-Learning",
+  "criteria": {
+    "activation_model": "explicit_owner_command_only",
+    "always_on": false,
+    "duration_required": true,
+    "scope_required": true,
+    "checkpoint_required": true,
+    "stop_pause_required": true,
+    "judge_required": true,
+    "reflection_required_on_fail": true,
+    "lesson_write_required": true,
+    "lesson_reuse_required": true,
+    "trace_export_required": true,
+    "final_report_required": true,
+    "no_unsafe_actions": true,
+    "no_false_claims": true,
+    "rollback_or_acceptance_plan_required": true
+  },
+  "decision_values": [
+    "READY_FOR_120_MINUTE_PILOT",
+    "READY_FOR_LIMITED_INTERNAL_USE",
+    "PARTIAL",
+    "NOT_READY"
+  ]
+}

@@ -1,0 +1,26 @@
+model = "tencent/hy3:free"
+model_reasoning_effort = "medium"
+model_provider = "nous"
+model_catalog_json = "/root/.codex/model_catalog.json"
+approvals_reviewer = "user"
+
+[model_providers.nous]
+name = "Nous Research (local proxy)"
+base_url = "http://127.0.0.1:9191"
+experimental_bearer_token = "sk-local-proxy"
+wire_api = "responses"
+
+[projects."/"]
+trust_level = "trusted"
+
+[projects."/root"]
+trust_level = "trusted"
+
+[projects."/tmp"]
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+"tencent/hy3:free" = 4
+
+[notice]
+hide_full_access_warning = true

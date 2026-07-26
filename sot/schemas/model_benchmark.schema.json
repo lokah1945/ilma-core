@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "model_benchmark",
+  "description": "Benchmark scores per model. One doc per (provider, model_id, benchmark_source). FIX 2026-06-17: collection is singular 'model_benchmark' (NOT 'model_benchmarks').",
+  "type": "object",
+  "required": ["provider", "model_id", "benchmark_source", "fetched_at", "evidence_type"],
+  "properties": {
+    "provider":      { "type": "string", "minLength": 1 },
+    "model_id":      { "type": "string", "minLength": 1 },
+    "benchmark_source": {
+      "type": "string",
+      "enum": ["artificial_analysis", "openrouter", "passive", "provider_direct", "heuristic_derived", "stub_runtime_audit"]
+    },
+    "benchmark_id":  { "type": ["string", "null"] },
+    "fetched_at":    { "type": ["string", "null"], "format": "date-time" },
+    "last_benchmarked": { "type": ["string", "null"], "format": "date-time" },
+    "evidence_type": {
+      "type": "string",
+      "enum": ["LIVE_RUNTIME", "PASSIVE", "PROXY", "HEURISTIC_DERIVED", "STUB"]
+    },
+    "freshness_status": { "type": ["string", "null"] },
+    "avg_score":            { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "quality_baseline_score":{ "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "total_requests":       { "type": ["integer", "null"], "minimum": 0 },
+    "error_rate":           { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "raw_source":           { "type": ["object", "null"] },
+    "aa_intelligence_index":{ "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "aa_coding_index":      { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "aa_math_index":        { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "mmlu_pro":             { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "gpqa":                 { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "livecodebench":        { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "output_speed_tps":     { "type": ["number", "null"], "minimum": 0 },
+    "latency_first_chunk_sec":{ "type": ["number", "null"], "minimum": 0 },
+    "price_input_per_m":    { "type": ["number", "null"], "minimum": -1 },
+    "price_output_per_m":   { "type": ["number", "null"], "minimum": -1 },
+    "context_window":       { "type": ["integer", "null"], "minimum": 1 },
+    "modality":             { "type": ["string", "null"] },
+    "is_free":              { "type": ["boolean", "null"] },
+    "reliability_score":    { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "provider_trust_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "confidence":           { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+  }
+}

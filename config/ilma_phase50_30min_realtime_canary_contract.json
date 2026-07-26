@@ -1,0 +1,214 @@
+{
+  "contract_id": "ILMA-PHASE50-30MIN-REALTIME-CANARY-v1",
+  "version": "1.0",
+  "created": "2026-05-10T17:45:00Z",
+  "owner": "Bos (Huda Choirul Anam)",
+  "owner_trigger": "auto learning selama 30 menit fokus menguji agent body ILMA: runtime router, tool skill selector, lesson reuse, judge reflexion, evidence trace, checkpoint rollback, registry truth, documentation consistency, dan internal workflow optimization. Jangan install dependency, jangan deploy, jangan delete, jangan OS build, jangan external publish.",
+
+  "canary_specification": {
+    "purpose": "Prove ILMA agent body works in real-time 30-minute bounded autonomous run",
+    "duration_minutes": 30,
+    "minimum_seconds": 1800,
+    "wall_clock_required": true,
+    "type": "real_time",
+    "not_accelerated": true
+  },
+
+  "heartbeat_policy": {
+    "interval_seconds": 60,
+    "log_format": "heartbeat_{timestamp}:{elapsed_seconds}:{cycle_count}:{lesson_reuse_count}",
+    "minimum_heartbeats": 28,
+    "missing_heartbeat_threshold": 2,
+    "action_on_missing": "log_warning_continue"
+  },
+
+  "checkpoint_policy": {
+    "interval_minutes": 10,
+    "minimum_checkpoints": 2,
+    "checkpoint_path_template": "evidence/evolution_traces/phase50/checkpoint_{checkpoint_id}_{elapsed_seconds}s.json",
+    "checkpoint_includes": [
+      "cycle_count",
+      "lesson_reuse_count",
+      "judge_results",
+      "artifacts_generated",
+      "router_decisions",
+      "selector_decisions",
+      "wall_clock_elapsed"
+    ]
+  },
+
+  "cycle_requirements": {
+    "minimum_cycles": 3,
+    "maximum_cycles": 8,
+    "cycles_per_minute_target": 0.15,
+    "each_cycle_must_include": [
+      "runtime_router_invocation",
+      "tool_skill_selector_invocation",
+      "lesson_retrieval",
+      "artifact_production",
+      "judge_evaluation",
+      "trace_export"
+    ],
+    "lesson_reuse_required_per_cycle": true,
+    "mark_reused_on_pass_or_warn": true
+  },
+
+  "lesson_reuse_policy": {
+    "query_generation": "targeted (task_class + workflow_type + capability_name + failure_signature)",
+    "minimum_lessons_per_cycle": 1,
+    "dedup_required": true,
+    "reuse_count_increment_required": true,
+    "artifact_change_required": "lesson context must influence output",
+    "prohibited_queries": [
+      "broad generic",
+      "empty string",
+      "external_publish (without scope context)"
+    ]
+  },
+
+  "trace_policy": {
+    "required": true,
+    "export_interval": "end_of_each_cycle",
+    "final_trace_path": "evidence/evolution_traces/phase50/final_trace.json",
+    "trace_includes": [
+      "wall_clock_start",
+      "wall_clock_end",
+      "wall_clock_duration_seconds",
+      "all_cycles",
+      "all_router_decisions",
+      "all_selector_decisions",
+      "all_judge_results",
+      "all_lesson_retrievals",
+      "reuse_count_before",
+      "reuse_count_after",
+      "checkpoint_paths",
+      "heartbeat_count",
+      "exit_code"
+    ]
+  },
+
+  "judge_policy": {
+    "minimum_judge_evaluations": 3,
+    "rubric_version": "v2",
+    "rubric_path": "config/ilma_judge_reflexion_rubric_v2.json",
+    "score_threshold_for_pass": 70,
+    "score_threshold_for_warn": 50,
+    "score_threshold_for_fail": 0,
+    "reflection_triggered_on": "fail",
+    "safe_patch_required_on": "fail_with_recovery_path"
+  },
+
+  "allowed_scope": [
+    "runtime_router_validation",
+    "tool_skill_selector_validation",
+    "lesson_retrieval_targeting",
+    "lesson_reuse_proof",
+    "evidence_consistency_check",
+    "registry_truth_audit",
+    "documentation_consistency",
+    "runner_count_truth",
+    "trace_schema_validation",
+    "judge_reflexion_validation",
+    "artifact_quality_improvement",
+    "safe_reversible_micro_refactor",
+    "safety_contract_validation"
+  ],
+
+  "forbidden_scope": [
+    "dependency_install",
+    "production_deployment",
+    "destructive_delete",
+    "os_build",
+    "external_publish",
+    "credential_use",
+    "live_api_posting",
+    "mass_rewrite",
+    "unsafe_network_operation",
+    "always_on_scheduler"
+  ],
+
+  "stop_conditions": [
+    "wall_clock < 1800 seconds",
+    "safety_contract_violated",
+    "forbidden_scope_triggered",
+    "always_on_behavior_detected",
+    "unhandled_exception",
+    "loop_not_progressing",
+    "owner_stop_signal_received"
+  ],
+
+  "pause_resume_policy": {
+    "allowed": false,
+    "note": "This is a bounded canary — run to completion or abort honestly"
+  },
+
+  "rollback_policy": {
+    "available": true,
+    "trigger_conditions": [
+      "safe_patch_applied",
+      "test_failed_after_patch"
+    ],
+    "rollback_action": "restore_pre_patch_state",
+    "note": "Micro-refactors only — no mass rewrite rollback needed"
+  },
+
+  "final_decision_rules": {
+    "READY_FOR_300MIN_PREP_requires": [
+      "wall_clock >= 1800 seconds",
+      "exit_code == 0",
+      "no_error",
+      "no_failed",
+      "heartbeat_count >= 28",
+      "checkpoint_count >= 2",
+      "cycle_count >= 3",
+      "judge_evaluations >= 3",
+      "lesson_retrieval_non_empty_every_cycle",
+      "reuse_count_incremented_per_cycle",
+      "trace_exported",
+      "no_forbidden_scope",
+      "no_always_on",
+      "safety_contract_active"
+    ],
+    "READY_FOR_ANOTHER_30MIN": [
+      "wall_clock >= 1800",
+      "some gates passed but not all"
+    ],
+    "PARTIAL": [
+      "wall_clock >= 1800",
+      "critical gates failed",
+      "can retry with fixes"
+    ],
+    "NOT_READY": [
+      "wall_clock < 1800",
+      "fundamental failure"
+    ]
+  },
+
+  "forbidden_claims": [
+    "SSS+++ achieved",
+    "production autonomous agent",
+    "always_on auto_learning",
+    "universal self_improvement",
+    "real_time 300_minute completed",
+    "1000_file readiness",
+    "os_build readiness",
+    "publishable research output"
+  ],
+
+  "allowed_claims_on_success": [
+    "real_time 30_minute canary passed",
+    "agent_body works in bounded internal workflow",
+    "ready to prepare 300_minute owner_triggered autoloop",
+    "owner_triggered limited internal self_optimization proven"
+  ],
+
+  "exit_codes": {
+    "0": "all gates passed",
+    "1": "wall_clock insufficient",
+    "2": "safety violation",
+    "3": "test failure",
+    "4": "lesson retrieval empty all cycles",
+    "5": "forbidden scope triggered",
+    "6": "internal error"
+  }
+}

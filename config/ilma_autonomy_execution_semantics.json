@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "phase": "PHASE_53",
+  "created": "2026-05-10",
+  "description": "ILMA Autonomy Execution Semantics — Objective-Bounded Timebox as default mode",
+
+  "default_mode": "OBJECTIVE_BOUNDED_TIMEBOX",
+
+  "available_modes": [
+    "OBJECTIVE_BOUNDED_TIMEBOX",
+    "ENDURANCE_TEST",
+    "EXPLORATION_BUDGET",
+    "VALIDATION_BUDGET"
+  ],
+
+  "mode_definitions": {
+    "OBJECTIVE_BOUNDED_TIMEBOX": {
+      "description": "Default mode. Objective is primary. Time is maximum budget. Early success = PASS.",
+      "time_budget_is_maximum": true,
+      "early_success_is_pass": true,
+      "wall_clock_required_only_for_endurance_test": true,
+      "continue_if_objective_incomplete": true,
+      "continue_improvement_if_time_remaining": "optional_after_objective_pass",
+      "exit_code_on_early_success": 0,
+      "exit_code_on_budget_exhausted_incomplete": 1,
+      "exit_code_on_owner_stop": 0,
+      "exit_code_on_unsafe_action_required": 1
+    },
+    "ENDURANCE_TEST": {
+      "description": "Prove system runs for full wall-clock duration without failure. Wall-clock >= minimum required.",
+      "time_budget_is_maximum": false,
+      "early_success_is_pass": false,
+      "wall_clock_required_only_for_endurance_test": true,
+      "continue_if_objective_incomplete": true,
+      "continue_improvement_if_time_remaining": "continue_until_budget",
+      "exit_code_on_full_duration_no_failures": 0,
+      "exit_code_on_any_failure": 1,
+      "wall_clock_minimum_required": 18000
+    },
+    "EXPLORATION_BUDGET": {
+      "description": "Explore, learn, discover. Budget is maximum spend. No hard objective required.",
+      "time_budget_is_maximum": true,
+      "early_success_is_pass": true,
+      "wall_clock_required_only_for_endurance_test": false,
+      "continue_if_objective_incomplete": false,
+      "continue_improvement_if_time_remaining": "optional",
+      "exit_code_on_budget_exhausted": 0,
+      "exit_code_on_owner_stop": 0
+    },
+    "VALIDATION_BUDGET": {
+      "description": "Run tests, verify claims, audit quality. Pass if all gates pass before budget.",
+      "time_budget_is_maximum": true,
+      "early_success_is_pass": true,
+      "wall_clock_required_only_for_endurance_test": false,
+      "continue_if_objective_incomplete": false,
+      "continue_improvement_if_time_remaining": "validation_only",
+      "exit_code_on_all_gates_pass": 0,
+      "exit_code_on_any_gate_fail": 1
+    }
+  },
+
+  "stop_conditions": {
+    "objective_passed_with_evidence": {
+      "severity": "hard_stop",
+      "applies_to": ["OBJECTIVE_BOUNDED_TIMEBOX", "VALIDATION_BUDGET"],
+      "description": "Evidence shows objective met. Stop immediately."
+    },
+    "owner_stop": {
+      "severity": "hard_stop",
+      "applies_to": "all",
+      "description": "Owner sends stop signal."
+    },
+    "time_budget_exhausted": {
+      "severity": "stop_with_status",
+      "applies_to": "all",
+      "description": "Time budget ran out. Report what was accomplished."
+    },
+    "unsafe_or_forbidden_action_required": {
+      "severity": "hard_stop",
+      "applies_to": "all",
+      "description": "Task requires unsafe/forbidden action. Document and escalate."
+    },
+    "external_permission_required": {
+      "severity": "stop_with_blocker",
+      "applies_to": "all",
+      "description": "External approval/credential/input required. Cannot proceed."
+    },
+    "hard_blocker_documented": {
+      "severity": "stop_with_blocker",
+      "applies_to": "all",
+      "description": "Objective blocker proven and documented."
+    },
+    "iteration_budget_exhausted": {
+      "severity": "stop_with_status",
+      "applies_to": ["OBJECTIVE_BOUNDED_TIMEBOX"],
+      "description": "Max safe strategies tried but task incomplete."
+    }
+  },
+
+  "final_status_values": {
+    "PASSED_EARLY": "Objective met with evidence before time budget exhausted",
+    "PASSED_FULL_BUDGET": "Objective met and full time budget used",
+    "PASSED_WITH_IMPROVEMENTS": "Objective met + hardening/improvement cycles ran",
+    "INCOMPLETE_TIME_EXHAUSTED": "Objective not complete, time budget exhausted",
+    "INCOMPLETE_STOPPED": "Objective not complete, owner stopped early",
+    "BLOCKED_SAFE_STRATEGIES_EXHAUSTED": "Objective blocked, all safe strategies tried",
+    "BLOCKED_EXTERNAL_REQUIRED": "Objective blocked, external permission needed",
+    "BLOCKED_UNSAFE_ACTION": "Objective blocked, requires unsafe/forbidden action",
+    "FAILED_FATAL_ERROR": "Fatal error (daemon crash, segfault, data corruption)"
+  },
+
+  "never_fail_only_because_finished_early": true,
+
+  "time_budget_is_maximum": true,
+  "early_success_is_pass": true,
+  "wall_clock_required_only_for_endurance_test": true,
+  "continue_if_objective_incomplete": true,
+
+  "default_time_budget_minutes": 300,
+  "default_heartbeat_interval_seconds": 60,
+  "default_checkpoint_interval_seconds": 600,
+
+  "hardening_cycles_after_early_pass": {
+    "enabled": true,
+    "max_cycles": 5,
+    "types": ["regression_test", "security_scan", "doc_consistency", "evidence_harden", "mutation_test"]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "name": "ILMA Performance Policy",
+  "phase": "PHASE 53-I",
+  "date": "2026-05-10",
+  "owner": "parallel_cpu_policy",
+
+  "cpu_configuration": {
+    "total_cores": 16,
+    "default_workers": 12,
+    "burst_workers": 16,
+    "burst_mode": "safe_read_only_only"
+  },
+
+  "worker_defaults": {
+    "default_worker_count": 12,
+    "burst_worker_count": 16,
+    "burst_trigger": "safe_read_only_burst",
+    "note": "16 workers only for safe read-only burst operations"
+  },
+
+  "parallelization_rules": {
+    "always_parallelize": [
+      "compile",
+      "import",
+      "scans",
+      "read_only_validation",
+      "doc_scans",
+      "security_pattern_scan"
+    ],
+    "never_parallelize_unless_locked": [
+      "registry_write",
+      "evidence_write",
+      "memory_write",
+      "checkpoint_write",
+      "docs_write"
+    ],
+    "forbidden_write_operations": [
+      "registry",
+      "evidence",
+      "memory",
+      "checkpoint",
+      "docs"
+    ]
+  },
+
+  "worker_timeouts": {
+    "worker_timeout_seconds": 300,
+    "compile_timeout_seconds": 30,
+    "test_timeout_seconds": 120,
+    "scan_timeout_seconds": 60,
+    "validation_timeout_seconds": 45,
+    "doc_scan_timeout_seconds": 60,
+    "security_scan_timeout_seconds": 60
+  },
+
+  "hung_worker_policy": {
+    "detect_hung_workers": true,
+    "hung_threshold_seconds": 60,
+    "kill_hung_workers": true,
+    "max_retries_per_worker": 2,
+    "log_hung_worker_events": true
+  },
+
+  "cpu_utilization": {
+    "record_cpu_utilization": true,
+    "cpu_utilization_log_path": "logs/cpu_utilization.json",
+    "do_not_claim_100_percent_cpu_unless_measured": true,
+    "measured_100_percent_cpu_threshold": 97,
+    "reduce_workers_at_threshold": 8,
+    "never_lock_machine": true,
+    "never_starve_os": true
+  },
+
+  "burst_policy": {
+    "burst_allowed": true,
+    "burst_max_seconds": 900,
+    "burst_workers": 16,
+    "burst_cooldown_seconds": 60,
+    "checkpoint_before_burst": true,
+    "rollback_on_failed_burst": true,
+    "burst_only_for_safe_read_only": true
+  },
+
+  "parallel_job_limits": {
+    "max_concurrent_jobs": 16,
+    "max_concurrent_compile": 10,
+    "max_concurrent_scan": 12,
+    "max_concurrent_validation": 16,
+    "max_concurrent_test": 8
+  },
+
+  "stop_conditions": {
+    "cpu_percent_above": 97,
+    "memory_percent_above": 90,
+    "wall_clock_exceeded_seconds": 18000,
+    "consecutive_failures": 3
+  },
+
+  "active": true
+}

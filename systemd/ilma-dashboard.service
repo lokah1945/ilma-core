@@ -1,0 +1,13 @@
+[Unit]
+Description=ILMA System Map Dashboard (realtime self-awareness web GUI, localhost-only)
+After=network.target
+# To install: sudo cp systemd/ilma-dashboard.service /etc/systemd/system/ && sudo systemctl enable --now ilma-dashboard
+# Access from your machine: ssh -L 8765:127.0.0.1:8765 <vps>  then open http://localhost:8765/
+[Service]
+Type=simple
+WorkingDirectory=/root/.hermes/profiles/ilma
+ExecStart=/root/.hermes/hermes-agent/venv/bin/python3 /root/.hermes/profiles/ilma/ilma_dashboard_server.py --port 8765 --host 127.0.0.1
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

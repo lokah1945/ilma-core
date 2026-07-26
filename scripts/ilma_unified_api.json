@@ -1,0 +1,27 @@
+{
+  "system": {
+    "health_check": "ilma_health_check.py",
+    "diagnostic": "ilma_self_diagnostic.py",
+    "benchmark": "ilma_quality_benchmark.py"
+  },
+  "skills": {
+    "enhance": "ilma_enhance_skills.py",
+    "create": "ilma_bulk_skill_creator.py",
+    "trigger": "ilma_skill_trigger.py"
+  },
+  "scripts": {
+    "enhance": "ilma_enhance_scripts.py",
+    "upgrade": "ilma_upgrade_scripts.py",
+    "generate": "ilma_generate_quality_scripts.py"
+  },
+  "learning": {
+    "self_improve": "ilma_self_improve.py",
+    "meta_learn": "ilma_auto_learn.py",
+    "evolution": "ilma_evolution_tracker.py"
+  },
+  "execution": {
+    "exec": "ilma_exec.py",
+    "parallel": "ilma_parallel_exec.py",
+    "code_gen": "ilma_code_gen.py"
+  }
+}

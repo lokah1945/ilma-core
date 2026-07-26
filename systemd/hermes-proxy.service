@@ -1,0 +1,18 @@
+#!/bin/bash
+# Hermes Multi-Profile Proxy Gateway Service
+# Auto-start service for the profile-based API proxy
+
+[Unit]
+Description=Hermes Multi-Profile Proxy Gateway
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/credential
+ExecStart=/usr/bin/python3 /root/credential/proxy_gateway.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "provider_lifecycle_events",
+  "description": "Append-only log of provider-level state transitions (discovered, key_rotated, etc).",
+  "type": "object",
+  "required": ["provider", "event_type", "event_at", "actor", "evidence_id"],
+  "properties": {
+    "provider":   { "type": "string", "minLength": 1 },
+    "event_type": {
+      "type": "string",
+      "enum": ["discovered", "key_rotated", "endpoint_updated", "status_changed",
+               "deprecation_noticed", "decommissioned"]
+    },
+    "event_at":   { "type": ["string", "null"], "format": "date-time" },
+    "actor":      { "type": "string", "minLength": 1 },
+    "evidence_id":{ "type": "string", "minLength": 1 },
+    "notes":      { "type": ["string", "null"] }
+  }
+}

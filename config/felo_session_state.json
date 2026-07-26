@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "description": "ILMA Felo SuperAgent session state \u2014 persistent across turns",
+    "last_updated": "2026-05-08",
+    "note": "thread_short_id = per conversation. live_doc_id = shared canvas (reuse)."
+  },
+  "live_doc_id": "YfxkwnggzHQJhtfuoZpEnH",
+  "live_doc_url": "https://felo.ai/livedoc/YfxkwnggzHQJhtfuoZpEnH",
+  "live_doc_name": "ILMA Workspace",
+  "thread_short_id": "n6hNbX6pndftTYi6xcxqBS",
+  "active": true,
+  "updated": "2026-05-08T07:45:00Z",
+  "note": "Thread LcotMMYL2M8GKcU6cQ2pRs expired, replaced with new thread n6hNbX6pndftTYi6xcxqBS"
+}

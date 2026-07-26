@@ -1,0 +1,135 @@
+{
+  "contract_id": "ILMA-PHASE48H-REALTIME-CANARY-v1",
+  "version": "1.0",
+  "created": "2026-05-10T14:00:00Z",
+  "owner_trigger": "auto learning selama 5 menit fokus internal workflow optimization, evidence consistency, lesson reuse, trace validation, runner truth, dan documentation consistency. Jangan install dependency, jangan deploy, jangan delete, jangan OS build, jangan external publish.",
+  "run_type": "REAL-TIME_5MIN_MICRO_CANARY",
+  "run_type_definition": "Real-time micro-canary where actual wall-clock >= 5 minutes, with heartbeat logs, checkpoints, and meaningful work cycles. NOT accelerated.",
+  "minimum_wall_clock_seconds": 300,
+  "start_timestamp_iso": null,
+  "end_timestamp_iso": null,
+  "actual_elapsed_seconds": null,
+  "allowed_scope": [
+    "registry_truth_audit",
+    "evidence_consistency_check",
+    "lesson_memory_reuse",
+    "retrieval_deduplication_validation",
+    "trace_schema_validation",
+    "runner_count_truth",
+    "documentation_consistency",
+    "status_semantics_validation",
+    "safety_contract_validation",
+    "artifact_quality_improvement",
+    "small_reversible_refactor",
+    "test_coverage_micro_improvement",
+    "internal_workflow_optimization"
+  ],
+  "forbidden_scope": [
+    "dependency_install",
+    "production_deployment",
+    "destructive_delete",
+    "OS_build",
+    "external_publish",
+    "credential_use",
+    "live_api_posting",
+    "network_operation_risky",
+    "mass_rewrite",
+    "always_on_execution",
+    "no_owner_trigger"
+  ],
+  "heartbeat_interval_seconds": 60,
+  "checkpoint_interval_seconds": 150,
+  "required_cycles_min": 3,
+  "required_heartbeats_min": 3,
+  "required_checkpoints_min": 1,
+  "judge_threshold": {
+    "min_score": 70,
+    "max_allowed_status": ["PASS", "WARN"]
+  },
+  "success_criteria": {
+    "wall_clock_ge_300s": true,
+    "exit_code_0": true,
+    "no_ERROR_final_status": true,
+    "no_FAILED_final_status": true,
+    "heartbeats_ge_3": true,
+    "checkpoints_ge_1": true,
+    "artifacts_generated_ge_1": true,
+    "judge_evaluations_ge_1": true,
+    "lesson_reuse_count_incremented_ge_1": true,
+    "trace_exported": true,
+    "no_forbidden_scope": true,
+    "tests_pass_after": true,
+    "weak_verified_0": true
+  },
+  "rollback_policy": {
+    "available": true,
+    "method": "Remove Phase 48H patches, revert to Phase 48G state",
+    "files_to_restore": [
+      "scripts/ilma_phase48h_realtime_5min_canary.py",
+      "config/ilma_phase48h_realtime_canary_contract.json"
+    ]
+  },
+  "stop_handling": {
+    "sigint": "Checkpoint and export trace, exit 0",
+    "sigterm": "Checkpoint and export trace, exit 0",
+    "timeout": "Checkpoint and export trace, exit 0 with note"
+  },
+  "pause_handling": {
+    "supported": false,
+    "note": "Pause not supported in micro-canary; use checkpoint and manual restart"
+  },
+  "resume_handling": {
+    "supported": false
+  },
+  "final_decision_rules": {
+    "READY_FOR_REALTIME_30MIN_CANARY": [
+      "wall_clock_ge_300s",
+      "exit_code_0",
+      "no_ERROR_or_FAILED",
+      "lesson_reuse_incremented",
+      "artifact_changed",
+      "checkpoint_created",
+      "trace_valid",
+      "tests_pass",
+      "security_clean",
+      "weak_verified_0",
+      "no_false_claims"
+    ],
+    "READY_FOR_NEXT_ACCELERATED_INTERNAL_OPTIMIZATION": [
+      "real_time_failed_but_work_done",
+      "criteria_partial_met"
+    ],
+    "PARTIAL": [
+      "major_criteria_failed",
+      "rollback_needed"
+    ],
+    "NOT_READY": [
+      "security_issue",
+      "forbidden_scope_executed",
+      "always_on_detected"
+    ]
+  },
+  "trace_schema": {
+    "required_fields": [
+      "session_id",
+      "owner_command",
+      "run_type",
+      "start_timestamp_iso",
+      "end_timestamp_iso",
+      "actual_elapsed_seconds",
+      "active_scope",
+      "forbidden_scope",
+      "cycles",
+      "heartbeats",
+      "checkpoints",
+      "retrieved_lessons",
+      "reused_lessons",
+      "reuse_count_before_after",
+      "artifact_paths",
+      "judge_results",
+      "final_status",
+      "exit_code",
+      "rollback_available"
+    ]
+  }
+}

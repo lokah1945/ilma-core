@@ -1,0 +1,94 @@
+# ILMA Evolution — Studi Kasus Index
+
+This file catalogs all major ILMA evolution phases as a quick-reference companion to SKILL.md.
+
+## Phase Studies
+
+- `phase1-audit-evidence-verification.md` — Phase 1 (2026-06-03): Evidence-gated capability audit. 37 capabilities audited, 0 test suites found. Module missing: web_fetch, web_search. Confidence router returning 0. MiniMax model cascading failures. Output: ILMA_CAPABILITY_EVOLUTION_GOVERNANCE.md, ILMA_CAPABILITY_INVENTORY_AUDIT.md, ILMA_CAPABILITY_MATRIX.yaml, ILMA_RISK_REGISTER.md.
+- `phase14-capability-verification.md` — Phase 14: Verify before claiming; false report detection
+- `phase52-daemon-session-boundary.md` — Phase 51/52: daemon session boundary; timing bug
+- `phase52r-wall-clock-semantics-fix.md` — Phase 52R: heartbeat time-gating fixed
+- `phase56-production-entrypoint.md` — Phase 56: production entrypoint, 212/212 tests PASS
+- `phase56-comprehensive-optimization.md` — Phase 56 comprehensive optimization
+- `phase59-comprehensive-optimization.md` — Phase 59 comprehensive optimization
+- `phase62-codex-oauth-bottleneck.md` — Phase 62: Codex OAuth bottleneck
+- `phase62-bootstrap-name-mismatch.md` — Phase 62: bootstrap name mismatch
+- `phase63-end-to-end-optimization.md` — Phase 63: end-to-end optimization
+- `phase63-end-to-end-file-optimization.md` — Phase 63: end-to-end file optimization
+- `phase63-consolidation.md` — Phase 63 consolidation
+- `phase64-optimizer-model-status-audit.md` — Phase 64: optimizer model status audit
+- `phase65-execution-vs-planning-behavior.md` — Phase 65: execution vs planning behavioral fix
+- `phase65-codex-thinking-optimization.md` — Phase 65: Codex thinking optimization
+- `phase65-self-improve-integration.md` — Phase 65: self-improve integration
+- `phase65-pim-enrichment-20260527.md` — Phase 65: PIM enrichment
+- `autonomous-runtime-20260601.md` — Phase 69: autonomous custom browser runtime
+- `phase69d-audit-2026-06-01.md` — Phase 69D audit
+- `phase-46-47-autonomous-evolution.md` — Phase 46-47: autonomous evolution
+- `phase48a-orchestrator-gap-fix.md` — Phase 48A: orchestrator gap fix
+- `phase48bclose-status-semantics-truth-lock.md` — Phase 48B close: status semantics truth lock
+- `phase48f-behavior-change-chain.md` — Phase 48F: behavior change chain
+- `phase48g-internal-optimization-gauntlet.md` — Phase 48G: internal optimization gauntlet
+- `phase49-300min-autoloop-body-integration.md` — Phase 49: 300min autoloop body integration
+- `phase-53-54-runtime-wiring.md` — Phase 53-54: runtime wiring
+- `phase-53-55-internal-production-candidate.md` — Phase 53-55: internal production candidate
+- `phase56-production-entrypoint-reexecution.md` — Phase 56R: production entrypoint reexecution
+- `provider_intelligence_audit_pattern.md` — Provider intelligence audit pattern
+- `benchmark-autoloop-20260515.md` — Benchmark autoloop 20260515
+- `subagent-lifecycle.md` — Subagent lifecycle
+- `model_database_provenance_routing_audit.md` — Model database provenance routing audit
+- `deep-optimization-end-to-end-20260526.md` — Deep optimization end-to-end 20260526
+- `truth_lock_and_claim_enforcement.md` — Truth lock and claim enforcement
+- `upgrade-session-sss-v3.md` — Upgrade session SSS v3
+- `session-2026-05-18.md` — Session 2026-05-18
+- `session-2026-05-18-sss-v3-verification.md` — Session 2026-05-18 SSS v3 verification
+- `super-deep-optimization-20260519.md` — Super deep optimization 20260519
+- `deep-optimization-v3-5-routing-fix.md` — Deep optimization v3.5 routing fix
+- `phase16-daily-health-cron-fix.md` — Phase 16: daily health cron fix
+- `phase-53-evolution-2026-05-23.md` — Phase 53 evolution 20260523
+- `phase-53-evolution-2026-05-23.md` — Phase 53 evolution
+- `phase-53-54-runtime-wiring.md` — Phase 53-54 runtime wiring (duplicate)
+- `phase-53-evolution-2026-05-23.md` — Phase 53 evolution (duplicate)
+- `phase-53-54-runtime-wiring.md` — Phase 53-54 runtime wiring (duplicate)
+- `phase-53-evolution-2026-05-23.md` — Phase 53 evolution (duplicate)
+- `phase-53-54-runtime-wiring.md` — Phase 53-54 runtime wiring (duplicate)
+- `phase-53-evolution-2026-05-23.md` — Phase 53 evolution (duplicate)
+- `phase63-end-to-end-file-optimization.md` — Phase 63 end-to-end file optimization (duplicate)
+- `phase-53-54-runtime-wiring.md` — Phase 53-54 runtime wiring (duplicate)
+- `phase63-end-to-end-file-optimization.md` — Phase 63 end-to-end file optimization (duplicate)
+- `phase-53-54-runtime-wiring.md` — Phase 53-54 runtime wiring (duplicate)
+- `phase63-end-to-end-file-optimization.md` — Phase 63 end-to-end file optimization (duplicate)
+- `phase-53-54-runtime-wiring.md` — Phase 53-54 runtime wiring (duplicate)
+- `phase63-end-to-end-file-optimization.md` — Phase 63 end-to-end file optimization (duplicate)
+- `phase63-end-to-end-file-optimification.md` — Phase 63 end-to-end file optimization (duplicate, typo)
+- `phase-56-production-entrypoint.md` — Phase 56 production entrypoint (duplicate)
+- `phase-56-production-entrypoint-reexecution.md` — Phase 56R reexecution (duplicate)
+- `phase56-comprehensive-optimization.md` — Phase 56 comprehensive optimization (duplicate)
+- `phase59-comprehensive-optimization.md` — Phase 59 comprehensive optimization (duplicate)
+- `phase62-codex-oauth-bottleneck.md` — Phase 62 Codex OAuth (duplicate)
+- `phase62-bootstrap-name-mismatch.md` — Phase 62 bootstrap (duplicate)
+- `phase63-end-to-end-optimization.md` — Phase 63 end-to-end (duplicate)
+- `phase63-end-to-end-file-optimization.md` — Phase 63 file opt (duplicate)
+- `phase63-consolidation.md` — Phase 63 consolidation (duplicate)
+- `phase64-optimizer-model-status-audit.md` — Phase 64 optimizer (duplicate)
+- `autonomous-runtime-20260601.md` — Phase 69 autonomous runtime
+- `phase69d-audit-2026-06-01.md` — Phase 69D audit
+- `git_push_auth_ilma_core.md` — Git push auth ILMA core
+- `hermes-skills-integration-2026-05-19.md` — Hermes skills integration
+- `hermes-integration-2026-05-19.md` — Hermes integration
+- `path-home-bug-2026-05-19.md` — Path home bug
+- `provider-removal-pattern.md` — Provider removal pattern
+- `missing-module-resolution.md` — Missing module resolution
+- `shell-hardening.md` — Shell hardening
+- `phase24-behavioral-tests.md` — Phase 24 behavioral tests
+- `phase27-weak-verified-downgrade.md` — Phase 27 weak verified downgrade
+- `phase28-services-decomposition-behavioral-proof.md` — Phase 28 services decomposition
+- `phase38-needs-small-script-behavioral-proof.md` — Phase 38 needs small script proof
+- `phase39-extreme-mission-loop-controller.md` — Phase 39 extreme mission loop
+- `phase17-batch-execution.md` — Phase 17 batch execution
+- `session-2026-05-17.md` — Session 2026-05-17
+- `upgrade-session-sss-v3.md` — Upgrade session SSS v3 (duplicate)
+- `autonomous-optimization-20260518.md` — Autonomous optimization 20260518
+- `phase-closure-count-reconciliation.md` — Phase closure count reconciliation
+- `critical_patching_flow.md` — Critical patching flow
+
+*Last updated: 2026-06-03*

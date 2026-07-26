@@ -1,0 +1,169 @@
+{
+  "_meta": {
+    "version": "1.2",
+    "description": "AYDA VPS Project Database — semua VPS/server yang menjadi bagian dari project AYDA",
+    "last_updated": "2026-06-20",
+    "note": "Update secara rutin setiap ada perubahan infrastruktur. Private key ada di /root/credential/",
+    "changelog": "v1.2 (2026-06-20): FullStack VPS port fix — Next.js blog 3000->3201, Strapi 1337->3200, prelanding 3001->3100; pm2 process name yapsi-website -> nextjs"
+  },
+
+  "projects": {
+
+    "yapsi-website": {
+      "name": "YAPSI Website",
+      "description": "Website resmi Yayasan Pendidikan dan Sosial Islam Darussalam",
+      "url": "https://yapsi.or.id",
+      "vps_ip": "172.16.103.200",
+      "vps_host": "FullStack VPS",
+      "services": {
+        "main_website": {
+          "port": 3201,
+          "framework": "Next.js",
+          "pm2_name": "nextjs",
+          "status": "running",
+          "verified_at": "2026-06-20",
+          "note": "Process name corrected from yapsi-website to nextjs (audit 2026-06-20). HTTP 200 at /; title=GlimpseIt — Smart Navigation in the Financial World."
+        },
+        "strapi_cms": {
+          "port": 3200,
+          "framework": "Strapi",
+          "pm2_name": "strapi",
+          "status": "running",
+          "verified_at": "2026-06-20",
+          "strapi_version": "5.38.0",
+          "note": "Port corrected from 1337 -> 3200 (audit 2026-06-20)."
+        },
+        "prelanding_ads": {
+          "port": 3100,
+          "framework": "Next.js",
+          "pm2_name": "prelanding-ads",
+          "status": "running",
+          "verified_at": "2026-06-20",
+          "note": "Port corrected from 3001 -> 3100 (audit 2026-06-20). Title=Glepseit.Online."
+        }
+      },
+      "ssh_port": 22,
+      "ssh_user": "root",
+      "private_key_file": "/root/credential/smahud.pem",
+      "managed_by": "FullStack VPS"
+    },
+
+    "siakad-server": {
+      "name": "SiakadServer",
+      "description": "Server Sistem Informasi Akademik - YAPSI",
+      "vps_ip": "172.16.103.253",
+      "vps_host": "SiakadServer",
+      "services": {
+        "web_server": {
+          "port": 8080,
+          "framework": "OpenLiteSpeed",
+          "status": "stopped",
+          "note": "Intended for Siakad, not yet fully configured"
+        }
+      },
+      "ssh_port": 22,
+      "ssh_user": "root",
+      "private_key_file": "/root/credential/smahud.pem",
+      "managed_by": "SiakadServer VPS"
+    },
+
+    "ayda-gateway": {
+      "name": "AYDA OpenClaw Gateway",
+      "description": "Gateway AI agent AYDA - OpenClaw runtime",
+      "localhost": true,
+      "vps_ip": "127.0.0.1",
+      "services": {
+        "openclaw_gateway": {
+          "port": 18789,
+          "process": "openclaw-gateway",
+          "pid_file": "/root/.openclaw/gateway.pid",
+          "status": "running"
+        },
+        "router_api": {
+          "port": 18755,
+          "framework": "Flask",
+          "script": "scripts/router_api_server.py",
+          "status": "stopped"
+        }
+      },
+      "managed_by": "Localhost (this machine)"
+    },
+
+    "backup-server": {
+      "name": "Backup Server",
+      "description": "Server backup otomatis workspace AYDA",
+      "backup_path": "/root/backup/openclaw/",
+      "schedule": "daily_24h",
+      "format": "workspace-YYYY-MM-DD-HHMM.tar.xz",
+      "retention_days": 7,
+      "managed_by": "Localhost"
+    }
+
+  },
+
+  "vps_hosts": {
+
+    "FullStack VPS": {
+      "vps_ip": "172.16.103.200",
+      "hostname": "FullStack VPS",
+      "os": "Linux",
+      "ssh_port": 22,
+      "ssh_user": "root",
+      "private_key_file": "/root/credential/smahud.pem",
+      "purpose": "Website + Strapi CMS + Prelanding Ads",
+      "pm2_processes": ["nextjs", "strapi", "prelanding-ads"],
+      "monitor_url": "http://172.16.103.200:3201/",
+      "ping_interval": 300,
+      "verified_at": "2026-06-20",
+      "note": "Process name corrected from yapsi-website to nextjs; monitor_url port 3000->3201."
+    },
+
+    "SiakadServer": {
+      "vps_ip": "172.16.103.253",
+      "hostname": "SiakadServer",
+      "os": "Linux",
+      "ssh_port": 22,
+      "ssh_user": "root",
+      "private_key_file": "/root/credential/smahud.pem",
+      "purpose": "Sistem Informasi Akademik",
+      "web_port": 8080,
+      "web_server": "OpenLiteSpeed",
+      "status": "intended_not_active"
+    }
+
+  },
+
+  "deployment_map": {
+    "nextjs_app": {
+      "target_vps": "FullStack VPS",
+      "target_ip": "172.16.103.200",
+      "method": "git_clone_pm2",
+      "port_range": "3100-3210",
+      "framework": "Next.js",
+      "active_ports": [3100, 3201],
+      "verified_at": "2026-06-20"
+    },
+    "strapi_cms": {
+      "target_vps": "FullStack VPS",
+      "target_ip": "172.16.103.200",
+      "method": "git_clone_pm2",
+      "port_range": "3200",
+      "framework": "Node.js/Strapi",
+      "active_port": 3200,
+      "verified_at": "2026-06-20"
+    },
+    "python_api": {
+      "target_vps": "localhost",
+      "target_ip": "127.0.0.1",
+      "method": "systemd_or_pm2",
+      "port_range": "5000-6000",
+      "framework": "Python/Flask/FastAPI"
+    },
+    "static_site": {
+      "target_vps": "FullStack VPS",
+      "target_ip": "172.16.103.200",
+      "method": "nginx_direct",
+      "framework": "Static HTML/React"
+    }
+  }
+}

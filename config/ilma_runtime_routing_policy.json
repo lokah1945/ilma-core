@@ -1,0 +1,227 @@
+{
+  "version": "1.0",
+  "created": "2026-05-10T16:15:00Z",
+  "description": "ILMA Runtime Routing Policy \u2014 defines task classification and routing rules",
+  "task_classifier": {
+    "code": {
+      "keywords": [
+        "code",
+        "implement",
+        "fix",
+        "bug",
+        "function",
+        "class",
+        "python",
+        "script",
+        "debug",
+        "refactor",
+        "write code",
+        "coding",
+        "develop",
+        "build"
+      ],
+      "intent_weight": 1.0
+    },
+    "write": {
+      "keywords": [
+        "write",
+        "compose",
+        "draft",
+        "article",
+        "blog",
+        "post",
+        "document",
+        "content",
+        "story",
+        "script",
+        "essay"
+      ],
+      "intent_weight": 1.0
+    },
+    "research": {
+      "keywords": [
+        "research",
+        "find",
+        "investigate",
+        "search",
+        "analyze",
+        "study",
+        "explore",
+        "look up",
+        "what is",
+        "who is"
+      ],
+      "intent_weight": 1.0
+    },
+    "audit": {
+      "keywords": [
+        "audit",
+        "review",
+        "check",
+        "scan",
+        "security",
+        "validate",
+        "verify",
+        "test",
+        "inspect",
+        "assess",
+        "examine"
+      ],
+      "intent_weight": 1.0
+    },
+    "plan": {
+      "keywords": [
+        "plan",
+        "roadmap",
+        "schedule",
+        "breakdown",
+        "organize",
+        "strategy",
+        "framework",
+        "architecture",
+        "design"
+      ],
+      "intent_weight": 1.0
+    },
+    "internal": {
+      "keywords": [
+        "optimize",
+        "improve",
+        "self",
+        "learning",
+        "auto",
+        "internal",
+        "workflow",
+        "capability",
+        "router",
+        "lesson",
+        "phase49"
+      ],
+      "intent_weight": 1.0
+    },
+    "multi": {
+      "keywords": [
+        "orchestrate",
+        "coordinate",
+        "delegate",
+        "multi",
+        "parallel",
+        "batch",
+        "several tasks",
+        "multiple"
+      ],
+      "intent_weight": 1.0
+    },
+    "artifact": {
+      "keywords": [
+        "slide",
+        "ppt",
+        "powerpoint",
+        "presentation",
+        "pdf",
+        "spreadsheet",
+        "excel",
+        "infographic",
+        "diagram"
+      ],
+      "intent_weight": 1.0
+    },
+    "simple": {
+      "keywords": [
+        "what is",
+        "who is",
+        "when",
+        "where",
+        "why",
+        "how",
+        "define",
+        "explain",
+        "tell me",
+        "list"
+      ],
+      "intent_weight": 1.0
+    },
+    "unsafe": {
+      "keywords": [
+        "hack",
+        "exploit",
+        "illegal",
+        "bypass",
+        "crack",
+        "malware",
+        "attack",
+        "unauthorized",
+        "steal",
+        "sql inject",
+        "xss"
+      ],
+      "intent_weight": 2.0
+    }
+  },
+  "confidence_thresholds": {
+    "high": 0.8,
+    "medium": 0.5,
+    "low": 0.3,
+    "reject": 0.2,
+    "qwen": {
+      "high": 0.7,
+      "medium": 0.5,
+      "low": 0.3
+    }
+  },
+  "evidence_required": {
+    "high": "full_evidence + test + trace",
+    "medium": "minimal_evidence + test",
+    "low": "basic_evidence",
+    "simple": "none_required"
+  },
+  "max_iterations": {
+    "code": 5,
+    "write": 3,
+    "research": 3,
+    "audit": 4,
+    "plan": 2,
+    "internal": 3,
+    "multi": 4,
+    "artifact": 3,
+    "simple": 1,
+    "unsafe": 0,
+    "qwen": 2
+  },
+  "safety_class": {
+    "high_confidence": "normal",
+    "low_confidence": "low_confidence",
+    "unsafe_keywords": "forbidden"
+  },
+  "routing_rules": {
+    "if_unsafe_detected": "route_to_safety_explanation_workflow",
+    "if_low_confidence": "route_to_planning_workflow_for_manual_classification",
+    "if_multi_task": "route_to_multi_mission_workflow",
+    "if_artifact_request": "route_to_artifact_workflow",
+    "if_no_match": "route_to_planning_workflow"
+  },
+  "fallback_routes": {
+    "code": "decline_or_template",
+    "write": "outline_only",
+    "research": "limited_sources_note",
+    "audit": "limited_audit",
+    "plan": "partial_plan_with_gaps",
+    "internal": "abort_and_report",
+    "multi": "single_task_fallback",
+    "artifact": "text_outline",
+    "simple": "do_not_know",
+    "unsafe": "default_refuse"
+  },
+  "judge_rubric_by_task_class": {
+    "code": "correctness + testable + no_security_issues + no_hallucination",
+    "write": "clarity + coherence + evidence_backed + fit_for_purpose",
+    "research": "sources_credible + evidence_grounded + citations + no_false_claims",
+    "audit": "thorough + evidence_backed + no_false_positives + safe_ops",
+    "plan": "bite_sized + actionable + rollback_available + clear_deps",
+    "internal": "lesson_used + artifact_improved + no_regression + safety_honored",
+    "multi": "coverage + coordination + no_gaps + proper_delegation",
+    "artifact": "quality + fit_for_purpose + functional + no_corruption",
+    "simple": "accuracy + brevity + no_hallucination + source_cited",
+    "unsafe": "safety_explained + not_executed + helpful_alternative"
+  }
+}

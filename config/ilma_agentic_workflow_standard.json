@@ -1,0 +1,246 @@
+{
+  "version": "1.0",
+  "created": "2026-05-10T17:30:00Z",
+  "description": "ILMA Agentic Workflow Execution Standard — defines the standard loop for every non-trivial task",
+
+  "workflow_version": "1.0",
+  "owner": "Bos (Huda Choirul Anam)",
+  "safety": "Owner-triggered only, no always-on",
+
+  "loop_definition": {
+    "name": "ILMA Agentic Loop",
+    "description": "Standard execution loop for any non-trivial task",
+    "phases": [
+      {
+        "phase": 1,
+        "name": "classify_intent",
+        "description": "Classify user intent into task_class, safety_class, and workflow_type",
+        "tool": "ilma_runtime_router.py",
+        "input": "user_message",
+        "output": "task_class, confidence, safety_class, workflow_type",
+        "required": true,
+        "failure_mode": "route to simple_answer with low confidence"
+      },
+      {
+        "phase": 2,
+        "name": "safety_check",
+        "description": "Check if task is safe and allowed",
+        "tool": "safety contract validator",
+        "input": "workflow_type, task_class",
+        "output": "allowed/forbidden/restricted",
+        "required": true,
+        "failure_mode": "reject and explain safety boundary"
+      },
+      {
+        "phase": 3,
+        "name": "select_workflow",
+        "description": "Select the appropriate workflow for the task",
+        "tool": "workflow_selection_matrix",
+        "input": "task_class, workflow_type",
+        "output": "workflow_definition with capabilities, tools, skills",
+        "required": true,
+        "failure_mode": "fallback to limited_audit"
+      },
+      {
+        "phase": 4,
+        "name": "select_capabilities",
+        "description": "Select required capabilities for the workflow",
+        "tool": "capability_routing_matrix",
+        "input": "workflow_type",
+        "output": "list of capabilities with evidence_ids",
+        "required": true,
+        "failure_mode": "abort with missing_capability error"
+      },
+      {
+        "phase": 5,
+        "name": "select_tools_skills",
+        "description": "Select tools, skills, and scripts for execution",
+        "tool": "ilma_tool_skill_selector.py",
+        "input": "task_class, workflow_type, safety_class",
+        "output": "tools[], skills[], execution_order[], fallback",
+        "required": true,
+        "failure_mode": "use file-only fallback"
+      },
+      {
+        "phase": 6,
+        "name": "retrieve_lessons",
+        "description": "Retrieve relevant lessons from lesson memory",
+        "tool": "ilma_lesson_query_builder.py / ilma_enhanced_lesson_retrieval.py",
+        "input": "task_class, workflow_type, capability_names, failure_signatures",
+        "output": "list of lessons with relevance scores",
+        "required": true,
+        "failure_mode": "empty list (not a hard failure)"
+      },
+      {
+        "phase": 7,
+        "name": "create_plan",
+        "description": "Create execution plan incorporating lessons",
+        "tool": "Actor (manual or script)",
+        "input": "user_message, task_class, lessons[], workflow_definition",
+        "output": "execution_plan with steps, expected outputs",
+        "required": true,
+        "failure_mode": "basic plan without lessons"
+      },
+      {
+        "phase": 8,
+        "name": "produce_artifact",
+        "description": "Execute plan and produce artifact/output",
+        "tool": "tools and skills selected in phase 5",
+        "input": "execution_plan, lessons",
+        "output": "artifact (file, code, report, etc.)",
+        "required": true,
+        "failure_mode": "partial artifact with explanation"
+      },
+      {
+        "phase": 9,
+        "name": "judge_artifact",
+        "description": "Evaluate artifact using Judge rubric",
+        "tool": "ilma_critic_judge.py",
+        "input": "artifact, judge_rubric (from capability)",
+        "output": "PASS/WARN/FAIL with score and feedback",
+        "required": true,
+        "failure_mode": "WARN with explanation"
+      },
+      {
+        "phase": 10,
+        "name": "reflect_if_fail",
+        "description": "Run Reflexion if judge returns FAIL",
+        "tool": "ilma_reflection_engine.py",
+        "input": "artifact, judge_result, execution_plan",
+        "output": "root_cause, revision_plan, safe_patch_plan, test_plan",
+        "required": "only if judge returns FAIL",
+        "failure_mode": "abort and report failure"
+      },
+      {
+        "phase": 11,
+        "name": "patch_if_safe",
+        "description": "Apply safe patch if reflection produces one",
+        "tool": "Actor with rollback",
+        "input": "safe_patch_plan, test_plan",
+        "output": "patched artifact, test_results",
+        "required": "only if reflection produced patch",
+        "failure_mode": "rollback to original"
+      },
+      {
+        "phase": 12,
+        "name": "test",
+        "description": "Run targeted tests to verify artifact",
+        "tool": "pytest or custom test",
+        "input": "artifact, test_plan",
+        "output": "test_results with PASS/FAIL",
+        "required": true,
+        "failure_mode": "fail and require revision"
+      },
+      {
+        "phase": 13,
+        "name": "write_evidence",
+        "description": "Write evidence to evidence ledger",
+        "tool": "ilma_evidence_collector.py or manual",
+        "input": "artifact, judge_result, test_results, lessons_used[]",
+        "output": "evidence_id with file_path",
+        "required": true,
+        "failure_mode": "log warning but continue"
+      },
+      {
+        "phase": 14,
+        "name": "write_lesson_back",
+        "description": "Store lessons learned from this execution",
+        "tool": "ilma_lesson_memory.py",
+        "input": "task_class, workflow_type, success/failure, root_cause (if fail), pattern",
+        "output": "lesson_id",
+        "required": "true for future improvement",
+        "failure_mode": "skip (not critical)"
+      },
+      {
+        "phase": 15,
+        "name": "export_trace",
+        "description": "Export execution trace for audit",
+        "tool": "trace exporter",
+        "input": "all phases, timing, decisions, outputs",
+        "output": "trace file in evidence/evolution_traces/",
+        "required": true,
+        "failure_mode": "log warning but continue"
+      },
+      {
+        "phase": 16,
+        "name": "final_answer",
+        "description": "Deliver final answer with claim boundary",
+        "tool": "message to user",
+        "input": "artifact, evidence_id, trace_id, claim_boundary",
+        "output": "user-facing message with correct claims",
+        "required": true,
+        "failure_mode": "partial answer with explanation"
+      }
+    ]
+  },
+
+  "simple_task_shortcut": {
+    "description": "For simple tasks, skip most phases and go directly to artifact + judge",
+    "trigger_conditions": [
+      "confidence >= 85%",
+      "task_class == simple_answer",
+      "no lessons needed",
+      "no unsafe scope",
+      "single tool sufficient"
+    ],
+    "phases_used": [1, 2, 8, 9, 13, 15, 16],
+    "phases_skipped": [3, 4, 5, 6, 7, 10, 11, 12, 14]
+  },
+
+  "unsafe_task_handling": {
+    "description": "For unsafe/forbidden tasks, stop at safety check",
+    "phases_used": [1, 2],
+    "phases_skipped": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "output": "safety_explanation_no_execution"
+  },
+
+  "rollback_policy": {
+    "description": "If any phase fails critically, rollback to last known good state",
+    "rollback_triggers": [
+      "phase 9 FAIL with no safe_patch_plan",
+      "phase 12 test failure without recovery",
+      "phase 2 safety FORBIDDEN"
+    ],
+    "rollback_actions": [
+      "restore original artifact",
+      "export failure trace",
+      "write failure lesson",
+      "report to user with honest status"
+    ]
+  },
+
+  "evidence_policy": {
+    "description": "Every non-trivial task must produce evidence",
+    "required_fields": [
+      "task_id",
+      "task_class",
+      "workflow_type",
+      "capabilities_used[]",
+      "tools_used[]",
+      "lesson_ids[]",
+      "judge_result",
+      "test_results",
+      "artifact_path",
+      "trace_path",
+      "wall_clock_duration",
+      "exit_code"
+    ]
+  },
+
+  "claim_boundary_rules": {
+    "description": "Final answer must include correct claim boundary",
+    "allowed_claims": [
+      "evidence-backed capability status",
+      "test-passed functionality",
+      "trace-documented execution",
+      "owner-triggered auto-learning status"
+    ],
+    "forbidden_claims": [
+      "SSS+++ achieved",
+      "production autonomous agent",
+      "always-on auto-learning",
+      "universal all-task ability",
+      "1000-file readiness (unless proven)"
+    ]
+  }
+}

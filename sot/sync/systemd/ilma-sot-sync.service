@@ -1,0 +1,16 @@
+[Unit]
+Description=ILMA SOT full delta sync (6-hourly) — refresh all provider model lists
+After=network-online.target mongod.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/.hermes/profiles/ilma/sot/sync
+Environment=PYTHONPATH=/root/.hermes/profiles/ilma:/root/.hermes/profiles/ilma/sot/discovery:/root/.hermes/profiles/ilma/sot/orchestration
+ExecStart=/usr/bin/python3 /root/.hermes/profiles/ilma/sot/sync/sot_auto_sync.py --full
+MemoryMax=600M
+Nice=15
+TimeoutStartSec=900
+StandardOutput=append:/root/.hermes/profiles/ilma/logs/sot_sync_full.log
+StandardError=append:/root/.hermes/profiles/ilma/logs/sot_sync_full.log

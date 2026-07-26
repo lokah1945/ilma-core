@@ -1,0 +1,60 @@
+#!/bin/bash
+# ILMA Felo CLI Wrapper
+# Account: lokah2150@gmail.com
+# API Key: <REDACTED-FELO>
+
+export FELO_API_KEY="<REDACTED-FELO>"
+
+SCRIPT_DIR="/root/.hermes/profiles/ilma/home/.hermes/skills/felo"
+CMD="${1:-}"
+shift || true
+
+case "$CMD" in
+  search)
+    bash "$SCRIPT_DIR/felo-search/scripts/search.sh" "$@"
+    ;;
+  superagent|sa)
+    node "$SCRIPT_DIR/felo-superAgent/scripts/run_superagent.mjs" "$@"
+    ;;
+  livedoc|ld)
+    node "$SCRIPT_DIR/felo-livedoc/scripts/run_livedoc.mjs" "$@"
+    ;;
+  web-fetch|wf)
+    node "$SCRIPT_DIR/felo-web-fetch/scripts/run_web_fetch.mjs" "$@"
+    ;;
+  yt|youtube)
+    node "$SCRIPT_DIR/felo-youtube-subtitling/scripts/run_yt_subtitling.mjs" "$@"
+    ;;
+  xsearch|xs)
+    bash "$SCRIPT_DIR/felo-x-search/scripts/search.sh" "$@"
+    ;;
+  slides)
+    node "$SCRIPT_DIR/felo-slides/scripts/run_slides.mjs" "$@"
+    ;;
+  mindmap|mm)
+    node "$SCRIPT_DIR/felo-mindmap/scripts/run_mindmap.mjs" "$@"
+    ;;
+  content-slides|c2s)
+    node "$SCRIPT_DIR/felo-content-to-slides/scripts/run_content_to_slides.mjs" "$@"
+    ;;
+  twitter|tw)
+    node "$SCRIPT_DIR/felo-twitter-writer/scripts/run_twitter_writer.mjs" "$@"
+    ;;
+  style)
+    node "$SCRIPT_DIR/felo-superAgent/scripts/run_style_library.mjs" "$@"
+    ;;
+  *)
+    echo "ILMA Felo CLI — Usage:"
+    echo "  felo search <query>              — Real-time web search"
+    echo "  felo superagent <args>           — Multi-turn AI conversation"
+    echo "  felo livedoc <args>              — Knowledge base management"
+    echo "  felo web-fetch <args>            — URL content extraction"
+    echo "  felo yt <args>                   — YouTube subtitles"
+    echo "  felo xsearch <query>             — X/Twitter search"
+    echo "  felo slides <args>               — PPT generation"
+    echo "  felo mindmap <args>              — Mindmap generation"
+    echo "  felo content-slides <args>       — URL/YT to PPT"
+    echo "  felo twitter <args>              — Twitter writer"
+    echo "  felo style <args>                — Style library"
+    ;;
+esac

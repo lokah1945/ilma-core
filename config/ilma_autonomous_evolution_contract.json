@@ -1,0 +1,84 @@
+{
+  "contract_version": "1.0",
+  "phase": "47",
+  "date": "2026-05-10",
+  "description": "Nerve Integration Contract — defines what 'persistent integration' means for Autonomous Evolution in ILMA core",
+
+  "definition": {
+    "nerve_integration": "Autonomous Evolution Orchestrator is callable from the main task path for heavy+ missions, with pre-task retrieval, actor-critic loop, reflection, and lesson storage all operational.",
+    "persistent": "Configuration survives process restarts, lessons persist in JSONL, config is loaded from disk on every heavy+ task",
+    "guarded_task_path": "The task_entrypoint.py is the integration point — heavy/super_heavy/extreme/autonomous_evolution tasks go through it by default"
+  },
+
+  "minimum_requirements": {
+    "pre_task_retrieval_required": {
+      "task_classes": ["heavy", "super_heavy", "extreme_mission", "autonomous_evolution"],
+      "behavior": "Must call lesson retrieval before planning",
+      "evidence": "retrieved_lessons in trace"
+    },
+    "judge_required": {
+      "task_classes": ["heavy", "super_heavy", "extreme_mission", "autonomous_evolution"],
+      "behavior": "Must evaluate every artifact before finalization",
+      "evidence": "judge_results in trace"
+    },
+    "reflection_required_on_fail": {
+      "behavior": "Must run reflection engine when judge returns FAIL",
+      "evidence": "reflection.root_cause in trace"
+    },
+    "lesson_memory_write_required_on_recovery": {
+      "behavior": "Must store lesson when failure is recovered (judge returns PASS after FAIL)",
+      "evidence": "lessons_created in trace"
+    },
+    "checkpoint_required_every_n_iterations": {
+      "n": 5,
+      "behavior": "Must produce checkpoint trace every N iterations",
+      "evidence": "iteration_count in trace"
+    },
+    "max_iterations_required": {
+      "behavior": "Must stop loop when max_iterations reached",
+      "evidence": "exit_reason=max_iterations_reached in trace"
+    },
+    "unsafe_action_abort": {
+      "behavior": "Must abort and report when Decision.ABORT is returned",
+      "evidence": "exit_reason=unsafe_action_blocked in trace"
+    },
+    "evidence_id_required": {
+      "behavior": "Every VERIFIED capability must have evidence_id",
+      "evidence": "evidence_ids in trace"
+    },
+    "final_report_truth_section_required": {
+      "behavior": "Final report must include truth section with exact counts",
+      "evidence": "claims section in report"
+    },
+    "no_overclaim_gate_required": {
+      "behavior": "Must block claims not supported by evidence",
+      "evidence": "truthfulness check in judge"
+    }
+  },
+
+  "safety_boundaries": {
+    "require_human_for": [
+      "dependency_install",
+      "network_credentials",
+      "production_deployment",
+      "destructive_file_operation",
+      "external_publish",
+      "os_build"
+    ],
+    "forbidden_claims": [
+      "full autonomous self-improvement",
+      "zero-human-in-the-loop mastery",
+      "production autonomous agent",
+      "universal auto-learning",
+      "1000-file execution readiness",
+      "publishable research readiness",
+      "OS build readiness"
+    ]
+  },
+
+  "forbidden_without_evidence": [
+    "persistent integration",
+    "lesson reuse",
+    "120-minute autonomous run completed"
+  ]
+}

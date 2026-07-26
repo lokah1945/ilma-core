@@ -1,0 +1,106 @@
+{
+  "contract_version": "1.0",
+  "name": "ILMA 300-Minute Owner-Triggered Autoloop Contract",
+  "phase": "PHASE 51-H",
+  "date": "2026-05-10",
+
+  "duration_specification": {
+    "requested_duration_minutes": 300,
+    "wall_clock_required": true,
+    "minimum_seconds": 18000,
+    "maximum_seconds": 18200,
+    "owner_trigger_required": true
+  },
+
+  "operational_mode": {
+    "always_on": false,
+    "owner_trigger_only": true,
+    "always_on_scheduler_forbidden": true,
+    "start_on_boot": false
+  },
+
+  "performance_policy": {
+    "max_workers_normal": 12,
+    "max_workers_burst": 16,
+    "reserved_cores_for_os": 2,
+    "cpu_burst_allowed": true,
+    "cpu_burst_max_seconds": 900,
+    "long_run_target_cpu_percent": 60,
+    "burst_target_cpu_percent": 90
+  },
+
+  "interval_configuration": {
+    "heartbeat_interval_seconds": 60,
+    "checkpoint_interval_minutes": 10,
+    "report_interval_minutes": 15,
+    "full_test_interval_minutes": 60,
+    "light_validation_interval_minutes": 15,
+    "evidence_export_interval_minutes": 15,
+    "lesson_check_interval_minutes": 30
+  },
+
+  "stop_conditions": [
+    {"condition": "owner_stop_signal", "description": "Owner sends stop command"},
+    {"condition": "wall_clock_exceeded", "value": 18200, "description": "Wall-clock > 18200s"},
+    {"condition": "unsafe_scope_requested", "description": "Task violates safety boundaries"},
+    {"condition": "3_consecutive_failed_cycles", "description": "3 cycles failed in a row"},
+    {"condition": "cpu_runaway", "value": 97, "description": "CPU > 97% for > 60s"},
+    {"condition": "memory_runaway", "value": 90, "description": "Memory > 90%"},
+    {"condition": "trace_write_failure", "description": "Cannot write trace"},
+    {"condition": "checkpoint_failure", "description": "Cannot create checkpoint"},
+    {"condition": "test_gate_critical_fail", "description": "Critical test gate fails"},
+    {"condition": "lesson_memory_corruption", "description": "Lesson memory returns invalid data"}
+  ],
+
+  "pause_conditions": [
+    {"condition": "owner_pause_signal", "description": "Owner sends pause command"},
+    {"condition": "thermal_throttle_detected", "description": "CPU throttling active"},
+    {"condition": "disk_io_saturation", "description": "Disk IO > 90%"},
+    {"condition": "network_unavailable", "description": "Required network resource unavailable"}
+  ],
+
+  "resume_conditions": [
+    {"condition": "owner_resume_signal", "description": "Owner sends resume command"},
+    {"condition": "thermal_normal", "description": "CPU temp normal"},
+    {"condition": "network_restored", "description": "Required network available"}
+  ],
+
+  "rollback_policy": {
+    "rollback_on_failed_burst": true,
+    "rollback_on_checkpoint_failure": true,
+    "preserve_last_checkpoint": true,
+    "max_checkpoints_retained": 10,
+    "checkpoint_expiry_hours": 24
+  },
+
+  "claim_boundary": {
+    "current_ilma_version": "v3.24",
+    "current_phase": "PHASE 51",
+    "what_can_be_claimed": [
+      "300-minute owner-triggered autoloop PREPARED (not yet proven)",
+      "12-16 worker parallel execution capability",
+      "performance policy loaded and active",
+      "checkpoint/resume/stop mechanisms ready",
+      "wall-clock >= 18000s target required"
+    ],
+    "what_cannot_be_claimed_yet": [
+      "300-minute real-time execution complete",
+      "300-minute exit code 0 proven",
+      "300-minute all gates passed proven"
+    ]
+  },
+
+  "safety_guards": {
+    "no_production_deploy": true,
+    "no_dependency_install": true,
+    "no_destructive_delete": true,
+    "no_os_build": true,
+    "no_external_publish": true,
+    "no_credential_use": true,
+    "no_live_api_posting": true,
+    "no_always_on_scheduler": true
+  },
+
+  "active": true,
+  "owner_approval_required": true
+}

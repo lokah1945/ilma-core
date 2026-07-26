@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "model_lifecycle_events",
+  "description": "Append-only log of model state transitions (active/inactive/disabled/deprecated).",
+  "type": "object",
+  "required": ["provider", "model_id", "event_type", "event_at", "actor", "evidence_id"],
+  "properties": {
+    "provider":   { "type": "string", "minLength": 1 },
+    "model_id":   { "type": "string", "minLength": 1 },
+    "event_type": {
+      "type": "string",
+      "enum": ["state_active", "state_inactive", "state_disabled", "state_deprecated",
+               "state_quota_exceeded", "state_broken", "state_reenabled", "renamed", "merged"]
+    },
+    "event_at":   { "type": ["string", "null"], "format": "date-time" },
+    "from_state": { "type": ["string", "null"] },
+    "to_state":   { "type": ["string", "null"] },
+    "actor":      { "type": "string", "minLength": 1 },
+    "evidence_id":{ "type": "string", "minLength": 1 },
+    "notes":      { "type": ["string", "null"] }
+  }
+}

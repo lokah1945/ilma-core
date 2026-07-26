@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "messaging",
+  "description": "Messaging platform configurations",
+  "type": "object",
+  "properties": {
+    "bot_name": {
+      "type": "string"
+    },
+    "bot_token": {
+      "type": "string"
+    },
+    "added": {
+      "type": "string"
+    },
+    "added_by": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "token_status": {
+      "type": "string"
+    },
+    "token_source": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "docs_url": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    }
+  },
+  "_auto_generated": true,
+  "_generated_at": "2026-07-01T16:27:41"
+}

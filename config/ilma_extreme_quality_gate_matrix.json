@@ -1,0 +1,138 @@
+{
+  "quality_gates": {
+    "LONGFORM": {
+      "continuity": {
+        "check": "Tone, terminology, character consistency across chapters",
+        "validator": "ContinuityCritic",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "citations": {
+        "check": "All claims have inline citation and bibliography entry",
+        "validator": "EvidenceAuditor",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "chapter_dependency": {
+        "check": "Chapters reference each other correctly; no orphan chapters",
+        "validator": "ResearchCritic",
+        "evidence_required": false,
+        "blocking": false
+      },
+      "glossary": {
+        "check": "All technical terms defined in glossary or in-text",
+        "validator": "ContinuityCritic",
+        "evidence_required": true,
+        "blocking": false
+      },
+      "claim_ledger": {
+        "check": "All major claims tracked with evidence IDs",
+        "validator": "EvidenceAuditor",
+        "evidence_required": true,
+        "blocking": true
+      }
+    },
+    "CODEBASE": {
+      "compile": {
+        "check": "All files compile without errors",
+        "validator": "Compiler",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "tests": {
+        "check": "Unit tests pass, coverage maintained",
+        "validator": "TestEngineer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "mutation": {
+        "check": "Mutation tests pass above threshold",
+        "validator": "TestEngineer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "security": {
+        "check": "Security scan clean, no critical/high vulnerabilities",
+        "validator": "SecurityReviewer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "dependency_graph": {
+        "check": "No circular dependencies, dependency graph valid",
+        "validator": "Architect",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "docs": {
+        "check": "Public APIs documented, README complete",
+        "validator": "EvidenceAuditor",
+        "evidence_required": true,
+        "blocking": false
+      }
+    },
+    "RESEARCH": {
+      "source_quality": {
+        "check": "All sources are peer-reviewed or equivalent quality",
+        "validator": "ResearchCritic",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "claim_evidence_map": {
+        "check": "Every claim in paper mapped to evidence",
+        "validator": "EvidenceAuditor",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "methodology": {
+        "check": "Methodology described fully, reproducible",
+        "validator": "ResearchCritic",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "limitations": {
+        "check": "Limitations section complete and honest",
+        "validator": "ResearchCritic",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "peer_review_simulation": {
+        "check": "Internal review finds no fatal flaws",
+        "validator": "SubAgentReview",
+        "evidence_required": true,
+        "blocking": true
+      }
+    },
+    "LINUX_DISTRO": {
+      "rootfs_reproducibility": {
+        "check": "rootfs builds identically from same inputs",
+        "validator": "OSBuildReviewer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "package_management": {
+        "check": "install/remove/upgrade works for test packages",
+        "validator": "TestEngineer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "boot_path": {
+        "check": "Boot path documented and verifiable",
+        "validator": "OSBuildReviewer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "security_updates": {
+        "check": "Security update mechanism functional",
+        "validator": "SecurityReviewer",
+        "evidence_required": true,
+        "blocking": true
+      },
+      "release_engineering": {
+        "check": "Release build is reproducible and signed",
+        "validator": "PerformanceReviewer",
+        "evidence_required": true,
+        "blocking": true
+      }
+    }
+  }
+}

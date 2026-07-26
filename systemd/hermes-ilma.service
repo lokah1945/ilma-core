@@ -1,0 +1,25 @@
+[Unit]
+Description=Hermes Gateway - ILMA Profile (MiniMax-M2.7)
+After=network.target
+PartOf=hermes-gateway.target
+
+[Service]
+Restart=on-failure
+RestartSec=10s
+StartLimitIntervalSec=300
+StartLimitBurst=10
+Type=simple
+User=root
+WorkingDirectory=/root/.hermes/profiles/ilma
+Environment="HERMES_HOME=/root/.hermes/profiles/ilma"
+ExecStart=/root/.hermes/hermes-agent/venv/bin/python3 /root/.local/bin/hermes -p ilma gateway run
+ExecStop=/bin/kill -TERM ${MAINPID}
+StandardOutput=append:/root/.hermes/profiles/ilma/logs/gateway.log
+StandardError=append:/root/.hermes/profiles/ilma/logs/gateway.log
+TimeoutStopSec=30
+SyslogIdentifier=hermes-ilma
+MemoryMax=1G
+MemoryHigh=800M
+
+[Install]
+WantedBy=hermes-gateway.target

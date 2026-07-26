@@ -1,0 +1,147 @@
+{
+  "contract_id": "ILMA-PHASE49-300MIN-AUTOLOOP-v1",
+  "version": "1.0",
+  "created": "2026-05-10T16:00:00Z",
+  "owner_trigger": "auto learning selama 300 menit fokus menyatukan seluruh kemampuan ILMA menjadi runtime agentik yang solid, efisien, evidence-backed, dan otonom secara terbatas. Optimalkan capability routing, workflow selection, tool/skill selection, lesson reuse, judge/reflexion loop, trace schema, evidence registry, safety contract, documentation consistency, dan runtime cohesion. Jangan install dependency, jangan deploy production, jangan delete destruktif, jangan OS build, jangan external publish.",
+  "owner_trigger_timestamp": "2026-05-10T16:00:00Z",
+  "owner_trigger_source": "telegram_dm",
+
+  "duration": {
+    "requested_minutes": 300,
+    "target_cycles": 60,
+    "min_acceptable_for_phase_gate": 30,
+    "real_time_required": true,
+    "accelerated_fallback_allowed": false,
+    "note": "Do NOT claim 300-minute complete unless wall-clock >= 18000s. Minimum for this phase: 30-minute real-time gate."
+  },
+
+  "execution_mode": {
+    "always_on": false,
+    "owner_triggered_only": true,
+    "background_daemon_allowed": true,
+    "daemon_resume_allowed": true,
+    "checkpoint_resume_protocol": true
+  },
+
+  "cycle_timing": {
+    "max_cycle_interval_minutes": 15,
+    "checkpoint_interval_minutes": 10,
+    "report_interval_minutes": 15,
+    "heartbeat_interval_seconds": 60,
+    "status_check_interval_seconds": 30
+  },
+
+  "allowed_scope": [
+    "capability_routing_optimization",
+    "capability_to_tool_mapping",
+    "workflow_selection_policy",
+    "skill_tool_invocation_decision_tree",
+    "lesson_retrieval_and_reuse",
+    "trace_schema_improvement",
+    "registry_truth_audit",
+    "evidence_quality_audit",
+    "documentation_consistency",
+    "runner_count_truth",
+    "artifact_quality_improvement",
+    "prompt_runtime_policy_consolidation",
+    "safe_reversible_refactor",
+    "test_coverage_micro_improvement",
+    "internal_orchestration_map",
+    "judge_rubric_improvement",
+    "reflexion_repair_policy",
+    "rollback_checkpoint_hardening",
+    "safety_contract_validation",
+    "dead_capability_classification",
+    "duplicate_workflow_cleanup",
+    "runtime_body_architecture_design"
+  ],
+
+  "forbidden_scope": [
+    "dependency_install",
+    "production_deployment",
+    "destructive_delete",
+    "os_build",
+    "external_publish",
+    "credential_use",
+    "live_api_posting",
+    "network_operation_risky",
+    "mass_rewrite_without_rollback",
+    "moving_core_services_without_shim",
+    "altering_safety_contract_to_always_on",
+    "claiming_SSS_plus_plus_achieved",
+    "claiming_production_autonomous_agent",
+    "claiming_universal_all_task_ability"
+  ],
+
+  "hard_stop_conditions": [
+    "wall_clock_exceeds_requested_by_10_percent",
+    "exit_code_nonzero_with_no_recovery",
+    "memory_corruption_detected",
+    "secret_exposure_detected",
+    "forbidden_scope_executed",
+    "always_on_mode_detected",
+    "owner_stop_command_received"
+  ],
+
+  "soft_warn_conditions": [
+    "cycle_duration_exceeds_15_minutes",
+    "lesson_retrieval_empty_in_3_consecutive_cycles",
+    "judge_score_below_60_in_2_consecutive_cycles",
+    "test_regression_detected",
+    "weak_verified_count_increases"
+  ],
+
+  "rollback_required": true,
+  "evidence_required": true,
+  "trace_required": true,
+  "checkpoint_required": true,
+  "judge_evaluation_required": true,
+  "reflection_on_fail_required": true,
+  "lesson_mark_reused_on_pass_warn": true,
+
+  "final_status_allowed_values": [
+    "PASS",
+    "PASS_WITH_WARN",
+    "PARTIAL_COMPLETE",
+    "MANUAL_STOP",
+    "HARD_STOP",
+    "ENVIRONMENT_TIMEOUT",
+    "FAIL"
+  ],
+
+  "forbidden_claims": [
+    "SSS_plus_plus_achieved",
+    "production_autonomous_agent",
+    "always_on_auto_learning",
+    "universal_self_improvement",
+    "1000_file_readiness",
+    "500_file_readiness",
+    "real_time_300_minute_complete (unless wall_clock >= 18000s)",
+    "all_tasks_without_exception"
+  ],
+
+  "manual_stop_command": "STOP_PHASE49",
+  "pause_command": "PAUSE_PHASE49",
+  "resume_command": "RESUME_PHASE49",
+  "status_command": "STATUS_PHASE49",
+
+  "target_metrics": {
+    "min_cycles": 2,
+    "max_cycles": 60,
+    "min_heartbeats": 2,
+    "min_checkpoints": 1,
+    "min_lesson_retrieval_non_empty": 1,
+    "min_reuse_count_increments": 1
+  },
+
+  "evidence_schema": {
+    "trace_file": "evidence/evolution_traces/phase49/trace_{session}.json",
+    "checkpoint_file": "evidence/evolution_traces/phase49/checkpoint_{session}_cycle{N}.json",
+    "artifact_dir": "evidence/evolution_traces/phase49/artifacts/",
+    "cycle_report_dir": "evidence/evolution_traces/phase49/cycles/",
+    "lesson_reuse_log": "evidence/evolution_traces/phase49/lesson_reuse.log"
+  },
+
+  "north_star_reminder": "ILMA TARGETS military_grade_quality_SSS_plus_plus as LONG_TERM GOAL, not current status claim. Evidence-bound truthfulness required.",
+  "honest_labeling_required": true
+}

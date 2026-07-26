@@ -1,0 +1,110 @@
+production_readiness:
+  model_routing:
+    status: READY_CONTROLLED
+    evidence:
+      - ILMAUnifiedRouter.get_best_model returns valid RoutingDecision
+      - 4 provider families in pool (minimax, nvidia, ollama, openrouter)
+      - 1370 models, 0 zero-score
+      - Live L3 routing test: success=True, latency=970ms
+      - Multi-provider fallback proven (nvidia → minimax)
+    risk: medium
+    risk_notes: Real-scale stress (concurrent >3) not yet tested
+    
+  free_model_policy:
+    status: READY_CONTROLLED
+    evidence:
+      - ilma_coding_worker_adapter.PAID_PROVIDER_HINTS blocks paid models
+      - ilma_coding_worker_adapter.BANNED_MODEL_PATTERNS list present
+      - allow_paid=False enforced in router
+      - Phase 4CR3 L1 test verified policy
+      - Test: T3_allow_paid_false_enforced passes
+    risk: low
+    
+  credential_handling:
+    status: READY_WITH_LIMITATIONS
+    evidence:
+      - /root/credential/api_key.json is single source-of-truth
+      - ilma_credentials_v2.py correctly detects call vs management key
+      - Secret scan: 0 raw secrets in current outputs (after 1 redaction)
+      - Known history: 3 leaks (2 NVIDIA, 1 AA) — all redacted
+    risk: medium
+    risk_notes: Rotation recommended for affected keys (NVIDIA accounts + AA)
+    
+  provider_intelligence:
+    status: READY_CONTROLLED
+    evidence:
+      - PROVIDER_INTELLIGENCE_MASTER.json: 1370 models, 100% scored
+      - 960 models with evidence_type, routing_priority_score
+      - Inferred baseline separated from benchmark via evidence_type field
+      - Schema enhancement non-breaking (additive)
+    risk: low
+    
+  coding_worker:
+    status: READY_CONTROLLED
+    evidence:
+      - ilma_coding_worker_adapter uses SubAgentRouter
+      - 17 unit tests pass in test_coding_worker_phase_4b.py
+      - 7 bypass tests pass in test_cs01_fix_phase_4b.py
+      - Free-only policy enforced
+    risk: low
+    
+  claude_code:
+    status: PROVISIONAL
+    evidence:
+      - /usr/bin/claude installed
+      - NOT integrated as worker (only block-listed in PAID_PROVIDER_HINTS)
+      - Cannot verify Claude Code's internal routing
+      - Cannot force Claude Code to use ILMA router
+    risk: high
+    risk_notes: Claude Code direct path NOT approved for default production
+    
+  heartbeat:
+    status: READY_WITH_LIMITATIONS
+    evidence:
+      - ilma_telegram_heartbeat.py has 5 production helpers + HeartbeatContext
+      - 8/8 L2 integration tests pass
+      - Wired into SubAgentRouter._execute() for substantial tasks
+      - Progress log written to state/heartbeat_progress.log
+      - No orphan threads verified
+    risk: medium
+    risk_notes: Real Telegram typing not yet wired (uses log fallback)
+    
+  rollback:
+    status: READY_CONTROLLED
+    evidence:
+      - ILMA_PHASE_4D_L2_ROLLBACK.patch (188 lines, valid)
+      - ILMA_PHASE_4D_L3_ROLLBACK.patch (188 lines, valid)
+      - L1 patches from Phase 4C available
+      - Rollback approach: git diff → reverse apply
+    risk: low
+    
+  parallel_execution:
+    status: READY_WITH_LIMITATIONS
+    evidence:
+      - Phase 4D-C parallel worker test: 11/11 pass
+      - 2 isolated worktrees simulated
+      - Diffs captured separately
+      - Tests run separately
+      - Best diff selected by evidence
+    risk: medium
+    risk_notes: Simulated parallel execution; real production parallel not yet tested
+    
+  monitoring:
+    status: READY_WITH_LIMITATIONS
+    evidence:
+      - state/ilma_model_health.json persists health state
+      - circuit_breaker marks failures, persistent
+      - heartbeat log written
+      - cron jobs: 3 active, 1 paused (benchmark)
+    risk: medium
+    risk_notes: Real-time alerting not yet integrated; cron is best-effort
+
+summary:
+  total_categories: 10
+  ready_controlled: 5
+  ready_with_limitations: 4
+  provisional: 1
+  not_ready: 0
+  overall_status: READY_WITH_LIMITATIONS
+  controlled_canary_required: true
+  full_production_blocked_until: phase_4f_canary_passes

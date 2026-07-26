@@ -1,0 +1,506 @@
+#!/usr/bin/env python3
+"""
+ILMA Writing Templates v1.0  (2026-06-01)
+=========================================
+Document-type structural templates for research-grounded writing. Each template
+defines the section plan; the Scriptorium drafts each section grounded in the
+research manifest's claims/sources.
+
+API:
+  get_template(doc_type) -> dict {sections:[{key,title,objective,kind}], style, ...}
+  Section kinds: "front" (abstract/intro), "body" (researched), "synthesis"
+                 (conclusion), "refs" (bibliography), "creative" (novel prose).
+"""
+from __future__ import annotations
+from typing import Any, Dict, List
+
+WORDS_PER_PAGE = 275
+
+TEMPLATES: Dict[str, Dict[str, Any]] = {
+    # IMRaD scientific paper
+    "paper": {
+        "citation_style": "ieee",
+        "sections": [
+            {"key": "abstract", "title": "Abstract", "kind": "front",
+             "objective": "150-250 word summary: problem, method, key findings, implication."},
+            {"key": "introduction", "title": "1. Introduction", "kind": "body",
+             "objective": "Background, problem statement, research questions, objectives, contribution."},
+            {"key": "related_work", "title": "2. Related Work", "kind": "body",
+             "objective": "Survey prior work from sources; position this study; cite [n]."},
+            {"key": "methodology", "title": "3. Methodology", "kind": "body",
+             "objective": "Research design, data/source strategy, inclusion criteria, analysis method."},
+            {"key": "results", "title": "4. Results", "kind": "body",
+             "objective": "Present findings grounded in graded sources with citations and (if any) figures/tables."},
+            {"key": "discussion", "title": "5. Discussion", "kind": "body",
+             "objective": "Interpret findings, implications, compare to related work, address gaps."},
+            {"key": "limitations", "title": "6. Limitations", "kind": "body",
+             "objective": "State limitations from the research manifest honestly."},
+            {"key": "conclusion", "title": "7. Conclusion", "kind": "synthesis",
+             "objective": "Summarize contributions and future work."},
+            {"key": "references", "title": "References", "kind": "refs", "objective": ""},
+        ],
+    },
+    # Indonesian academic "lima-bab" (BAB I–V) — skripsi/tesis/disertasi.
+    # Built below via _LIMA_BAB so all three share the canonical structure but carry
+    # their own KKNI min-reference + similarity-limit metadata.
+    # (TEMPLATES["skripsi"], ["tesis"], ["thesis"], ["disertasi"] injected after this dict.)
+    "report": {
+        "citation_style": "apa",
+        "sections": [
+            {"key": "executive_summary", "title": "Executive Summary", "kind": "front",
+             "objective": "Concise summary of purpose, findings, recommendations."},
+            {"key": "introduction", "title": "1. Introduction", "kind": "body",
+             "objective": "Context, scope, objectives."},
+            {"key": "findings", "title": "2. Findings", "kind": "body",
+             "objective": "Evidence-based findings with citations [n]."},
+            {"key": "analysis", "title": "3. Analysis", "kind": "body",
+             "objective": "Interpretation and implications."},
+            {"key": "recommendations", "title": "4. Recommendations", "kind": "synthesis",
+             "objective": "Actionable, evidence-backed recommendations."},
+            {"key": "references", "title": "References", "kind": "refs", "objective": ""},
+        ],
+    },
+    # Blog: hook + sourced sections
+    "blog": {
+        "citation_style": "links",
+        "sections": [
+            {"key": "hook", "title": "", "kind": "front",
+             "objective": "Compelling hook + what the reader will learn. Engaging, clear."},
+            {"key": "context", "title": "Background", "kind": "body",
+             "objective": "Set context with sourced facts (link inline)."},
+            {"key": "main_1", "title": "Key Insight 1", "kind": "body",
+             "objective": "First main point backed by sources."},
+            {"key": "main_2", "title": "Key Insight 2", "kind": "body",
+             "objective": "Second main point backed by sources."},
+            {"key": "main_3", "title": "Key Insight 3", "kind": "body",
+             "objective": "Third main point backed by sources."},
+            {"key": "takeaways", "title": "Key Takeaways", "kind": "synthesis",
+             "objective": "Actionable summary + call to action."},
+            {"key": "references", "title": "Sources & Further Reading", "kind": "refs", "objective": ""},
+        ],
+    },
+    "article": {"citation_style": "apa", "alias_of": "blog"},
+    # Non-fiction book: chaptered, research-backed
+    "book": {
+        "citation_style": "chicago",
+        "chaptered": True,  # body chapters generated dynamically
+        "sections": [
+            {"key": "preface", "title": "Preface", "kind": "front",
+             "objective": "Purpose of the book, audience, how it is organized."},
+            {"key": "introduction", "title": "Introduction", "kind": "front",
+             "objective": "Set the stage; thesis of the book."},
+            # body chapters injected at runtime
+            {"key": "conclusion", "title": "Conclusion", "kind": "synthesis",
+             "objective": "Synthesize the book's argument; final reflections."},
+            {"key": "references", "title": "References", "kind": "refs", "objective": ""},
+        ],
+    },
+    # Novel: research-informed worldbuilding bible -> beat-planned chapters.
+    # beat_structure = Save the Cat! 15 beats (% positions) blended with classic
+    # three-act (25/50/25). Used by the outline planner to map chapters onto beats.
+    # See knowledge/reference_standards.md §4 (fiction craft).
+    "novel": {
+        "citation_style": "links",
+        "chaptered": True,
+        "creative": True,
+        "sections": [
+            {"key": "worldbuilding", "title": "", "kind": "bible",
+             "objective": "Internal story bible (not printed in final prose): premise/logline, "
+                          "genre & tone, setting facts + realism anchors, the CHARACTER ROSTER "
+                          "(name, role, want vs need, arc), and the central conflict/stakes."},
+            # chapters injected at runtime, mapped onto the beats below
+        ],
+        # 15 Save the Cat beats with target position (% through the book) + the act.
+        "beat_structure": [
+            {"beat": "Opening Image",        "pct": 1,  "act": 1, "purpose": "Establish tone + the hero's status-quo world."},
+            {"beat": "Theme Stated",         "pct": 5,  "act": 1, "purpose": "Hint the thematic lesson the hero must learn."},
+            {"beat": "Set-Up",               "pct": 10, "act": 1, "purpose": "Show the hero's flawed world + what needs fixing."},
+            {"beat": "Catalyst",             "pct": 12, "act": 1, "purpose": "Inciting incident that disrupts the status quo."},
+            {"beat": "Debate",               "pct": 20, "act": 1, "purpose": "Hero hesitates; the central question is posed."},
+            {"beat": "Break into Two",       "pct": 25, "act": 2, "purpose": "Hero commits to the new world/goal."},
+            {"beat": "B Story",              "pct": 30, "act": 2, "purpose": "Subplot/relationship that carries the theme."},
+            {"beat": "Fun and Games",        "pct": 40, "act": 2, "purpose": "The 'promise of the premise' — set-pieces."},
+            {"beat": "Midpoint",             "pct": 50, "act": 2, "purpose": "False victory/defeat; stakes raised, clock starts."},
+            {"beat": "Bad Guys Close In",    "pct": 62, "act": 2, "purpose": "External + internal pressure mounts."},
+            {"beat": "All Is Lost",          "pct": 75, "act": 2, "purpose": "Lowest point; 'whiff of death'."},
+            {"beat": "Dark Night of Soul",   "pct": 80, "act": 2, "purpose": "Hero's despair before the insight."},
+            {"beat": "Break into Three",     "pct": 85, "act": 3, "purpose": "Theme internalised; the solution emerges."},
+            {"beat": "Finale",               "pct": 95, "act": 3, "purpose": "Climax; hero proves change, resolves conflict."},
+            {"beat": "Final Image",          "pct": 100,"act": 3, "purpose": "Mirror of opening — shows transformation."},
+        ],
+        "scaffolding": ["logline", "characters", "central_conflict", "stakes", "setting"],
+    },
+    "documentation": {
+        "citation_style": "links",
+        "sections": [
+            {"key": "overview", "title": "Overview", "kind": "front", "objective": "What this documents and why."},
+            {"key": "concepts", "title": "Concepts", "kind": "body", "objective": "Core concepts with sourced detail."},
+            {"key": "howto", "title": "How-To", "kind": "body", "objective": "Step-by-step guidance."},
+            {"key": "reference", "title": "Reference", "kind": "body", "objective": "Detailed reference material."},
+            {"key": "references", "title": "Sources", "kind": "refs", "objective": ""},
+        ],
+    },
+}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INDONESIAN ACADEMIC "LIMA BAB" (BAB I–V) — skripsi / tesis / disertasi
+# Canonical structure per UGM Pedoman Penulisan Skripsi/Tesis/Disertasi (2023) and
+# KKNI (Perpres RI No. 8/2012). See knowledge/reference_standards.md §1.2.
+# Same 5-bab skeleton across S1/S2/S3; depth/originality + KKNI metadata escalate.
+# ══════════════════════════════════════════════════════════════════════════════
+def _lima_bab_sections() -> List[Dict[str, Any]]:
+    return [
+        {"key": "abstrak", "title": "Abstrak", "kind": "front",
+         "objective": "Intisari/Abstrak 250-300 kata: latar belakang singkat, tujuan, "
+                      "metode, hasil utama, dan kesimpulan. Sertakan 3-5 kata kunci. "
+                      "Mandiri (dapat dibaca tanpa membaca isi)."},
+        {"key": "bab1", "title": "BAB I PENDAHULUAN", "kind": "body",
+         "objective": "Tulis lengkap dengan sub-bab: (1.1) Latar Belakang Masalah; "
+                      "(1.2) Rumusan Masalah; (1.3) Tujuan Penelitian; "
+                      "(1.4) Manfaat Penelitian (teoritis & praktis); "
+                      "(1.5) Batasan Penelitian (ruang lingkup). Alur umum -> khusus."},
+        {"key": "bab2", "title": "BAB II TINJAUAN PUSTAKA", "kind": "body",
+         "objective": "Tulis lengkap dengan sub-bab: (2.1) Landasan Teori (teori/model/"
+                      "definisi fundamental); (2.2) Penelitian Terdahulu (state of the art "
+                      "dari jurnal terbaru, sitasi sumber); (2.3) Kerangka Pemikiran/"
+                      "Kerangka Berpikir; (2.4) Hipotesis (jika penelitian kuantitatif). "
+                      "Tunjukkan keaslian/kebaruan penelitian."},
+        {"key": "bab3", "title": "BAB III METODE PENELITIAN", "kind": "body",
+         "objective": "Tulis dengan kalimat pasif: jenis/rancangan penelitian; lokasi & "
+                      "waktu; populasi & sampel (atau objek); variabel & definisi "
+                      "operasional; instrumen/alat; teknik pengumpulan data (primer/"
+                      "sekunder); teknik/metode analisis data. Harus dapat direplikasi."},
+        {"key": "bab4", "title": "BAB IV HASIL DAN PEMBAHASAN", "kind": "body",
+         "objective": "(4.1) Hasil Penelitian (sajikan data: teks/tabel/gambar, tanpa "
+                      "interpretasi berlebih); (4.2) Pembahasan (analisis kritis dikaitkan "
+                      "dengan landasan teori dan penelitian terdahulu, jawab tujuan "
+                      "penelitian, sitasi sumber)."},
+        {"key": "bab5", "title": "BAB V PENUTUP", "kind": "synthesis",
+         "objective": "(5.1) Kesimpulan (jawaban ringkas atas tujuan penelitian, sesuai "
+                      "urutan tujuan, tanpa data/sitasi baru); (5.2) Saran (tindak lanjut "
+                      "dan rekomendasi penelitian selanjutnya)."},
+        {"key": "references", "title": "Daftar Pustaka", "kind": "refs", "objective": ""},
+    ]
+
+
+# KKNI metadata (min refs / similarity limit / jenjang). reference_standards.md §1.2.
+_LIMA_BAB_KKNI = {
+    "skripsi":   {"jenjang": "S1", "kkni_level": 6, "min_references": 20,
+                  "similarity_limit_pct": 25, "novelty": "applied",
+                  "label_id": "Skripsi"},
+    "tesis":     {"jenjang": "S2", "kkni_level": 8, "min_references": 40,
+                  "similarity_limit_pct": 20, "novelty": "kebaruan",
+                  "label_id": "Tesis"},
+    "disertasi": {"jenjang": "S3", "kkni_level": 9, "min_references": 80,
+                  "similarity_limit_pct": 15, "novelty": "original",
+                  "label_id": "Disertasi"},
+}
+
+for _akey, _meta in _LIMA_BAB_KKNI.items():
+    TEMPLATES[_akey] = {
+        "citation_style": "apa",
+        "academic_id": True,
+        "structure": "lima_bab",
+        "kkni": dict(_meta),
+        "sections": _lima_bab_sections(),
+    }
+# "thesis" / "tesis" used interchangeably; thesis -> tesis (S2) lima-bab structure.
+TEMPLATES["thesis"] = {
+    "citation_style": "apa", "academic_id": True, "structure": "lima_bab",
+    "kkni": dict(_LIMA_BAB_KKNI["tesis"]), "sections": _lima_bab_sections(),
+}
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STYLE PROFILES — the WRITING DNA of each category (voice/tone/technique/rigor)
+# Injected into drafting prompts so each doc_type is written with its real craft.
+# ══════════════════════════════════════════════════════════════════════════════
+STYLE_PROFILES: Dict[str, Dict[str, Any]] = {
+    "paper": {
+        "label": "Scientific / Academic Paper",
+        "voice": "third-person, impersonal, objective (avoid 'I/we' except standard 'we propose')",
+        "tone": "formal, precise, measured, hedged",
+        "register": "academic; discipline-appropriate terminology defined on first use",
+        "techniques": [
+            "State claims with appropriate hedging (may, suggests, indicates) unless strongly evidenced",
+            "Every empirical claim carries a citation [n]; no unsupported assertions",
+            "Topic sentence -> evidence -> interpretation per paragraph",
+            "Use precise quantities; define metrics; report methodology transparently",
+            "Compare findings against prior work; acknowledge counter-evidence",
+        ],
+        "avoid": ["hype", "marketing language", "rhetorical questions", "first-person anecdote",
+                  "fabricated statistics or fake citations", "emotive adjectives"],
+        "paragraph_len": "4-7 sentences, dense and logical",
+        "citation": "numbered [n], formal reference list",
+        "rigor": "HIGH — methodology, reproducibility, limitations explicit",
+    },
+    "thesis": {"alias_of": "paper", "label": "Thesis / Dissertation",
+               "rigor": "HIGH — exhaustive literature grounding, explicit research questions"},
+    # Indonesian academic karya ilmiah (lima-bab): formal, impersonal, hedged academic
+    # Indonesian; BAB III in passive voice; rigor escalates S1<S2<S3.
+    "skripsi": {"alias_of": "paper", "label": "Skripsi (S1)",
+                "register": "akademik formal Bahasa Indonesia; istilah baku didefinisikan di awal; BAB III kalimat pasif",
+                "rigor": "HIGH — landasan teori + penelitian terdahulu, minimal 20 rujukan, similarity ≤25%"},
+    "tesis": {"alias_of": "paper", "label": "Tesis (S2)",
+              "register": "akademik formal Bahasa Indonesia; BAB III kalimat pasif",
+              "rigor": "HIGH — grounding literatur menyeluruh + KEBARUAN, minimal 40 rujukan, similarity ≤20%"},
+    "disertasi": {"alias_of": "paper", "label": "Disertasi (S3)",
+                  "register": "akademik formal Bahasa Indonesia; BAB III kalimat pasif",
+                  "rigor": "HIGH — teori/temuan BARU & orisinal, minimal 80 rujukan, similarity ≤15%"},
+    "report": {
+        "label": "Professional / Technical Report",
+        "voice": "third-person or measured first-person-plural; professional",
+        "tone": "clear, neutral, decision-oriented",
+        "register": "business/technical; plain but precise",
+        "techniques": ["Lead with the bottom line (BLUF)", "Evidence-backed findings -> analysis -> actionable recommendations",
+                       "Use structured lists/tables for scannability", "Quantify impact where possible"],
+        "avoid": ["academic verbosity", "vague recommendations", "unsupported claims"],
+        "paragraph_len": "3-5 sentences, scannable",
+        "citation": "[n] inline + references",
+        "rigor": "MEDIUM-HIGH — evidence + actionability",
+    },
+    "blog": {
+        "label": "Blog Post",
+        "voice": "second-person, conversational, warm, direct ('you')",
+        "tone": "engaging, friendly, confident, lightly persuasive",
+        "register": "accessible; explain jargon simply; short punchy sentences mixed with longer ones",
+        "techniques": [
+            "Open with a strong hook (question, surprising fact, relatable scenario)",
+            "Subheadings that promise value; short scannable paragraphs",
+            "Concrete examples, analogies, and takeaways",
+            "Inline source links for credibility; end with a clear CTA",
+            "SEO-aware: natural keyword use, descriptive headings",
+        ],
+        "avoid": ["dry academic tone", "walls of text", "jargon without explanation", "fake stats"],
+        "paragraph_len": "2-4 sentences, airy",
+        "citation": "inline links, casual",
+        "rigor": "MEDIUM — credible + sourced but reader-first",
+    },
+    "article": {"alias_of": "blog", "label": "Feature Article",
+                "tone": "polished, journalistic, balanced", "rigor": "MEDIUM-HIGH"},
+    "book": {
+        "label": "Non-fiction Book",
+        "voice": "authoritative yet accessible narrator; consistent across chapters",
+        "tone": "engaging, explanatory, story-driven where useful",
+        "register": "rich but readable; builds concepts progressively",
+        "techniques": [
+            "Each chapter: clear thesis -> development -> bridge to next chapter",
+            "Blend narrative, examples, and evidence; recurring motifs for cohesion",
+            "Define terms; assume intelligent non-expert reader",
+            "Maintain a consistent authorial voice and through-line across chapters",
+        ],
+        "avoid": ["disconnected chapters", "repetition without purpose", "unsupported sweeping claims"],
+        "paragraph_len": "4-8 sentences, flowing",
+        "citation": "chicago notes/references",
+        "rigor": "MEDIUM-HIGH — researched, coherent argument",
+    },
+    "novel": {
+        "label": "Novel / Fiction",
+        "voice": "narrative POV consistent (1st/3rd limited); distinct character voices",
+        "tone": "immersive, emotionally resonant, scene-driven",
+        "register": "literary prose; vary sentence rhythm; vivid but purposeful",
+        "techniques": [
+            "SHOW don't tell: sensory detail, action, subtext over exposition",
+            "Scene structure: goal -> conflict -> turn; end chapters on tension/hook",
+            "Natural dialogue that reveals character; distinct voices; minimal tags",
+            "Maintain continuity (characters, timeline, world) via the research bible",
+            "Vary pacing; interiority + external action; avoid info-dumps",
+        ],
+        "avoid": ["citations or [n] markers in prose", "telling emotions flatly", "purple prose",
+                  "head-hopping POV", "exposition dumps", "refusing to write"],
+        "paragraph_len": "varied for rhythm; dialogue-heavy where apt",
+        "citation": "NONE in prose (facts live in the research bible)",
+        "rigor": "realism anchored by research bible; creativity primary",
+    },
+    "documentation": {
+        "label": "Technical Documentation",
+        "voice": "second-person imperative ('Run...', 'Configure...'); neutral",
+        "tone": "clear, precise, instructional",
+        "register": "technical; consistent terminology; no fluff",
+        "techniques": ["Task-oriented: prerequisites -> steps -> verification",
+                       "Use code blocks, numbered steps, and notes/warnings",
+                       "Be explicit and unambiguous; define every term once",
+                       "Cover concepts, how-to, and reference distinctly"],
+        "avoid": ["narrative tangents", "ambiguity", "marketing tone"],
+        "paragraph_len": "short; favor lists and steps",
+        "citation": "inline links to sources/specs",
+        "rigor": "HIGH on accuracy and completeness",
+    },
+}
+
+
+def get_style_profile(doc_type: str) -> Dict[str, Any]:
+    sp = STYLE_PROFILES.get(doc_type, STYLE_PROFILES["report"])
+    if "alias_of" in sp:
+        base = dict(STYLE_PROFILES[sp["alias_of"]])
+        base.update({k: v for k, v in sp.items() if k != "alias_of"})
+        return base
+    return sp
+
+
+def style_directive(doc_type: str, language_name: str = "the target language") -> str:
+    """Render a compact style directive block for prompt injection."""
+    sp = get_style_profile(doc_type)
+    techniques = "\n".join(f"  - {t}" for t in sp.get("techniques", []))
+    avoid = ", ".join(sp.get("avoid", []))
+    return (
+        f"WRITING STYLE — {sp.get('label', doc_type)} (write in {language_name}):\n"
+        f"  Voice: {sp.get('voice','')}\n"
+        f"  Tone: {sp.get('tone','')}\n"
+        f"  Register: {sp.get('register','')}\n"
+        f"  Paragraph: {sp.get('paragraph_len','')}\n"
+        f"  Rigor: {sp.get('rigor','')}\n"
+        f"  Techniques:\n{techniques}\n"
+        f"  Avoid: {avoid}\n"
+        f"  Citations: {sp.get('citation','')}\n"
+        f"  LANGUAGE: Write ENTIRELY and consistently in {language_name}. Do NOT mix "
+        f"languages mid-sentence. Use correct {language_name} spelling, diacritics, and "
+        f"punctuation. Keep established proper nouns/technical terms but explain them in "
+        f"{language_name}. Use standard, readable Unicode characters only.\n"
+    )
+
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FORMAT PROFILES — publication-grade typography & layout per category.
+# Consumed by ilma_doc_exporter to make output READY-TO-USE (justify/indent/etc).
+# Units: indent in points (1 inch = 72pt; 1.25cm ~= 35.4pt), spacing = line multiple.
+# ══════════════════════════════════════════════════════════════════════════════
+FORMAT_PROFILES: Dict[str, Dict[str, Any]] = {
+    "paper": {  # IEEE
+        "align": "justify", "first_line_indent": 0, "para_space_after": 6,
+        "line_spacing": 1.15, "body_font": "serif", "body_size": 10.5,
+        "page_size": "A4", "margin_in": 1.0, "heading_numbered": True,
+        "block_paragraphs": True,
+    },
+    "thesis": {  # APA-7
+        "align": "justify", "first_line_indent": 36, "para_space_after": 0,
+        "line_spacing": 2.0, "body_font": "serif", "body_size": 12,
+        "page_size": "A4", "margin_in": 1.0, "heading_numbered": True,
+        "block_paragraphs": False,
+    },
+    "makalah": {  # Indonesian campus standard
+        "align": "justify", "first_line_indent": 35, "para_space_after": 0,
+        "line_spacing": 1.5, "body_font": "serif", "body_size": 12,
+        "page_size": "A4", "margin_top_in": 1.57, "margin_left_in": 1.57,
+        "margin_right_in": 1.18, "margin_bottom_in": 1.18,
+        "margin_in": 1.18, "heading_numbered": True, "block_paragraphs": False,
+    },
+    "report": {
+        "align": "justify", "first_line_indent": 0, "para_space_after": 8,
+        "line_spacing": 1.15, "body_font": "sans", "body_size": 11,
+        "page_size": "A4", "margin_in": 1.0, "heading_numbered": True,
+        "block_paragraphs": True,
+    },
+    "blog": {
+        "align": "left", "first_line_indent": 0, "para_space_after": 10,
+        "line_spacing": 1.5, "body_font": "sans", "body_size": 12,
+        "page_size": "A4", "margin_in": 0.9, "heading_numbered": False,
+        "block_paragraphs": True,
+    },
+    "article": {"alias_of": "blog"},
+    "skripsi": {"alias_of": "thesis"},
+    "tesis": {"alias_of": "thesis"},
+    "disertasi": {"alias_of": "thesis"},
+    "book": {
+        "align": "justify", "first_line_indent": 22, "para_space_after": 0,
+        "line_spacing": 1.3, "body_font": "serif", "body_size": 11.5,
+        "page_size": "A4", "margin_in": 1.0, "heading_numbered": False,
+        "block_paragraphs": False,
+    },
+    "novel": {
+        "align": "justify", "first_line_indent": 28, "para_space_after": 0,
+        "line_spacing": 1.5, "body_font": "serif", "body_size": 12,
+        "page_size": "A4", "margin_in": 1.0, "heading_numbered": False,
+        "block_paragraphs": False, "chapter_centered": True,
+    },
+    "documentation": {
+        "align": "left", "first_line_indent": 0, "para_space_after": 8,
+        "line_spacing": 1.15, "body_font": "sans", "body_size": 10.5,
+        "page_size": "A4", "margin_in": 0.8, "heading_numbered": False,
+        "block_paragraphs": True,
+    },
+}
+
+
+def get_format_profile(doc_type: str) -> Dict[str, Any]:
+    fp = FORMAT_PROFILES.get(doc_type, FORMAT_PROFILES["report"])
+    if "alias_of" in fp:
+        base = dict(FORMAT_PROFILES[fp["alias_of"]])
+        base.update({k: v for k, v in fp.items() if k != "alias_of"})
+        return base
+    return dict(fp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VISUAL POLICY — when/which tables, charts, images per category.
+# ══════════════════════════════════════════════════════════════════════════════
+VISUAL_POLICY: Dict[str, Dict[str, Any]] = {
+    "paper":         {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 3, "caption_prefix": ("Tabel", "Gambar")},
+    "thesis":        {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 4, "caption_prefix": ("Tabel", "Gambar")},
+    "skripsi":       {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 4, "caption_prefix": ("Tabel", "Gambar")},
+    "tesis":         {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 4, "caption_prefix": ("Tabel", "Gambar")},
+    "disertasi":     {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 5, "caption_prefix": ("Tabel", "Gambar")},
+    "makalah":       {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 2, "caption_prefix": ("Tabel", "Gambar")},
+    "report":        {"tables": True,  "charts": True,  "illustrations": False, "max_charts": 3, "caption_prefix": ("Tabel", "Gambar")},
+    "blog":          {"tables": True,  "charts": True,  "illustrations": True,  "max_charts": 1, "caption_prefix": ("Tabel", "Gambar")},
+    "article":       {"tables": True,  "charts": True,  "illustrations": True,  "max_charts": 1, "caption_prefix": ("Tabel", "Gambar")},
+    "book":          {"tables": True,  "charts": True,  "illustrations": True,  "max_charts": 2, "caption_prefix": ("Tabel", "Gambar")},
+    "novel":         {"tables": False, "charts": False, "illustrations": True,  "max_charts": 0, "caption_prefix": ("", "Ilustrasi")},
+    "documentation": {"tables": True,  "charts": False, "illustrations": False, "max_charts": 0, "caption_prefix": ("Tabel", "Gambar")},
+}
+
+
+def get_visual_policy(doc_type: str) -> Dict[str, Any]:
+    return dict(VISUAL_POLICY.get(doc_type, VISUAL_POLICY["report"]))
+
+
+def get_template(doc_type: str) -> Dict[str, Any]:
+    t = TEMPLATES.get(doc_type, TEMPLATES["report"])
+    if "alias_of" in t:
+        base = dict(TEMPLATES[t["alias_of"]])
+        base["citation_style"] = t.get("citation_style", base.get("citation_style"))
+        return base
+    return t
+
+
+# ── Per-section word budgets ─────────────────────────────────────────────────
+# Relative weights per section-key; the absolute target is split proportionally
+# from the document's total word target. Lets callers target length instead of
+# only measuring it post-hoc. Unknown keys fall back to an even split.
+WORD_BUDGET_WEIGHTS: Dict[str, Dict[str, float]] = {
+    "paper":  {"Abstract": 0.05, "1. Introduction": 0.15, "2. Related Work": 0.15,
+               "3. Methodology": 0.2, "4. Results": 0.2, "5. Discussion": 0.15,
+               "6. Limitations": 0.05, "7. Conclusion": 0.05},
+    "lima_bab": {"abstrak": 0.04, "bab1": 0.18, "bab2": 0.26, "bab3": 0.18,
+                 "bab4": 0.26, "bab5": 0.08, "references": 0.0},
+}
+
+
+def get_word_budget(doc_type: str, total_words: int) -> Dict[str, int]:
+    """Return {section_key_or_title: target_words} for a doc_type given a total.
+    Uses lima_bab weights for academic-id docs (skripsi/tesis/disertasi)."""
+    tpl = get_template(doc_type)
+    key = "lima_bab" if tpl.get("structure") == "lima_bab" else doc_type
+    weights = WORD_BUDGET_WEIGHTS.get(key)
+    secs = tpl.get("sections", [])
+    out: Dict[str, int] = {}
+    if weights:
+        for s in secs:
+            ident = s.get("key") if key == "lima_bab" else s.get("title")
+            out[s.get("key") or s.get("title")] = int(total_words * weights.get(ident, 0))
+    else:
+        body = [s for s in secs if s.get("kind") not in ("refs", "front")] or secs
+        per = int(total_words / max(1, len(body)))
+        for s in secs:
+            out[s.get("key") or s.get("title")] = 0 if s.get("kind") in ("refs",) else per
+    return out
+
+
+if __name__ == "__main__":
+    import sys, json
+    print(json.dumps(get_template(sys.argv[1] if len(sys.argv) > 1 else "paper"), indent=2))

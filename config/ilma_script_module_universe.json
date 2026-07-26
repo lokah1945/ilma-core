@@ -1,0 +1,2077 @@
+{
+  "universe": [
+    {
+      "script_name": "ilma_adversarial_qa",
+      "file_path": "scripts/ilma_adversarial_qa.py",
+      "size_bytes": 88718,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_capability_health_dashboard",
+      "file_path": "scripts/ilma_capability_health_dashboard.py",
+      "size_bytes": 60102,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_id_nlp_engine",
+      "file_path": "scripts/ilma_id_nlp_engine.py",
+      "size_bytes": 58596,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_hermes_knowledge_ingestion",
+      "file_path": "scripts/ilma_hermes_knowledge_ingestion.py",
+      "size_bytes": 57360,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_codex_router",
+      "file_path": "scripts/ilma_codex_router.py",
+      "size_bytes": 55079,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_council_orchestrator",
+      "file_path": "scripts/ilma_council_orchestrator.py",
+      "size_bytes": 54539,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_vector_omega",
+      "file_path": "scripts/ilma_vector_omega.py",
+      "size_bytes": 54469,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_judge_system",
+      "file_path": "scripts/ilma_judge_system.py",
+      "size_bytes": 52440,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_free_research_pipeline",
+      "file_path": "scripts/ilma_free_research_pipeline.py",
+      "size_bytes": 48396,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_provider_router",
+      "file_path": "scripts/ilma_provider_router.py",
+      "size_bytes": 45180,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_command_center",
+      "file_path": "scripts/ilma_command_center.py",
+      "size_bytes": 43364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_heavy_coding_engine",
+      "file_path": "scripts/ilma_heavy_coding_engine.py",
+      "size_bytes": 42292,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_abstract_goal_translator",
+      "file_path": "scripts/ilma_abstract_goal_translator.py",
+      "size_bytes": 41983,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_system_optimizer",
+      "file_path": "scripts/ilma_system_optimizer.py",
+      "size_bytes": 40228,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_problem_solve_engine",
+      "file_path": "scripts/ilma_problem_solve_engine.py",
+      "size_bytes": 39958,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_devops_engine",
+      "file_path": "scripts/ilma_devops_engine.py",
+      "size_bytes": 39255,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sysadmin_engine",
+      "file_path": "scripts/ilma_sysadmin_engine.py",
+      "size_bytes": 38495,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_code_analyst",
+      "file_path": "scripts/ilma_code_analyst.py",
+      "size_bytes": 37416,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_dynamic_prompt_optimizer",
+      "file_path": "scripts/ilma_dynamic_prompt_optimizer.py",
+      "size_bytes": 37280,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_foundry",
+      "file_path": "scripts/ilma_foundry.py",
+      "size_bytes": 36514,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_longform_orchestrator",
+      "file_path": "scripts/ilma_longform_orchestrator.py",
+      "size_bytes": 36188,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_security_review_engine",
+      "file_path": "scripts/ilma_security_review_engine.py",
+      "size_bytes": 32761,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_network_toolkit",
+      "file_path": "scripts/ilma_network_toolkit.py",
+      "size_bytes": 32599,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_felo_free",
+      "file_path": "scripts/ilma_felo_free.py",
+      "size_bytes": 32433,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_creative_generator",
+      "file_path": "scripts/ilma_creative_generator.py",
+      "size_bytes": 31784,
+      "classification": "generator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_autonomous_loop",
+      "file_path": "scripts/ilma_autonomous_loop.py",
+      "size_bytes": 31234,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_task_executor",
+      "file_path": "scripts/ilma_task_executor.py",
+      "size_bytes": 31186,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_database_ops",
+      "file_path": "scripts/ilma_database_ops.py",
+      "size_bytes": 31037,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_auth_engine",
+      "file_path": "scripts/ilma_auth_engine.py",
+      "size_bytes": 30746,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_self_improve_loop",
+      "file_path": "scripts/ilma_self_improve_loop.py",
+      "size_bytes": 30544,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_coding_engine",
+      "file_path": "scripts/ilma_coding_engine.py",
+      "size_bytes": 30346,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_report_generator",
+      "file_path": "scripts/ilma_report_generator.py",
+      "size_bytes": 30343,
+      "classification": "generator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_capability_discovery",
+      "file_path": "scripts/ilma_capability_discovery.py",
+      "size_bytes": 29948,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_multimodel_router",
+      "file_path": "scripts/ilma_multimodel_router.py",
+      "size_bytes": 29749,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_messaging_engine",
+      "file_path": "scripts/ilma_messaging_engine.py",
+      "size_bytes": 28354,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_confidence_router",
+      "file_path": "scripts/ilma_confidence_router.py",
+      "size_bytes": 27739,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_military_optimizer",
+      "file_path": "scripts/ilma_military_optimizer.py",
+      "size_bytes": 27565,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_delegation_engine",
+      "file_path": "scripts/ilma_delegation_engine.py",
+      "size_bytes": 27427,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_wal_automation",
+      "file_path": "scripts/ilma_wal_automation.py",
+      "size_bytes": 25063,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_external_api_client",
+      "file_path": "scripts/ilma_external_api_client.py",
+      "size_bytes": 24421,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_chatgpt_bridge",
+      "file_path": "scripts/ilma_chatgpt_bridge.py",
+      "size_bytes": 23126,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_batch_upgrade_skills",
+      "file_path": "scripts/ilma_batch_upgrade_skills.py",
+      "size_bytes": 22860,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_browser_automation",
+      "file_path": "scripts/ilma_browser_automation.py",
+      "size_bytes": 22838,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_memory_cleanup",
+      "file_path": "scripts/ilma_memory_cleanup.py",
+      "size_bytes": 22468,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_memory_analytics",
+      "file_path": "scripts/ilma_memory_analytics.py",
+      "size_bytes": 22236,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_codex_oauth",
+      "file_path": "scripts/ilma_codex_oauth.py",
+      "size_bytes": 21691,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_daily_optimizer",
+      "file_path": "scripts/ilma_daily_optimizer.py",
+      "size_bytes": 20917,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_memory_persistence",
+      "file_path": "scripts/ilma_memory_persistence.py",
+      "size_bytes": 20862,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_browser_plane",
+      "file_path": "scripts/ilma_browser_plane.py",
+      "size_bytes": 18873,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_memory_search",
+      "file_path": "scripts/ilma_memory_search.py",
+      "size_bytes": 17727,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_codex_stdio",
+      "file_path": "scripts/ilma_codex_stdio.py",
+      "size_bytes": 17499,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_super_coding_command_center",
+      "file_path": "scripts/ilma_super_coding_command_center.py",
+      "size_bytes": 17338,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_blue_team_rules",
+      "file_path": "scripts/ilma_blue_team_rules.py",
+      "size_bytes": 17335,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_eval_harness",
+      "file_path": "scripts/ilma_eval_harness.py",
+      "size_bytes": 17096,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_evolution_routine",
+      "file_path": "scripts/ilma_evolution_routine.py",
+      "size_bytes": 17058,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_phase27_behavioral_proof_suite",
+      "file_path": "scripts/ilma_phase27_behavioral_proof_suite.py",
+      "size_bytes": 16682,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_meta_cognition",
+      "file_path": "scripts/ilma_meta_cognition.py",
+      "size_bytes": 16308,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_hook_engine",
+      "file_path": "scripts/ilma_hook_engine.py",
+      "size_bytes": 15963,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_main",
+      "file_path": "scripts/ilma_main.py",
+      "size_bytes": 15849,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_codebase_orchestrator",
+      "file_path": "scripts/ilma_codebase_orchestrator.py",
+      "size_bytes": 15459,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_intent_engine",
+      "file_path": "scripts/ilma_intent_engine.py",
+      "size_bytes": 15445,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_mission_state_manager",
+      "file_path": "scripts/ilma_mission_state_manager.py",
+      "size_bytes": 15359,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_passive_benchmark",
+      "file_path": "scripts/ilma_passive_benchmark.py",
+      "size_bytes": 14648,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_v5_master",
+      "file_path": "scripts/ilma_v5_master.py",
+      "size_bytes": 14541,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_felo_integration",
+      "file_path": "scripts/ilma_felo_integration.py",
+      "size_bytes": 14311,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_codex_stealth",
+      "file_path": "scripts/ilma_codex_stealth.py",
+      "size_bytes": 13898,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_phase30_behavioral_proof_suite",
+      "file_path": "scripts/ilma_phase30_behavioral_proof_suite.py",
+      "size_bytes": 13834,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_loader",
+      "file_path": "scripts/ilma_skill_loader.py",
+      "size_bytes": 13805,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_phase32_behavioral_proof_suite",
+      "file_path": "scripts/ilma_phase32_behavioral_proof_suite.py",
+      "size_bytes": 12975,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_creative_synthesis",
+      "file_path": "scripts/ilma_creative_synthesis.py",
+      "size_bytes": 12766,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_phase24_behavioral_tests",
+      "file_path": "scripts/ilma_phase24_behavioral_tests.py",
+      "size_bytes": 12746,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ethics_core",
+      "file_path": "scripts/ilma_ethics_core.py",
+      "size_bytes": 12606,
+      "classification": "core_runtime",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_adaptive_learning",
+      "file_path": "scripts/ilma_adaptive_learning.py",
+      "size_bytes": 12497,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_intuition_engine",
+      "file_path": "scripts/ilma_intuition_engine.py",
+      "size_bytes": 12154,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_performance_optimizer",
+      "file_path": "scripts/ilma_performance_optimizer.py",
+      "size_bytes": 11894,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_meta_skill_orchestrator",
+      "file_path": "scripts/ilma_meta_skill_orchestrator.py",
+      "size_bytes": 11589,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_flow_reporter",
+      "file_path": "scripts/ilma_flow_reporter.py",
+      "size_bytes": 11479,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_decision_audit",
+      "file_path": "scripts/ilma_decision_audit.py",
+      "size_bytes": 11200,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_memory_layer",
+      "file_path": "scripts/ilma_memory_layer.py",
+      "size_bytes": 10981,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_github_sync",
+      "file_path": "scripts/ilma_github_sync.py",
+      "size_bytes": 10960,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_1000x_loop",
+      "file_path": "scripts/ilma_1000x_loop.py",
+      "size_bytes": 10806,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "command_center_core",
+      "file_path": "scripts/command_center_core.py",
+      "size_bytes": 10802,
+      "classification": "core_runtime",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_integrated_test_runner",
+      "file_path": "scripts/ilma_integrated_test_runner.py",
+      "size_bytes": 10779,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_search_router",
+      "file_path": "scripts/ilma_search_router.py",
+      "size_bytes": 10756,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sss_aggressive",
+      "file_path": "scripts/ilma_sss_aggressive.py",
+      "size_bytes": 10724,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_continuous_learning",
+      "file_path": "scripts/ilma_continuous_learning.py",
+      "size_bytes": 10569,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_health_check",
+      "file_path": "scripts/ilma_skill_health_check.py",
+      "size_bytes": 10502,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_intelligence_core",
+      "file_path": "scripts/ilma_intelligence_core.py",
+      "size_bytes": 10400,
+      "classification": "core_runtime",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_master_shell",
+      "file_path": "scripts/ilma_master_shell.py",
+      "size_bytes": 10289,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_quality_expander",
+      "file_path": "scripts/ilma_quality_expander.py",
+      "size_bytes": 10235,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_indonesian_nlp",
+      "file_path": "scripts/ilma_indonesian_nlp.py",
+      "size_bytes": 10231,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_evidence_ledger_validator",
+      "file_path": "scripts/ilma_evidence_ledger_validator.py",
+      "size_bytes": 10084,
+      "classification": "validator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_phase25_focused_tests",
+      "file_path": "scripts/ilma_phase25_focused_tests.py",
+      "size_bytes": 9775,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_genesis_daemon",
+      "file_path": "scripts/ilma_genesis_daemon.py",
+      "size_bytes": 9756,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_free_search",
+      "file_path": "scripts/ilma_free_search.py",
+      "size_bytes": 9709,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_registry_integrity_monitor",
+      "file_path": "scripts/ilma_registry_integrity_monitor.py",
+      "size_bytes": 9553,
+      "classification": "validator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_free_twitter",
+      "file_path": "scripts/ilma_free_twitter.py",
+      "size_bytes": 8953,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_emotional_intelligence",
+      "file_path": "scripts/ilma_emotional_intelligence.py",
+      "size_bytes": 8894,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_fast_boot",
+      "file_path": "scripts/ilma_fast_boot.py",
+      "size_bytes": 8847,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_qa_critic",
+      "file_path": "scripts/ilma_qa_critic.py",
+      "size_bytes": 8792,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_hermes_bridge",
+      "file_path": "scripts/ilma_hermes_bridge.py",
+      "size_bytes": 8786,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_paper_research_pipeline",
+      "file_path": "scripts/ilma_paper_research_pipeline.py",
+      "size_bytes": 8567,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_computer_use_agent",
+      "file_path": "scripts/ilma_computer_use_agent.py",
+      "size_bytes": 8482,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_phase23_evidence_tests",
+      "file_path": "scripts/ilma_phase23_evidence_tests.py",
+      "size_bytes": 8457,
+      "classification": "evidence_tool",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "super_coding_helpers",
+      "file_path": "scripts/super_coding_helpers.py",
+      "size_bytes": 8184,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_workflow_ecc",
+      "file_path": "scripts/ilma_workflow_ecc.py",
+      "size_bytes": 7914,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_unified_pipeline",
+      "file_path": "scripts/ilma_unified_pipeline.py",
+      "size_bytes": 7760,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_free_slides",
+      "file_path": "scripts/ilma_free_slides.py",
+      "size_bytes": 7692,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_auto_evolution_engine",
+      "file_path": "scripts/ilma_auto_evolution_engine.py",
+      "size_bytes": 7680,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_self_healing",
+      "file_path": "scripts/ilma_self_healing.py",
+      "size_bytes": 6574,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_dependency_graph_validator",
+      "file_path": "scripts/ilma_dependency_graph_validator.py",
+      "size_bytes": 6544,
+      "classification": "validator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_create_high_quality_batch",
+      "file_path": "scripts/ilma_create_high_quality_batch.py",
+      "size_bytes": 5582,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_pattern_recognition",
+      "file_path": "scripts/ilma_pattern_recognition.py",
+      "size_bytes": 5572,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_batch_create_final",
+      "file_path": "scripts/ilma_batch_create_final.py",
+      "size_bytes": 5556,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_generate_quality_scripts",
+      "file_path": "scripts/ilma_generate_quality_scripts.py",
+      "size_bytes": 5555,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_lifecycle_manager",
+      "file_path": "scripts/ilma_lifecycle_manager.py",
+      "size_bytes": 5544,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_optimization_loop",
+      "file_path": "scripts/ilma_optimization_loop.py",
+      "size_bytes": 5544,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_quality_benchmark",
+      "file_path": "scripts/ilma_quality_benchmark.py",
+      "size_bytes": 5544,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_strategy_selector",
+      "file_path": "scripts/ilma_strategy_selector.py",
+      "size_bytes": 5544,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_unified_bootstrap",
+      "file_path": "scripts/ilma_unified_bootstrap.py",
+      "size_bytes": 5544,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_free_webfetch",
+      "file_path": "scripts/ilma_free_webfetch.py",
+      "size_bytes": 5542,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_trigger_system",
+      "file_path": "scripts/ilma_skill_trigger_system.py",
+      "size_bytes": 5542,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_delete_broken",
+      "file_path": "scripts/ilma_delete_broken.py",
+      "size_bytes": 5536,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_config_validator",
+      "file_path": "scripts/ilma_config_validator.py",
+      "size_bytes": 5530,
+      "classification": "validator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_infra_test",
+      "file_path": "scripts/ilma_infra_test.py",
+      "size_bytes": 5529,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_bulk_skill_creator",
+      "file_path": "scripts/ilma_bulk_skill_creator.py",
+      "size_bytes": 5528,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_add_critical_scripts",
+      "file_path": "scripts/ilma_add_critical_scripts.py",
+      "size_bytes": 5527,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_serverless",
+      "file_path": "scripts/ilma_serverless.py",
+      "size_bytes": 5521,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_self_diagnostic",
+      "file_path": "scripts/ilma_self_diagnostic.py",
+      "size_bytes": 5516,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skills_generator",
+      "file_path": "scripts/ilma_skills_generator.py",
+      "size_bytes": 5516,
+      "classification": "generator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_workflow_engine",
+      "file_path": "scripts/ilma_workflow_engine.py",
+      "size_bytes": 5516,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_issue_create",
+      "file_path": "scripts/ilma_gh_issue_create.py",
+      "size_bytes": 5514,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_config_manager",
+      "file_path": "scripts/ilma_config_manager.py",
+      "size_bytes": 5502,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_analyzer",
+      "file_path": "scripts/ilma_skill_analyzer.py",
+      "size_bytes": 5502,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_remove_all",
+      "file_path": "scripts/ilma_cron_remove_all.py",
+      "size_bytes": 5500,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_fix_try_except",
+      "file_path": "scripts/ilma_fix_try_except.py",
+      "size_bytes": 5500,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_syntax_fix_all",
+      "file_path": "scripts/ilma_syntax_fix_all.py",
+      "size_bytes": 5500,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_base64_tool",
+      "file_path": "scripts/ilma_base64_tool.py",
+      "size_bytes": 5498,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_creator",
+      "file_path": "scripts/ilma_skill_creator.py",
+      "size_bytes": 5495,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_trigger",
+      "file_path": "scripts/ilma_skill_trigger.py",
+      "size_bytes": 5495,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_enhance_scripts",
+      "file_path": "scripts/ilma_enhance_scripts.py",
+      "size_bytes": 5494,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_script_enhancer",
+      "file_path": "scripts/ilma_script_enhancer.py",
+      "size_bytes": 5494,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_upgrade_scripts",
+      "file_path": "scripts/ilma_upgrade_scripts.py",
+      "size_bytes": 5494,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_clone_all",
+      "file_path": "scripts/ilma_gh_clone_all.py",
+      "size_bytes": 5493,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_pr_create",
+      "file_path": "scripts/ilma_gh_pr_create.py",
+      "size_bytes": 5493,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_delete",
+      "file_path": "scripts/ilma_delete.py",
+      "size_bytes": 5489,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_auto_recovery",
+      "file_path": "scripts/ilma_auto_recovery.py",
+      "size_bytes": 5488,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_meta_learning",
+      "file_path": "scripts/ilma_meta_learning.py",
+      "size_bytes": 5488,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_parallel_exec",
+      "file_path": "scripts/ilma_parallel_exec.py",
+      "size_bytes": 5488,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_problem_solve",
+      "file_path": "scripts/ilma_problem_solve.py",
+      "size_bytes": 5488,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_skill_health",
+      "file_path": "scripts/ilma_skill_health.py",
+      "size_bytes": 5488,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_state_machine",
+      "file_path": "scripts/ilma_state_machine.py",
+      "size_bytes": 5488,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_extract",
+      "file_path": "scripts/ilma_extract.py",
+      "size_bytes": 5483,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_db_help",
+      "file_path": "scripts/ilma_db_help.py",
+      "size_bytes": 5482,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_data_pipeline",
+      "file_path": "scripts/ilma_data_pipeline.py",
+      "size_bytes": 5480,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_dirs",
+      "file_path": "scripts/ilma_dirs.py",
+      "size_bytes": 5478,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_helper",
+      "file_path": "scripts/ilma_cron_helper.py",
+      "size_bytes": 5474,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_remove",
+      "file_path": "scripts/ilma_cron_remove.py",
+      "size_bytes": 5474,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_weekly",
+      "file_path": "scripts/ilma_cron_weekly.py",
+      "size_bytes": 5474,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_http_headers",
+      "file_path": "scripts/ilma_http_headers.py",
+      "size_bytes": 5474,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_self_improve",
+      "file_path": "scripts/ilma_self_improve.py",
+      "size_bytes": 5474,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_super_router",
+      "file_path": "scripts/ilma_super_router.py",
+      "size_bytes": 5474,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_curl_simple",
+      "file_path": "scripts/ilma_curl_simple.py",
+      "size_bytes": 5472,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_env_list",
+      "file_path": "scripts/ilma_env_list.py",
+      "size_bytes": 5472,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_uuid_tool",
+      "file_path": "scripts/ilma_uuid_tool.py",
+      "size_bytes": 5472,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_hash_tool",
+      "file_path": "scripts/ilma_hash_tool.py",
+      "size_bytes": 5469,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_daily",
+      "file_path": "scripts/ilma_cron_daily.py",
+      "size_bytes": 5467,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_crons_full",
+      "file_path": "scripts/ilma_crons_full.py",
+      "size_bytes": 5467,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_disable",
+      "file_path": "scripts/ilma_disable.py",
+      "size_bytes": 5467,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_clone",
+      "file_path": "scripts/ilma_gh_clone.py",
+      "size_bytes": 5467,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_issue",
+      "file_path": "scripts/ilma_gh_issue.py",
+      "size_bytes": 5467,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_pip_install",
+      "file_path": "scripts/ilma_pip_install.py",
+      "size_bytes": 5466,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_chmod",
+      "file_path": "scripts/ilma_chmod.py",
+      "size_bytes": 5462,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_diagnostics",
+      "file_path": "scripts/ilma_diagnostics.py",
+      "size_bytes": 5462,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_url_tool",
+      "file_path": "scripts/ilma_url_tool.py",
+      "size_bytes": 5462,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_date",
+      "file_path": "scripts/ilma_date.py",
+      "size_bytes": 5461,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_find",
+      "file_path": "scripts/ilma_find.py",
+      "size_bytes": 5461,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_timer",
+      "file_path": "scripts/ilma_timer.py",
+      "size_bytes": 5461,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_api_test",
+      "file_path": "scripts/ilma_api_test.py",
+      "size_bytes": 5460,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_auto_deploy",
+      "file_path": "scripts/ilma_auto_deploy.py",
+      "size_bytes": 5460,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_fork",
+      "file_path": "scripts/ilma_gh_fork.py",
+      "size_bytes": 5460,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_gh_star",
+      "file_path": "scripts/ilma_gh_star.py",
+      "size_bytes": 5460,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_task_router",
+      "file_path": "scripts/ilma_task_router.py",
+      "size_bytes": 5460,
+      "classification": "orchestrator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "test_ilma_judge_system",
+      "file_path": "scripts/test_ilma_judge_system.py",
+      "size_bytes": 5458,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_copy",
+      "file_path": "scripts/ilma_copy.py",
+      "size_bytes": 5457,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_size",
+      "file_path": "scripts/ilma_size.py",
+      "size_bytes": 5457,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_env_get",
+      "file_path": "scripts/ilma_env_get.py",
+      "size_bytes": 5456,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_env_set",
+      "file_path": "scripts/ilma_env_set.py",
+      "size_bytes": 5456,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_dns_lookup",
+      "file_path": "scripts/ilma_dns_lookup.py",
+      "size_bytes": 5454,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_add",
+      "file_path": "scripts/ilma_cron_add.py",
+      "size_bytes": 5453,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cron_mgr",
+      "file_path": "scripts/ilma_cron_mgr.py",
+      "size_bytes": 5453,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_enable",
+      "file_path": "scripts/ilma_enable.py",
+      "size_bytes": 5453,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_compress",
+      "file_path": "scripts/ilma_compress.py",
+      "size_bytes": 5451,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_csv_tool",
+      "file_path": "scripts/ilma_csv_tool.py",
+      "size_bytes": 5448,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_anti_stuck",
+      "file_path": "scripts/ilma_anti_stuck.py",
+      "size_bytes": 5446,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_auto_scale",
+      "file_path": "scripts/ilma_auto_scale.py",
+      "size_bytes": 5446,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_log_search",
+      "file_path": "scripts/ilma_log_search.py",
+      "size_bytes": 5446,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_random_pwd",
+      "file_path": "scripts/ilma_random_pwd.py",
+      "size_bytes": 5446,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_task_queue",
+      "file_path": "scripts/ilma_task_queue.py",
+      "size_bytes": 5446,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_web_search",
+      "file_path": "scripts/ilma_web_search.py",
+      "size_bytes": 5446,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_fmt",
+      "file_path": "scripts/ilma_fmt.py",
+      "size_bytes": 5444,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cat",
+      "file_path": "scripts/ilma_cat.py",
+      "size_bytes": 5437,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_chown",
+      "file_path": "scripts/ilma_chown.py",
+      "size_bytes": 5435,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_benchmark",
+      "file_path": "scripts/ilma_benchmark.py",
+      "size_bytes": 5434,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_kill",
+      "file_path": "scripts/ilma_kill.py",
+      "size_bytes": 5434,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_reasoning",
+      "file_path": "scripts/ilma_reasoning.py",
+      "size_bytes": 5434,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_streaming",
+      "file_path": "scripts/ilma_streaming.py",
+      "size_bytes": 5434,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_daily_log",
+      "file_path": "scripts/ilma_daily_log.py",
+      "size_bytes": 5432,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_curl",
+      "file_path": "scripts/ilma_curl.py",
+      "size_bytes": 5425,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_security",
+      "file_path": "scripts/ilma_security.py",
+      "size_bytes": 5420,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_code_gen",
+      "file_path": "scripts/ilma_code_gen.py",
+      "size_bytes": 5418,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_mon_help",
+      "file_path": "scripts/ilma_mon_help.py",
+      "size_bytes": 5418,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sec_help",
+      "file_path": "scripts/ilma_sec_help.py",
+      "size_bytes": 5418,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_netstat",
+      "file_path": "scripts/ilma_netstat.py",
+      "size_bytes": 5406,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_restart",
+      "file_path": "scripts/ilma_restart.py",
+      "size_bytes": 5406,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sysinfo",
+      "file_path": "scripts/ilma_sysinfo.py",
+      "size_bytes": 5406,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ip",
+      "file_path": "scripts/ilma_ip.py",
+      "size_bytes": 5405,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ssl_gen",
+      "file_path": "scripts/ilma_ssl_gen.py",
+      "size_bytes": 5404,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_logger",
+      "file_path": "scripts/ilma_logger.py",
+      "size_bytes": 5392,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_pytest",
+      "file_path": "scripts/ilma_pytest.py",
+      "size_bytes": 5392,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_uptime",
+      "file_path": "scripts/ilma_uptime.py",
+      "size_bytes": 5392,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_whoami",
+      "file_path": "scripts/ilma_whoami.py",
+      "size_bytes": 5392,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_df",
+      "file_path": "scripts/ilma_df.py",
+      "size_bytes": 5388,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_mkdir",
+      "file_path": "scripts/ilma_mkdir.py",
+      "size_bytes": 5378,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sleep",
+      "file_path": "scripts/ilma_sleep.py",
+      "size_bytes": 5378,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_start",
+      "file_path": "scripts/ilma_start.py",
+      "size_bytes": 5378,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_watch",
+      "file_path": "scripts/ilma_watch.py",
+      "size_bytes": 5378,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_disk",
+      "file_path": "scripts/ilma_disk.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_exec",
+      "file_path": "scripts/ilma_exec.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_lint",
+      "file_path": "scripts/ilma_lint.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_move",
+      "file_path": "scripts/ilma_move.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ping",
+      "file_path": "scripts/ilma_ping.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_stop",
+      "file_path": "scripts/ilma_stop.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_wget",
+      "file_path": "scripts/ilma_wget.py",
+      "size_bytes": 5364,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_apt",
+      "file_path": "scripts/ilma_apt.py",
+      "size_bytes": 5350,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cpu",
+      "file_path": "scripts/ilma_cpu.py",
+      "size_bytes": 5350,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_mem",
+      "file_path": "scripts/ilma_mem.py",
+      "size_bytes": 5350,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_net",
+      "file_path": "scripts/ilma_net.py",
+      "size_bytes": 5350,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sys",
+      "file_path": "scripts/ilma_sys.py",
+      "size_bytes": 5350,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_top",
+      "file_path": "scripts/ilma_top.py",
+      "size_bytes": 5350,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ls",
+      "file_path": "scripts/ilma_ls.py",
+      "size_bytes": 5336,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ps",
+      "file_path": "scripts/ilma_ps.py",
+      "size_bytes": 5336,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_superiority_demonstrator",
+      "file_path": "scripts/ilma_superiority_demonstrator.py",
+      "size_bytes": 5277,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_extreme_scale_qa",
+      "file_path": "scripts/ilma_extreme_scale_qa.py",
+      "size_bytes": 5211,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_final_verification",
+      "file_path": "scripts/ilma_final_verification.py",
+      "size_bytes": 4502,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_agent_registry",
+      "file_path": "scripts/ilma_agent_registry.py",
+      "size_bytes": 4329,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_backup",
+      "file_path": "scripts/ilma_backup.py",
+      "size_bytes": 3905,
+      "classification": "backup",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_continuity_checker",
+      "file_path": "scripts/ilma_continuity_checker.py",
+      "size_bytes": 2860,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_midnight_optimizer",
+      "file_path": "scripts/ilma_midnight_optimizer.py",
+      "size_bytes": 2790,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_credentials",
+      "file_path": "scripts/ilma_credentials.py",
+      "size_bytes": 2207,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_ab_testing",
+      "file_path": "scripts/ilma_ab_testing.py",
+      "size_bytes": 2081,
+      "classification": "test_suite",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_lock",
+      "file_path": "scripts/ilma_lock.py",
+      "size_bytes": 1814,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_circuit_breaker",
+      "file_path": "scripts/ilma_circuit_breaker.py",
+      "size_bytes": 1765,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_outbox",
+      "file_path": "scripts/ilma_outbox.py",
+      "size_bytes": 1634,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_dead_letter",
+      "file_path": "scripts/ilma_dead_letter.py",
+      "size_bytes": 1548,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_saga",
+      "file_path": "scripts/ilma_saga.py",
+      "size_bytes": 1516,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_snapshot",
+      "file_path": "scripts/ilma_snapshot.py",
+      "size_bytes": 1514,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_canary_release",
+      "file_path": "scripts/ilma_canary_release.py",
+      "size_bytes": 1500,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cache_manager",
+      "file_path": "scripts/ilma_cache_manager.py",
+      "size_bytes": 1470,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_queue",
+      "file_path": "scripts/ilma_queue.py",
+      "size_bytes": 1470,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_rate_limiter",
+      "file_path": "scripts/ilma_rate_limiter.py",
+      "size_bytes": 1439,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_2pc",
+      "file_path": "scripts/ilma_2pc.py",
+      "size_bytes": 1436,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_incident_manager",
+      "file_path": "scripts/ilma_incident_manager.py",
+      "size_bytes": 1423,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_experiment_tracker",
+      "file_path": "scripts/ilma_experiment_tracker.py",
+      "size_bytes": 1403,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_event_sourcing",
+      "file_path": "scripts/ilma_event_sourcing.py",
+      "size_bytes": 1370,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_retry",
+      "file_path": "scripts/ilma_retry.py",
+      "size_bytes": 1361,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_blue_green",
+      "file_path": "scripts/ilma_blue_green.py",
+      "size_bytes": 1305,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_model_drift",
+      "file_path": "scripts/ilma_model_drift.py",
+      "size_bytes": 1287,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_dataset_versioning",
+      "file_path": "scripts/ilma_dataset_versioning.py",
+      "size_bytes": 1273,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_materialized_view",
+      "file_path": "scripts/ilma_materialized_view.py",
+      "size_bytes": 1258,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_vector_store",
+      "file_path": "scripts/ilma_vector_store.py",
+      "size_bytes": 1248,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_rolling_update",
+      "file_path": "scripts/ilma_rolling_update.py",
+      "size_bytes": 1229,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_bulkhead",
+      "file_path": "scripts/ilma_bulkhead.py",
+      "size_bytes": 1211,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_sharding",
+      "file_path": "scripts/ilma_sharding.py",
+      "size_bytes": 1193,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_fine_tuning",
+      "file_path": "scripts/ilma_fine_tuning.py",
+      "size_bytes": 1155,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_cqrs",
+      "file_path": "scripts/ilma_cqrs.py",
+      "size_bytes": 1150,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_state_manager",
+      "file_path": "scripts/ilma_state_manager.py",
+      "size_bytes": 1141,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_health_check",
+      "file_path": "scripts/ilma_health_check.py",
+      "size_bytes": 1140,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_change_data_capture",
+      "file_path": "scripts/ilma_change_data_capture.py",
+      "size_bytes": 1132,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_read_replica",
+      "file_path": "scripts/ilma_read_replica.py",
+      "size_bytes": 1129,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_training_pipeline",
+      "file_path": "scripts/ilma_training_pipeline.py",
+      "size_bytes": 1112,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_model_registry",
+      "file_path": "scripts/ilma_model_registry.py",
+      "size_bytes": 1042,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_serving",
+      "file_path": "scripts/ilma_serving.py",
+      "size_bytes": 1041,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_rag_pipeline",
+      "file_path": "scripts/ilma_rag_pipeline.py",
+      "size_bytes": 1033,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_feature_store",
+      "file_path": "scripts/ilma_feature_store.py",
+      "size_bytes": 999,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_lora_adapter",
+      "file_path": "scripts/ilma_lora_adapter.py",
+      "size_bytes": 995,
+      "classification": "adapter",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_batch_inference",
+      "file_path": "scripts/ilma_batch_inference.py",
+      "size_bytes": 912,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_event_bus",
+      "file_path": "scripts/ilma_event_bus.py",
+      "size_bytes": 897,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_inference",
+      "file_path": "scripts/ilma_inference.py",
+      "size_bytes": 892,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_quantization",
+      "file_path": "scripts/ilma_quantization.py",
+      "size_bytes": 892,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_task_dispatcher",
+      "file_path": "scripts/ilma_task_dispatcher.py",
+      "size_bytes": 832,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_write_master",
+      "file_path": "scripts/ilma_write_master.py",
+      "size_bytes": 785,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_embedding",
+      "file_path": "scripts/ilma_embedding.py",
+      "size_bytes": 747,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_evidence_validator",
+      "file_path": "scripts/ilma_evidence_validator.py",
+      "size_bytes": 456,
+      "classification": "validator",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_browser",
+      "file_path": "scripts/ilma_browser.py",
+      "size_bytes": 455,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    },
+    {
+      "script_name": "ilma_computer_use",
+      "file_path": "scripts/ilma_computer_use.py",
+      "size_bytes": 298,
+      "classification": "utility",
+      "phase_tested": "UNKNOWN"
+    }
+  ],
+  "total": 296
+}

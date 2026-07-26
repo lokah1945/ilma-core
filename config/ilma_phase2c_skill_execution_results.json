@@ -1,0 +1,113 @@
+{
+  "test_date": "2026-05-07T21:25:00",
+  "total_skills_tested": 10,
+  "loader": "ilma_skill_loader.py v1.0",
+  "results": [
+    {
+      "num": 1,
+      "name": "ilma-research",
+      "category": "research",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": "research"
+    },
+    {
+      "num": 2,
+      "name": "ilma-writing",
+      "category": "writing",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": "writing"
+    },
+    {
+      "num": 3,
+      "name": "ilma-debug",
+      "category": "debug",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": "debug"
+    },
+    {
+      "num": 4,
+      "name": "ilma-memory",
+      "category": "memory",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 1,
+      "steps": 0,
+      "orchestrator_route": "memory"
+    },
+    {
+      "num": 5,
+      "name": "ilma-code-review",
+      "category": "qa_critic",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": "code_review"
+    },
+    {
+      "num": 6,
+      "name": "dogfood",
+      "category": "browser_qa",
+      "status": "EXECUTION_VERIFIED",
+      "mode": "workflow_backed",
+      "tools": 9,
+      "steps": 10,
+      "orchestrator_route": null,
+      "note": "Real browser test passed - Chromium launched and fetched example.com"
+    },
+    {
+      "num": 7,
+      "name": "ilma-documentation",
+      "category": "documentation",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 1,
+      "steps": 0,
+      "orchestrator_route": "documentation"
+    },
+    {
+      "num": 8,
+      "name": "ilma-auto-recovery",
+      "category": "failure_recovery",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": "failure_recovery"
+    },
+    {
+      "num": 9,
+      "name": "ilma-playwright-stealth",
+      "category": "browser",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": null
+    },
+    {
+      "num": 10,
+      "name": "ilma-api-design",
+      "category": "coding",
+      "status": "DRY_RUN_VERIFIED",
+      "mode": "script_backed",
+      "tools": 0,
+      "steps": 0,
+      "orchestrator_route": null
+    }
+  ],
+  "summary": {
+    "DRY_RUN_VERIFIED": 9,
+    "EXECUTION_VERIFIED": 1,
+    "BROKEN": 0
+  }
+}

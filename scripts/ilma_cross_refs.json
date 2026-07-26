@@ -1,0 +1,927 @@
+{
+  "ilma_problem_solve": {
+    "purpose": "diagnostic",
+    "can_call": [
+      "ilma_web_search",
+      "ilma_streaming"
+    ],
+    "called_by": [
+      "ilma_self_improve",
+      "ilma_orchestrator"
+    ]
+  },
+  "ilma_cron_mgr": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_serverless": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_hash_tool": {
+    "purpose": "utility",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_script_enhancer": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_ps"
+    ],
+    "called_by": []
+  },
+  "ilma_infra_test": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_mon_help": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_apt": {
+    "purpose": "search",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_api_test": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_web_search": {
+    "purpose": "search",
+    "can_call": [],
+    "called_by": [
+      "ilma_problem_solve",
+      "ilma_generate_quality_scripts"
+    ]
+  },
+  "ilma_fmt": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_csv_tool": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_bulk_skill_creator": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_skill_creator": {
+    "purpose": "diagnostic",
+    "can_call": [
+      "ilma_orchestrator",
+      "ilma_daily_log"
+    ],
+    "called_by": []
+  },
+  "ilma_gh_star": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_dirs": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_5min": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_skill_trigger_system": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_delete": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_timer": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_date": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_dns_lookup": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_disable": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_super_router": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_task_router": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": [
+      "ilma_generate_quality_scripts"
+    ]
+  },
+  "ilma_uuid_tool": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_optimization_loop": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_self_diagnostic",
+      "ilma_quality_benchmark",
+      "ilma_enhance_scripts"
+    ],
+    "called_by": []
+  },
+  "ilma_curl": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_curl_simple"
+    ]
+  },
+  "ilma_self_improve": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_problem_solve",
+      "ilma_streaming"
+    ],
+    "called_by": [
+      "ilma_benchmark",
+      "ilma_system_integrator",
+      "ilma_command_center"
+    ]
+  },
+  "ilma_parallel_exec": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_anti_stuck": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_whoami": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_strategy_selector": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_file_encrypt": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_crons": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_curl_simple": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_curl"
+    ],
+    "called_by": []
+  },
+  "ilma_find": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_benchmark": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_self_improve",
+      "ilma_orchestrator",
+      "ilma_daily_log",
+      "ilma_streaming",
+      "ilma_mem"
+    ],
+    "called_by": []
+  },
+  "ilma_size": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_kill": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_disk": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_aws_help": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_master_orchestrator": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_url_tool": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_chmod": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_mkdir": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_delete_broken": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_daily": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_self_diagnostic": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": [
+      "ilma_optimization_loop",
+      "ilma_system_integrator",
+      "ilma_command_center"
+    ]
+  },
+  "ilma_prom_metrics": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_evolution_tracker": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_chown": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_aws_s3_list": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_start": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_pip_install": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_sys": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_sysinfo",
+      "ilma_command_center"
+    ]
+  },
+  "ilma_reasoning": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_quality_benchmark"
+    ]
+  },
+  "ilma_orchestrator": {
+    "purpose": "generate",
+    "can_call": [
+      "ilma_problem_solve",
+      "ilma_streaming"
+    ],
+    "called_by": [
+      "ilma_skill_creator",
+      "ilma_benchmark"
+    ]
+  },
+  "ilma_exec": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_sysinfo": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_sys"
+    ],
+    "called_by": []
+  },
+  "ilma_gh_clone_all": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_gh_clone"
+    ],
+    "called_by": []
+  },
+  "ilma_json_tool": {
+    "purpose": "utility",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cpu": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_df": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_compress": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_remove_all": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_cron_remove"
+    ],
+    "called_by": []
+  },
+  "ilma_gh_fork": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_gh_clone": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_gh_clone_all"
+    ]
+  },
+  "ilma_auto_deploy": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_add": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_hourly": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_health_check": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator",
+      "ilma_command_center"
+    ]
+  },
+  "ilma_log_search": {
+    "purpose": "search",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_syntax_fix_all": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_config_validator": {
+    "purpose": "utility",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_memory_compression": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_daily_log": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_skill_creator",
+      "ilma_benchmark"
+    ]
+  },
+  "ilma_quality_benchmark": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_reasoning",
+      "ilma_meta_learning",
+      "ilma_pattern_recognition"
+    ],
+    "called_by": [
+      "ilma_optimization_loop",
+      "ilma_system_integrator",
+      "ilma_command_center"
+    ]
+  },
+  "ilma_aws_lambda_list": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_auto_scale": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "super_coding_helpers": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_gh_issue": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_gh_issue_create"
+    ]
+  },
+  "ilma_env_get": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_netstat": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_net"
+    ],
+    "called_by": []
+  },
+  "ilma_uptime": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_system_integrator": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_bulk_skill_creator",
+      "ilma_self_improve",
+      "ilma_parallel_exec",
+      "ilma_master_orchestrator",
+      "ilma_self_diagnostic",
+      "ilma_evolution_tracker",
+      "ilma_exec",
+      "ilma_health_check",
+      "ilma_quality_benchmark",
+      "ilma_generate_quality_scripts",
+      "ilma_upgrade_scripts",
+      "ilma_skill_trigger",
+      "ilma_code_gen",
+      "ilma_enhance_scripts",
+      "ilma_lifecycle_manager",
+      "ilma_auto_learn"
+    ],
+    "called_by": [
+      "ilma_command_center"
+    ]
+  },
+  "ilma_cron_minute": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_watch": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_env_list": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_enable": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_extract": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_skills_generator": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_ls": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_db_help": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_stop": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_auto_recovery": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_skill_health": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_help": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_ps": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_script_enhancer"
+    ]
+  },
+  "ilma_restart": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_wget": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_gh_issue_create": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_gh_issue"
+    ],
+    "called_by": []
+  },
+  "ilma_sleep": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_list": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_capability_router": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_command_center": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_self_improve",
+      "ilma_self_diagnostic",
+      "ilma_sys",
+      "ilma_health_check",
+      "ilma_quality_benchmark",
+      "ilma_system_integrator",
+      "ilma_enhance_scripts",
+      "ilma_military_optimizer"
+    ],
+    "called_by": []
+  },
+  "ilma_perf": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_generate_quality_scripts"
+    ]
+  },
+  "ilma_generate_quality_scripts": {
+    "purpose": "benchmark",
+    "can_call": [
+      "ilma_web_search",
+      "ilma_task_router",
+      "ilma_perf",
+      "ilma_mem",
+      "ilma_code_gen"
+    ],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_aws_ec2_list": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_remove": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_cron_remove_all"
+    ]
+  },
+  "ilma_aws_s3_upload": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_system_monitor": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_gh_pr_create": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_gh_pr"
+    ],
+    "called_by": []
+  },
+  "ilma_capability_builder": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_status": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_top": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_env_set": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_streaming": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_problem_solve",
+      "ilma_self_improve",
+      "ilma_benchmark",
+      "ilma_orchestrator",
+      "ilma_auto_learn"
+    ]
+  },
+  "ilma_cron_helper": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_net": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_netstat"
+    ]
+  },
+  "ilma_random_pwd": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cat": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_aws_rds_list": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_upgrade_scripts": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_cron_weekly": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_mem": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_benchmark",
+      "ilma_generate_quality_scripts"
+    ]
+  },
+  "ilma_cron_every_hour": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_ping": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_sec_help": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_fix_try_except": {
+    "purpose": "diagnostic",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_lint": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_gh_pr": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_gh_pr_create"
+    ]
+  },
+  "ilma_skill_analyzer": {
+    "purpose": "search",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_meta_learning": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_quality_benchmark"
+    ]
+  },
+  "ilma_move": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_cron_midnight": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_skill_trigger": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_code_gen": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator",
+      "ilma_generate_quality_scripts"
+    ]
+  },
+  "ilma_ip": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_enhance_scripts": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_optimization_loop",
+      "ilma_system_integrator",
+      "ilma_command_center"
+    ]
+  },
+  "ilma_crons_full": {
+    "purpose": "execute",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_copy": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_military_optimizer": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_command_center"
+    ]
+  },
+  "ilma_base64_tool": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_lifecycle_manager": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_model_registry": {
+    "purpose": "generate",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_http_headers": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_pattern_recognition": {
+    "purpose": "benchmark",
+    "can_call": [],
+    "called_by": [
+      "ilma_quality_benchmark"
+    ]
+  },
+  "ilma_auto_learn": {
+    "purpose": "enhance",
+    "can_call": [
+      "ilma_streaming"
+    ],
+    "called_by": [
+      "ilma_system_integrator"
+    ]
+  },
+  "ilma_ssl_gen": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  },
+  "ilma_pytest": {
+    "purpose": "enhance",
+    "can_call": [],
+    "called_by": []
+  }
+}

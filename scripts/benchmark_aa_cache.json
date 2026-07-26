@@ -1,0 +1,1169 @@
+{
+  "source": "artificialanalysis.ai/leaderboards/models",
+  "fetched_at": "2026-06-09T11:10:00+07:00",
+  "method": "browser_scrape_2026-06-09",
+  "record_count": 129,
+  "records": [
+    {
+      "name": "Claude Opus 4.8 (max)",
+      "aa_intelligence_index": 61,
+      "context_window": "1M",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 4.1,
+      "median_tokens_per_sec": 67,
+      "latency_first_chunk_sec": 31.0
+    },
+    {
+      "name": "GPT-5.5 (xhigh)",
+      "aa_intelligence_index": 60,
+      "context_window": "922k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 4.35,
+      "median_tokens_per_sec": 66,
+      "latency_first_chunk_sec": 73.98
+    },
+    {
+      "name": "GPT-5.5 (high)",
+      "aa_intelligence_index": 59,
+      "context_window": "922k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 4.35,
+      "median_tokens_per_sec": 53,
+      "latency_first_chunk_sec": 27.78
+    },
+    {
+      "name": "Claude Opus 4.7 (max)",
+      "aa_intelligence_index": 57,
+      "context_window": "1M",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 4.1,
+      "median_tokens_per_sec": 53,
+      "latency_first_chunk_sec": 19.49
+    },
+    {
+      "name": "Gemini 3.1 Pro Preview",
+      "aa_intelligence_index": 57,
+      "context_window": "1M",
+      "creator": "Google",
+      "price_usd_per_m_blended": 1.74,
+      "median_tokens_per_sec": 135,
+      "latency_first_chunk_sec": 22.74
+    },
+    {
+      "name": "GPT-5.5 (medium)",
+      "aa_intelligence_index": 57,
+      "context_window": "922k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 4.35,
+      "median_tokens_per_sec": 51,
+      "latency_first_chunk_sec": 9.89
+    },
+    {
+      "name": "Qwen3.7 Max",
+      "aa_intelligence_index": 57,
+      "context_window": "1M",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 1.43,
+      "median_tokens_per_sec": 112,
+      "latency_first_chunk_sec": 2.62
+    },
+    {
+      "name": "Gemini 3.5 Flash",
+      "aa_intelligence_index": 55,
+      "context_window": "1M",
+      "creator": "Google",
+      "price_usd_per_m_blended": 1.31,
+      "median_tokens_per_sec": 184,
+      "latency_first_chunk_sec": 18.98
+    },
+    {
+      "name": "Gemini 3.5 Flash (medium)",
+      "aa_intelligence_index": 55,
+      "context_window": "1M",
+      "creator": "Google",
+      "price_usd_per_m_blended": 1.31,
+      "median_tokens_per_sec": 175,
+      "latency_first_chunk_sec": 14.17
+    },
+    {
+      "name": "MiniMax-M3",
+      "aa_intelligence_index": 55,
+      "context_window": "1M",
+      "creator": "MiniMax",
+      "price_usd_per_m_blended": 0.22,
+      "median_tokens_per_sec": 46,
+      "latency_first_chunk_sec": 2.43
+    },
+    {
+      "name": "Kimi K2.6",
+      "aa_intelligence_index": 54,
+      "context_window": "256k",
+      "creator": "Kimi",
+      "price_usd_per_m_blended": 0.7,
+      "median_tokens_per_sec": 57,
+      "latency_first_chunk_sec": 2.42
+    },
+    {
+      "name": "MiMo-V2.5-Pro",
+      "aa_intelligence_index": 54,
+      "context_window": "1M",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 43,
+      "latency_first_chunk_sec": 3.24
+    },
+    {
+      "name": "GPT-5.3 Codex (xhigh)",
+      "aa_intelligence_index": 54,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 1.87,
+      "median_tokens_per_sec": 98,
+      "latency_first_chunk_sec": 89.21
+    },
+    {
+      "name": "Qwen3.7 Plus",
+      "aa_intelligence_index": 53,
+      "context_window": "1M",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.25,
+      "median_tokens_per_sec": 53,
+      "latency_first_chunk_sec": 2.43
+    },
+    {
+      "name": "Grok 4.3 (high)",
+      "aa_intelligence_index": 53,
+      "context_window": "1M",
+      "creator": "xAI",
+      "price_usd_per_m_blended": 0.64,
+      "median_tokens_per_sec": 186,
+      "latency_first_chunk_sec": 12.19
+    },
+    {
+      "name": "Claude Opus 4.7 (Non-reasoning, high)",
+      "aa_intelligence_index": 52,
+      "context_window": "1M",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 4.1,
+      "median_tokens_per_sec": 47,
+      "latency_first_chunk_sec": 1.03
+    },
+    {
+      "name": "Claude Sonnet 4.6 (max)",
+      "aa_intelligence_index": 52,
+      "context_window": "1M",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 2.46,
+      "median_tokens_per_sec": 59,
+      "latency_first_chunk_sec": 148.84
+    },
+    {
+      "name": "DeepSeek V4 Pro (Max)",
+      "aa_intelligence_index": 52,
+      "context_window": "1M",
+      "creator": "DeepSeek",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 61,
+      "latency_first_chunk_sec": 1.94
+    },
+    {
+      "name": "GLM-5.1",
+      "aa_intelligence_index": 51,
+      "context_window": "200k",
+      "creator": "Z AI",
+      "price_usd_per_m_blended": 0.9,
+      "median_tokens_per_sec": 84,
+      "latency_first_chunk_sec": 1.32
+    },
+    {
+      "name": "GPT-5.5 (low)",
+      "aa_intelligence_index": 51,
+      "context_window": "922k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 4.35,
+      "median_tokens_per_sec": 57,
+      "latency_first_chunk_sec": 2.17
+    },
+    {
+      "name": "Qwen3.6 Plus",
+      "aa_intelligence_index": 50,
+      "context_window": "1M",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.43,
+      "median_tokens_per_sec": 52,
+      "latency_first_chunk_sec": 2.92
+    },
+    {
+      "name": "DeepSeek V4 Pro (High)",
+      "aa_intelligence_index": 50,
+      "context_window": "1M",
+      "creator": "DeepSeek",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 61,
+      "latency_first_chunk_sec": 1.92
+    },
+    {
+      "name": "MiniMax-M2.7",
+      "aa_intelligence_index": 50,
+      "context_window": "205k",
+      "creator": "MiniMax",
+      "price_usd_per_m_blended": 0.22,
+      "median_tokens_per_sec": 64,
+      "latency_first_chunk_sec": 1.63
+    },
+    {
+      "name": "MiMo-V2.5",
+      "aa_intelligence_index": 49,
+      "context_window": "1M",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 77,
+      "latency_first_chunk_sec": 3.22
+    },
+    {
+      "name": "GPT-5.4 mini (xhigh)",
+      "aa_intelligence_index": 49,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.65,
+      "median_tokens_per_sec": 170,
+      "latency_first_chunk_sec": 7.83
+    },
+    {
+      "name": "Grok 4.3 (medium)",
+      "aa_intelligence_index": 49,
+      "context_window": "1M",
+      "creator": "xAI",
+      "price_usd_per_m_blended": 0.64,
+      "median_tokens_per_sec": 193,
+      "latency_first_chunk_sec": 8.22
+    },
+    {
+      "name": "Nemotron 3 Ultra",
+      "aa_intelligence_index": 48,
+      "context_window": "262k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.52,
+      "median_tokens_per_sec": 162,
+      "latency_first_chunk_sec": 1.1
+    },
+    {
+      "name": "DeepSeek V4 Flash (Max)",
+      "aa_intelligence_index": 47,
+      "context_window": "1M",
+      "creator": "DeepSeek",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 104,
+      "latency_first_chunk_sec": 1.3
+    },
+    {
+      "name": "DeepSeek V4 Flash (High)",
+      "aa_intelligence_index": 46,
+      "context_window": "1M",
+      "creator": "DeepSeek",
+      "price_usd_per_m_blended": 0.08,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    },
+    {
+      "name": "Qwen3.6 27B",
+      "aa_intelligence_index": 46,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.9,
+      "median_tokens_per_sec": 61,
+      "latency_first_chunk_sec": 3.83
+    },
+    {
+      "name": "Qwen3.5 397B A17B",
+      "aa_intelligence_index": 45,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.9,
+      "median_tokens_per_sec": 52,
+      "latency_first_chunk_sec": 2.49
+    },
+    {
+      "name": "MiMo-V2-Omni-0327",
+      "aa_intelligence_index": 45,
+      "context_window": "256k",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.34,
+      "median_tokens_per_sec": 78,
+      "latency_first_chunk_sec": 3.01
+    },
+    {
+      "name": "Claude Sonnet 4.6 (Non-reasoning)",
+      "aa_intelligence_index": 44,
+      "context_window": "1M",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 2.46,
+      "median_tokens_per_sec": 45,
+      "latency_first_chunk_sec": 1.43
+    },
+    {
+      "name": "GPT-5.4 nano (xhigh)",
+      "aa_intelligence_index": 44,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 162,
+      "latency_first_chunk_sec": 6.72
+    },
+    {
+      "name": "GLM-5.1",
+      "aa_intelligence_index": 44,
+      "context_window": "200k",
+      "creator": "Z AI",
+      "price_usd_per_m_blended": 0.9,
+      "median_tokens_per_sec": 83,
+      "latency_first_chunk_sec": 1.69
+    },
+    {
+      "name": "Qwen3.6 35B A3B",
+      "aa_intelligence_index": 43,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.37,
+      "median_tokens_per_sec": 182,
+      "latency_first_chunk_sec": 2.47
+    },
+    {
+      "name": "MiMo-V2-Omni",
+      "aa_intelligence_index": 43,
+      "context_window": "256k",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": 76,
+      "latency_first_chunk_sec": 3.54
+    },
+    {
+      "name": "Gemini 3.5 Flash (minimal)",
+      "aa_intelligence_index": 43,
+      "context_window": "1M",
+      "creator": "Google",
+      "price_usd_per_m_blended": 1.31,
+      "median_tokens_per_sec": 174,
+      "latency_first_chunk_sec": 0.84
+    },
+    {
+      "name": "Kimi K2.6",
+      "aa_intelligence_index": 43,
+      "context_window": "256k",
+      "creator": "Kimi",
+      "price_usd_per_m_blended": 0.7,
+      "median_tokens_per_sec": 44,
+      "latency_first_chunk_sec": 2.26
+    },
+    {
+      "name": "Claude Sonnet 4.6 (Non-reasoning, Low Effort)",
+      "aa_intelligence_index": 43,
+      "context_window": "1M",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 2.46,
+      "median_tokens_per_sec": 44,
+      "latency_first_chunk_sec": 1.38
+    },
+    {
+      "name": "Step 3.7 Flash",
+      "aa_intelligence_index": 43,
+      "context_window": "256k",
+      "creator": "StepFun",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 174,
+      "latency_first_chunk_sec": 1.2
+    },
+    {
+      "name": "Hy3-preview",
+      "aa_intelligence_index": 42,
+      "context_window": "256k",
+      "creator": "Tencent",
+      "price_usd_per_m_blended": 0.1,
+      "median_tokens_per_sec": 96,
+      "latency_first_chunk_sec": 4.01
+    },
+    {
+      "name": "Qwen3.5 122B A10B",
+      "aa_intelligence_index": 42,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.68,
+      "median_tokens_per_sec": 138,
+      "latency_first_chunk_sec": 2.54
+    },
+    {
+      "name": "MiMo-V2-Flash (Feb 2026)",
+      "aa_intelligence_index": 41,
+      "context_window": "256k",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 143,
+      "latency_first_chunk_sec": 2.01
+    },
+    {
+      "name": "GPT-5.5 (Non-reasoning)",
+      "aa_intelligence_index": 41,
+      "context_window": "922k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 4.35,
+      "median_tokens_per_sec": 50,
+      "latency_first_chunk_sec": 0.97
+    },
+    {
+      "name": "Qwen3.5 397B A17B",
+      "aa_intelligence_index": 40,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.9,
+      "median_tokens_per_sec": 53,
+      "latency_first_chunk_sec": 2.45
+    },
+    {
+      "name": "DeepSeek V4 Pro",
+      "aa_intelligence_index": 39,
+      "context_window": "1M",
+      "creator": "DeepSeek",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 61,
+      "latency_first_chunk_sec": 1.69
+    },
+    {
+      "name": "Mistral Medium 3.5",
+      "aa_intelligence_index": 39,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 2.1,
+      "median_tokens_per_sec": 147,
+      "latency_first_chunk_sec": 2.12
+    },
+    {
+      "name": "Gemma 4 31B",
+      "aa_intelligence_index": 39,
+      "context_window": "256k",
+      "creator": "Google",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": 35,
+      "latency_first_chunk_sec": 1.12
+    },
+    {
+      "name": "Qwen3.5 Omni Plus",
+      "aa_intelligence_index": 39,
+      "context_window": "256k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.84,
+      "median_tokens_per_sec": 49,
+      "latency_first_chunk_sec": 2.56
+    },
+    {
+      "name": "Step 3.5 Flash 2603",
+      "aa_intelligence_index": 38,
+      "context_window": "256k",
+      "creator": "StepFun",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 177,
+      "latency_first_chunk_sec": 9.92
+    },
+    {
+      "name": "Ring-2.6-1T",
+      "aa_intelligence_index": 38,
+      "context_window": "262k",
+      "creator": "InclusionAI",
+      "price_usd_per_m_blended": 0.52,
+      "median_tokens_per_sec": 127,
+      "latency_first_chunk_sec": 3.42
+    },
+    {
+      "name": "o3",
+      "aa_intelligence_index": 38,
+      "context_window": "200k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 1.55,
+      "median_tokens_per_sec": 155,
+      "latency_first_chunk_sec": 6.05
+    },
+    {
+      "name": "GPT-5.4 nano",
+      "aa_intelligence_index": 38,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 151,
+      "latency_first_chunk_sec": 5.79
+    },
+    {
+      "name": "GPT-5.4 mini (medium)",
+      "aa_intelligence_index": 38,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.65,
+      "median_tokens_per_sec": 178,
+      "latency_first_chunk_sec": 8.43
+    },
+    {
+      "name": "Command A+",
+      "aa_intelligence_index": 37,
+      "context_window": "192k",
+      "creator": "Cohere",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": 200,
+      "latency_first_chunk_sec": 0.29
+    },
+    {
+      "name": "Qwen3.6 27B",
+      "aa_intelligence_index": 37,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.9,
+      "median_tokens_per_sec": 59,
+      "latency_first_chunk_sec": 3.84
+    },
+    {
+      "name": "Claude 4.5 Haiku",
+      "aa_intelligence_index": 37,
+      "context_window": "200k",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 0.82,
+      "median_tokens_per_sec": 95,
+      "latency_first_chunk_sec": 16.0
+    },
+    {
+      "name": "DeepSeek V4 Flash",
+      "aa_intelligence_index": 36,
+      "context_window": "1M",
+      "creator": "DeepSeek",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 99,
+      "latency_first_chunk_sec": 1.29
+    },
+    {
+      "name": "NVIDIA Nemotron 3 Super",
+      "aa_intelligence_index": 36,
+      "context_window": "1M",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.28,
+      "median_tokens_per_sec": 165,
+      "latency_first_chunk_sec": 1.11
+    },
+    {
+      "name": "Qwen3.5 122B A10B",
+      "aa_intelligence_index": 36,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.68,
+      "median_tokens_per_sec": 165,
+      "latency_first_chunk_sec": 2.46
+    },
+    {
+      "name": "Nova 2.0 Pro Preview (medium)",
+      "aa_intelligence_index": 36,
+      "context_window": "256k",
+      "creator": "Amazon",
+      "price_usd_per_m_blended": 1.47,
+      "median_tokens_per_sec": 120,
+      "latency_first_chunk_sec": 13.67
+    },
+    {
+      "name": "MiMo-V2.5-Pro",
+      "aa_intelligence_index": 36,
+      "context_window": "1M",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.58,
+      "median_tokens_per_sec": 55,
+      "latency_first_chunk_sec": 3.11
+    },
+    {
+      "name": "Gemini 2.5 Pro",
+      "aa_intelligence_index": 35,
+      "context_window": "1M",
+      "creator": "Google",
+      "price_usd_per_m_blended": 1.34,
+      "median_tokens_per_sec": 140,
+      "latency_first_chunk_sec": 24.62
+    },
+    {
+      "name": "Gemini 3.1 Flash-Lite",
+      "aa_intelligence_index": 34,
+      "context_window": "1M",
+      "creator": "Google",
+      "price_usd_per_m_blended": 0.22,
+      "median_tokens_per_sec": 322,
+      "latency_first_chunk_sec": 5.82
+    },
+    {
+      "name": "gpt-oss-120b (high)",
+      "aa_intelligence_index": 33,
+      "context_window": "131k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.2,
+      "median_tokens_per_sec": 353,
+      "latency_first_chunk_sec": 0.89
+    },
+    {
+      "name": "Mercury 2",
+      "aa_intelligence_index": 33,
+      "context_window": "128k",
+      "creator": "Inception",
+      "price_usd_per_m_blended": 0.14,
+      "median_tokens_per_sec": 784,
+      "latency_first_chunk_sec": 3.15
+    },
+    {
+      "name": "Qwen3.5 9B",
+      "aa_intelligence_index": 32,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.11,
+      "median_tokens_per_sec": 69,
+      "latency_first_chunk_sec": 2.27
+    },
+    {
+      "name": "Gemma 4 31B",
+      "aa_intelligence_index": 32,
+      "context_window": "256k",
+      "creator": "Google",
+      "price_usd_per_m_blended": 0.17,
+      "median_tokens_per_sec": 46,
+      "latency_first_chunk_sec": 2.54
+    },
+    {
+      "name": "Trinity Large Thinking",
+      "aa_intelligence_index": 32,
+      "context_window": "512k",
+      "creator": "Arcee AI",
+      "price_usd_per_m_blended": 0.24,
+      "median_tokens_per_sec": 206,
+      "latency_first_chunk_sec": 1.32
+    },
+    {
+      "name": "Qwen3.6 35B A3B",
+      "aa_intelligence_index": 32,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.56,
+      "median_tokens_per_sec": 193,
+      "latency_first_chunk_sec": 2.45
+    },
+    {
+      "name": "Claude 4.5 Haiku",
+      "aa_intelligence_index": 31,
+      "context_window": "200k",
+      "creator": "Anthropic",
+      "price_usd_per_m_blended": 0.82,
+      "median_tokens_per_sec": 93,
+      "latency_first_chunk_sec": 0.81
+    },
+    {
+      "name": "Grok 4.3 (Non-reasoning)",
+      "aa_intelligence_index": 31,
+      "context_window": "1M",
+      "creator": "xAI",
+      "price_usd_per_m_blended": 0.64,
+      "median_tokens_per_sec": 157,
+      "latency_first_chunk_sec": 0.74
+    },
+    {
+      "name": "Qwen3.5 35B A3B",
+      "aa_intelligence_index": 31,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.42,
+      "median_tokens_per_sec": 184,
+      "latency_first_chunk_sec": 2.32
+    },
+    {
+      "name": "MiMo-V2-Flash",
+      "aa_intelligence_index": 30,
+      "context_window": "256k",
+      "creator": "Xiaomi",
+      "price_usd_per_m_blended": 0.12,
+      "median_tokens_per_sec": 147,
+      "latency_first_chunk_sec": 1.98
+    },
+    {
+      "name": "Qwen3 Coder Next",
+      "aa_intelligence_index": 28,
+      "context_window": "256k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.43,
+      "median_tokens_per_sec": 113,
+      "latency_first_chunk_sec": 1.95
+    },
+    {
+      "name": "Mistral Small 4",
+      "aa_intelligence_index": 28,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.2,
+      "median_tokens_per_sec": 176,
+      "latency_first_chunk_sec": 0.8
+    },
+    {
+      "name": "Qwen3.5 4B",
+      "aa_intelligence_index": 27,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.04,
+      "median_tokens_per_sec": 201,
+      "latency_first_chunk_sec": 0.46
+    },
+    {
+      "name": "Qwen3 Next 80B A3B",
+      "aa_intelligence_index": 27,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 1.05,
+      "median_tokens_per_sec": 169,
+      "latency_first_chunk_sec": 2.15
+    },
+    {
+      "name": "Qwen3.5 Omni Flash",
+      "aa_intelligence_index": 26,
+      "context_window": "256k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.17,
+      "median_tokens_per_sec": 239,
+      "latency_first_chunk_sec": 2.03
+    },
+    {
+      "name": "Nova 2.0 Lite (low)",
+      "aa_intelligence_index": 25,
+      "context_window": "1M",
+      "creator": "Amazon",
+      "price_usd_per_m_blended": 0.52,
+      "median_tokens_per_sec": 122,
+      "latency_first_chunk_sec": 10.51
+    },
+    {
+      "name": "gpt-oss-20B (high)",
+      "aa_intelligence_index": 24,
+      "context_window": "131k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.07,
+      "median_tokens_per_sec": 240,
+      "latency_first_chunk_sec": 0.76
+    },
+    {
+      "name": "gpt-oss-120b (low)",
+      "aa_intelligence_index": 24,
+      "context_window": "131k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.2,
+      "median_tokens_per_sec": 353,
+      "latency_first_chunk_sec": 0.9
+    },
+    {
+      "name": "GPT-5.4 nano",
+      "aa_intelligence_index": 24,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.18,
+      "median_tokens_per_sec": 160,
+      "latency_first_chunk_sec": 0.59
+    },
+    {
+      "name": "NVIDIA Nemotron 3 Nano",
+      "aa_intelligence_index": 24,
+      "context_window": "1M",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.07,
+      "median_tokens_per_sec": 168,
+      "latency_first_chunk_sec": 1.4
+    },
+    {
+      "name": "LongCat Flash Lite",
+      "aa_intelligence_index": 24,
+      "context_window": "256k",
+      "creator": "LongCat",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    },
+    {
+      "name": "GPT-5.4 mini",
+      "aa_intelligence_index": 23,
+      "context_window": "400k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.65,
+      "median_tokens_per_sec": 164,
+      "latency_first_chunk_sec": 0.76
+    },
+    {
+      "name": "Nova 2.0 Pro Preview",
+      "aa_intelligence_index": 23,
+      "context_window": "256k",
+      "creator": "Amazon",
+      "price_usd_per_m_blended": 2.13,
+      "median_tokens_per_sec": 122,
+      "latency_first_chunk_sec": 1.06
+    },
+    {
+      "name": "Mistral Large 3",
+      "aa_intelligence_index": 23,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.6,
+      "median_tokens_per_sec": 52,
+      "latency_first_chunk_sec": 1.1
+    },
+    {
+      "name": "Qwen3.5 4B",
+      "aa_intelligence_index": 23,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.04,
+      "median_tokens_per_sec": 208,
+      "latency_first_chunk_sec": 0.46
+    },
+    {
+      "name": "Devstral 2",
+      "aa_intelligence_index": 22,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": 67,
+      "latency_first_chunk_sec": 1.37
+    },
+    {
+      "name": "Nemotron 3 Nano Omni 30B A3B Reasoning",
+      "aa_intelligence_index": 21,
+      "context_window": "256k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.1,
+      "median_tokens_per_sec": 296,
+      "latency_first_chunk_sec": 1.04
+    },
+    {
+      "name": "gpt-oss-20B (low)",
+      "aa_intelligence_index": 21,
+      "context_window": "131k",
+      "creator": "OpenAI",
+      "price_usd_per_m_blended": 0.07,
+      "median_tokens_per_sec": 242,
+      "latency_first_chunk_sec": 0.77
+    },
+    {
+      "name": "Qwen3 Next 80B A3B",
+      "aa_intelligence_index": 20,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.65,
+      "median_tokens_per_sec": 149,
+      "latency_first_chunk_sec": 2.39
+    },
+    {
+      "name": "Devstral Small 2",
+      "aa_intelligence_index": 19,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": 53,
+      "latency_first_chunk_sec": 1.33
+    },
+    {
+      "name": "Nova Premier",
+      "aa_intelligence_index": 19,
+      "context_window": "1M",
+      "creator": "Amazon",
+      "price_usd_per_m_blended": 2.18,
+      "median_tokens_per_sec": 32,
+      "latency_first_chunk_sec": 2.99
+    },
+    {
+      "name": "Llama Nemotron Super 49B v1.5",
+      "aa_intelligence_index": 19,
+      "context_window": "128k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.13,
+      "median_tokens_per_sec": 48,
+      "latency_first_chunk_sec": 1.34
+    },
+    {
+      "name": "Mistral Small 4",
+      "aa_intelligence_index": 19,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.2,
+      "median_tokens_per_sec": 165,
+      "latency_first_chunk_sec": 0.76
+    },
+    {
+      "name": "Llama 4 Maverick",
+      "aa_intelligence_index": 18,
+      "context_window": "1M",
+      "creator": "Meta",
+      "price_usd_per_m_blended": 0.34,
+      "median_tokens_per_sec": 110,
+      "latency_first_chunk_sec": 1.0
+    },
+    {
+      "name": "Magistral Small 1.2",
+      "aa_intelligence_index": 18,
+      "context_window": "128k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.6,
+      "median_tokens_per_sec": 109,
+      "latency_first_chunk_sec": 0.82
+    },
+    {
+      "name": "Nova 2.0 Lite",
+      "aa_intelligence_index": 18,
+      "context_window": "1M",
+      "creator": "Amazon",
+      "price_usd_per_m_blended": 0.52,
+      "median_tokens_per_sec": 133,
+      "latency_first_chunk_sec": 1.25
+    },
+    {
+      "name": "Llama 3.1 405B",
+      "aa_intelligence_index": 17,
+      "context_window": "128k",
+      "creator": "Meta",
+      "price_usd_per_m_blended": 3.13,
+      "median_tokens_per_sec": 66,
+      "latency_first_chunk_sec": 2.41
+    },
+    {
+      "name": "Qwen3.5 2B",
+      "aa_intelligence_index": 16,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.03,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    },
+    {
+      "name": "Ministral 3 14B",
+      "aa_intelligence_index": 16,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.2,
+      "median_tokens_per_sec": 81,
+      "latency_first_chunk_sec": 0.81
+    },
+    {
+      "name": "Qwen3 Omni 30B A3B",
+      "aa_intelligence_index": 16,
+      "context_window": "65.5k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.32,
+      "median_tokens_per_sec": 84,
+      "latency_first_chunk_sec": 1.98
+    },
+    {
+      "name": "Llama Nemotron Ultra",
+      "aa_intelligence_index": 15,
+      "context_window": "128k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.72,
+      "median_tokens_per_sec": 52,
+      "latency_first_chunk_sec": 2.4
+    },
+    {
+      "name": "ERNIE 4.5 300B A47B",
+      "aa_intelligence_index": 15,
+      "context_window": "131k",
+      "creator": "Baidu",
+      "price_usd_per_m_blended": 0.36,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    },
+    {
+      "name": "Ministral 3 8B",
+      "aa_intelligence_index": 15,
+      "context_window": "256k",
+      "creator": "Mistral",
+      "price_usd_per_m_blended": 0.15,
+      "median_tokens_per_sec": 106,
+      "latency_first_chunk_sec": 0.66
+    },
+    {
+      "name": "NVIDIA Nemotron Nano 9B V2",
+      "aa_intelligence_index": 15,
+      "context_window": "131k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.05,
+      "median_tokens_per_sec": 122,
+      "latency_first_chunk_sec": 0.72
+    },
+    {
+      "name": "Qwen3.5 2B",
+      "aa_intelligence_index": 15,
+      "context_window": "262k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.03,
+      "median_tokens_per_sec": 344,
+      "latency_first_chunk_sec": 0.37
+    },
+    {
+      "name": "Llama Nemotron Super 49B v1.5",
+      "aa_intelligence_index": 15,
+      "context_window": "128k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.13,
+      "median_tokens_per_sec": 48,
+      "latency_first_chunk_sec": 1.29
+    },
+    {
+      "name": "Llama 3.3 70B",
+      "aa_intelligence_index": 14,
+      "context_window": "128k",
+      "creator": "Meta",
+      "price_usd_per_m_blended": 0.59,
+      "median_tokens_per_sec": 84,
+      "latency_first_chunk_sec": 1.59
+    },
+    {
+      "name": "Llama 4 Scout",
+      "aa_intelligence_index": 14,
+      "context_window": "10M",
+      "creator": "Meta",
+      "price_usd_per_m_blended": 0.22,
+      "median_tokens_per_sec": 104,
+      "latency_first_chunk_sec": 0.9
+    },
+    {
+      "name": "Command A",
+      "aa_intelligence_index": 13,
+      "context_window": "256k",
+      "creator": "Cohere",
+      "price_usd_per_m_blended": 3.25,
+      "median_tokens_per_sec": 65,
+      "latency_first_chunk_sec": 1.59
+    },
+    {
+      "name": "Llama 3.1 Nemotron 70B",
+      "aa_intelligence_index": 13,
+      "context_window": "128k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 1.2,
+      "median_tokens_per_sec": 300,
+      "latency_first_chunk_sec": 5.32
+    },
+    {
+      "name": "NVIDIA Nemotron 3 Nano",
+      "aa_intelligence_index": 13,
+      "context_window": "1M",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.07,
+      "median_tokens_per_sec": 95,
+      "latency_first_chunk_sec": 0.45
+    },
+    {
+      "name": "NVIDIA Nemotron Nano 9B V2",
+      "aa_intelligence_index": 13,
+      "context_window": "131k",
+      "creator": "NVIDIA",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 131,
+      "latency_first_chunk_sec": 1.06
+    },
+    {
+      "name": "Granite 4.1 8B",
+      "aa_intelligence_index": 12,
+      "context_window": "131k",
+      "creator": "IBM",
+      "price_usd_per_m_blended": 0.06,
+      "median_tokens_per_sec": 122,
+      "latency_first_chunk_sec": 0.77
+    },
+    {
+      "name": "Jamba 1.7 Large",
+      "aa_intelligence_index": 11,
+      "context_window": "256k",
+      "creator": "AI21 Labs",
+      "price_usd_per_m_blended": 2.6,
+      "median_tokens_per_sec": 60,
+      "latency_first_chunk_sec": 1.64
+    },
+    {
+      "name": "Granite 4.0 H Small",
+      "aa_intelligence_index": 11,
+      "context_window": "128k",
+      "creator": "IBM",
+      "price_usd_per_m_blended": 0.08,
+      "median_tokens_per_sec": 376,
+      "latency_first_chunk_sec": 10.27
+    },
+    {
+      "name": "Qwen3 Omni 30B A3B",
+      "aa_intelligence_index": 11,
+      "context_window": "65.5k",
+      "creator": "Alibaba",
+      "price_usd_per_m_blended": 0.32,
+      "median_tokens_per_sec": 93,
+      "latency_first_chunk_sec": 1.93
+    },
+    {
+      "name": "LFM2 24B A2B",
+      "aa_intelligence_index": 10,
+      "context_window": "32.8k",
+      "creator": "Liquid AI",
+      "price_usd_per_m_blended": 0.04,
+      "median_tokens_per_sec": 120,
+      "latency_first_chunk_sec": 0.59
+    },
+    {
+      "name": "Phi-4",
+      "aa_intelligence_index": 10,
+      "context_window": "16k",
+      "creator": "Microsoft",
+      "price_usd_per_m_blended": 0.16,
+      "median_tokens_per_sec": 34,
+      "latency_first_chunk_sec": 2.23
+    },
+    {
+      "name": "Nova Micro",
+      "aa_intelligence_index": 10,
+      "context_window": "130k",
+      "creator": "Amazon",
+      "price_usd_per_m_blended": 0.03,
+      "median_tokens_per_sec": 299,
+      "latency_first_chunk_sec": 1.09
+    },
+    {
+      "name": "Llama 3.2 11B (Vision)",
+      "aa_intelligence_index": 9,
+      "context_window": "128k",
+      "creator": "Meta",
+      "price_usd_per_m_blended": 0.25,
+      "median_tokens_per_sec": 50,
+      "latency_first_chunk_sec": 0.7
+    },
+    {
+      "name": "Phi-4 Mini",
+      "aa_intelligence_index": 8,
+      "context_window": "128k",
+      "creator": "Microsoft",
+      "price_usd_per_m_blended": 0.0,
+      "median_tokens_per_sec": 21,
+      "latency_first_chunk_sec": 1.56
+    },
+    {
+      "name": "Granite 4.0 H 1B",
+      "aa_intelligence_index": 8,
+      "context_window": "128k",
+      "creator": "IBM",
+      "price_usd_per_m_blended": null,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    },
+    {
+      "name": "Granite 4.0 1B",
+      "aa_intelligence_index": 7,
+      "context_window": "128k",
+      "creator": "IBM",
+      "price_usd_per_m_blended": null,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    },
+    {
+      "name": "Apertus 8B Instruct",
+      "aa_intelligence_index": 6,
+      "context_window": "65.5k",
+      "creator": "Swiss AI Initiative",
+      "price_usd_per_m_blended": 0.11,
+      "median_tokens_per_sec": null,
+      "latency_first_chunk_sec": null
+    }
+  ]
+}

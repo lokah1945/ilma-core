@@ -1,0 +1,373 @@
+{
+  "version": "2.0",
+  "created": "2026-05-10T22:45:00Z",
+  "description": "ILMA Tool/Skill Selection Policy v2 — hardened rules for selecting tools and skills based on task type. Includes all Phase 53-E extensions.",
+  "owner": "Bos (Huda Choirul Anam)",
+  "safety": "Owner-triggered only, no always-on",
+
+  "selection_rules": {
+    "if_coding_task": {
+      "primary_tools": ["terminal", "file", "search"],
+      "primary_skills": ["ilma-python-patterns", "ilma-refactor-cleaner", "ilma-testing", "ilma-code-quality"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["syntax_check", "import_resolution", "dependency_check"],
+      "non_parallelizable_steps": ["compilation", "linkage", "integration_test"],
+      "validation_steps": ["terminal:py_compile", "terminal:test", "search:lint"],
+      "output_artifact_format": "code_module",
+      "execution_order": ["terminal:py_compile", "file:read", "file:write", "terminal:test"]
+    },
+
+    "if_document_task": {
+      "primary_tools": ["file"],
+      "primary_skills": ["ilma-writing", "ilma-documentation"],
+      "fallback_tools": [],
+      "forbidden_tools": ["terminal"],
+      "parallelizable_steps": ["outline_generation", "spell_check", "format_verification"],
+      "non_parallelizable_steps": ["content_research", "fact_check", "review_cycle"],
+      "validation_steps": ["file:read", "spell_check"],
+      "output_artifact_format": "document",
+      "execution_order": ["file:read", "file:write"]
+    },
+
+    "if_slides_pdf_task": {
+      "primary_tools": ["file"],
+      "primary_skills": ["powerpoint", "design-md"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": ["terminal"],
+      "parallelizable_steps": ["slide_layout", "font_check", "image_optimization"],
+      "non_parallelizable_steps": ["content_authoring", "transition_design", "animation_setup"],
+      "validation_steps": ["file:read", "design_md:render"],
+      "output_artifact_format": "presentation",
+      "execution_order": ["skill:powerpoint", "file:write"]
+    },
+
+    "if_research_task": {
+      "primary_tools": ["web", "search"],
+      "primary_skills": ["ilma-research", "arxiv"],
+      "fallback_tools": ["search", "file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["source_discovery", "url_fetch", "metadata_extraction"],
+      "non_parallelizable_steps": ["deep_analysis", "cross_reference", "synthesis"],
+      "validation_steps": ["web:web_search", "web:web_extract", "file:write"],
+      "output_artifact_format": "research_report",
+      "execution_order": ["web:web_search", "web:web_extract", "file:write"]
+    },
+
+    "if_audit_task": {
+      "primary_tools": ["terminal", "file", "search"],
+      "primary_skills": ["ilma-security-audit", "ilma-code-review", "security"],
+      "fallback_tools": ["file", "search"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["file_scanning", "pattern_matching", "log_review"],
+      "non_parallelizable_steps": ["attack_vector_analysis", "privilege_escalation_check", "report_generation"],
+      "validation_steps": ["file:read", "search:grep", "terminal:compile", "file:write_report"],
+      "output_artifact_format": "audit_report",
+      "execution_order": ["file:read", "search:grep", "terminal:compile", "file:write_report"]
+    },
+
+    "if_internal_ilma_task": {
+      "primary_tools": ["file", "terminal", "search"],
+      "primary_skills": ["ilma-self-improvement", "ilma-learning"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["config_read", "state_snapshot", "log_tailing"],
+      "non_parallelizable_steps": ["self_modification", "capability_injection", "trust_boundary_crossing"],
+      "validation_steps": ["file:read", "search:grep", "terminal:pytest", "file:write"],
+      "output_artifact_format": "internal_artifact",
+      "execution_order": ["file:read", "search:grep", "terminal:pytest", "file:write"]
+    },
+
+    "if_unsafe_task": {
+      "primary_tools": [],
+      "primary_skills": [],
+      "fallback_tools": [],
+      "forbidden_tools": ["terminal", "file:write", "web", "delegate_task"],
+      "parallelizable_steps": [],
+      "non_parallelizable_steps": [],
+      "validation_steps": [],
+      "output_artifact_format": "none",
+      "execution_order": [],
+      "fallback": "safety_explanation_no_execution"
+    },
+
+    "if_tool_unavailable": {
+      "fallback_sequence": ["file", "terminal", "search", "decline"],
+      "note": "Try tools in order until one works"
+    },
+
+    "if_skill_unavailable": {
+      "fallback_sequence": ["file", "terminal"],
+      "note": "Skills are optional enhancements, tools are required"
+    },
+
+    "if_self_optimization": {
+      "description": "ILMA internal self-improvement task — optimize own code/config",
+      "primary_tools": ["file", "terminal", "search"],
+      "primary_skills": ["ilma-evolution", "ilma-refactor-cleaner", "ilma-testing"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": ["credential_use", "unsafe_network", "delegate_task"],
+      "parallelizable_steps": ["performance_profiling", "metric_collection", "config_diff"],
+      "non_parallelizable_steps": ["code_modification", "schema_migration", "restart_required"],
+      "validation_steps": ["terminal:pytest", "file:read", "terminal:benchmark"],
+      "output_artifact_format": "optimization_patch",
+      "execution_order": ["file:read", "search:grep", "terminal:benchmark", "file:write"],
+      "safety_note": "Owner-triggered only — no autonomous self-modification without approval"
+    },
+
+    "if_workflow_repair": {
+      "description": "Fix broken ILMA workflow execution",
+      "primary_tools": ["file", "terminal", "search"],
+      "primary_skills": ["ilma-workflow-ecc", "ilma-debug", "ilma-refactor-cleaner"],
+      "fallback_tools": ["file", "search"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["error_log_scan", "config_validation", "state_inspection"],
+      "non_parallelizable_steps": ["root_cause_analysis", "workflow_rebuild", "rollback_execution"],
+      "validation_steps": ["file:read", "terminal:pytest", "terminal:execute"],
+      "output_artifact_format": "repair_report",
+      "execution_order": ["file:read", "search:grep", "terminal:execute", "file:write"]
+    },
+
+    "if_capability_upgrade": {
+      "description": "Add or upgrade ILMA capability",
+      "primary_tools": ["file", "terminal", "search"],
+      "primary_skills": ["ilma-evolution", "ilma-skill-builder", "ilma-testing"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": ["credential_use"],
+      "parallelizable_steps": ["capability_scan", "version_check", "dependency_resolution"],
+      "non_parallelizable_steps": ["code_generation", "integration_test", "registry_update"],
+      "validation_steps": ["file:read", "terminal:pytest", "ilma_capability_registry:verify"],
+      "output_artifact_format": "capability_package",
+      "execution_order": ["file:read", "terminal:test", "file:write"],
+      "safety_note": "Must verify capability before activating"
+    },
+
+    "if_evidence_backfill": {
+      "description": "Backfill missing evidence for claims",
+      "primary_tools": ["file", "search", "terminal"],
+      "primary_skills": ["ilma-evidence-collector", "ilma-research"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["claim_extraction", "source_discovery", "snippet_capture"],
+      "non_parallelizable_steps": ["evidence_validation", "claim_verification", "registry_update"],
+      "validation_steps": ["file:read", "search:grep", "ilma_evidence_registry:add"],
+      "output_artifact_format": "evidence_bundle",
+      "execution_order": ["search:grep", "file:read", "file:write"]
+    },
+
+    "if_registry_truth_audit": {
+      "description": "Audit ILMA registry for inconsistencies",
+      "primary_tools": ["file", "search", "terminal"],
+      "primary_skills": ["ilma-code-review", "ilma-security-audit"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["registry_scan", "schema_validation", "cross_reference"],
+      "non_parallelizable_steps": ["inconsistency_analysis", "truth_propagation", "report_generation"],
+      "validation_steps": ["file:read", "search:grep", "terminal:validate"],
+      "output_artifact_format": "audit_report",
+      "execution_order": ["file:read", "search:grep", "terminal:validate", "file:write"]
+    },
+
+    "if_performance_parallelization": {
+      "description": "Parallelize slow ILMA operations",
+      "primary_tools": ["terminal", "file"],
+      "primary_skills": ["ilma-optimization", "ilma-python-patterns"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["task_decomposition", "dependency_analysis", "worker_discovery"],
+      "non_parallelizable_steps": ["synchronization_setup", "race_condition_resolution", "result_aggregation"],
+      "validation_steps": ["terminal:benchmark", "terminal:profile"],
+      "output_artifact_format": "parallelized_module",
+      "execution_order": ["terminal:analyze", "file:write"]
+    },
+
+    "if_lesson_memory_repair": {
+      "description": "Fix corrupted or inconsistent ILMA memory/lessons",
+      "primary_tools": ["file", "search", "terminal"],
+      "primary_skills": ["ilma-memory", "ilma-evidence-collector"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["memory_scan", "consistency_check", "fragment_detection"],
+      "non_parallelizable_steps": ["truth_reconstruction", "memory_merge", "defragmentation"],
+      "validation_steps": ["file:read", "terminal:validate", "ilma_long_term_memory:verify"],
+      "output_artifact_format": "memory_patch",
+      "execution_order": ["file:read", "search:grep", "file:write"]
+    },
+
+    "if_judge_rubric_repair": {
+      "description": "Fix or update ILMA judge evaluation rubric",
+      "primary_tools": ["file", "search"],
+      "primary_skills": ["ilma-judge-rubric", "ilma-documentation"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": ["terminal", "delegate_task"],
+      "parallelizable_steps": ["rubric_scan", "criteria_extraction", "score_simulation"],
+      "non_parallelizable_steps": ["rubric_revision", "test_case_update", "consistency_verification"],
+      "validation_steps": ["file:read", "ilma_judge_system:validate"],
+      "output_artifact_format": "rubric_update",
+      "execution_order": ["file:read", "file:write"]
+    },
+
+    "if_services_decomposition": {
+      "description": "Decompose monolithic ILMA service into components",
+      "primary_tools": ["file", "terminal", "search"],
+      "primary_skills": ["ilma-architecture", "ilma-refactor-cleaner", "ilma-testing"],
+      "fallback_tools": ["file"],
+      "forbidden_tools": [],
+      "parallelizable_steps": ["dependency_graph", "interface_extraction", "module_boundaries"],
+      "non_parallelizable_steps": ["service_extraction", "contract_migration", "integration_rebuild"],
+      "validation_steps": ["file:read", "terminal:test", "ilma_capability_registry:verify"],
+      "output_artifact_format": "service_spec",
+      "execution_order": ["search:grep", "file:read", "file:write"]
+    },
+
+    "if_long_run_autolearning": {
+      "description": "Long-running autonomous learning cycle (300+ min)",
+      "primary_tools": ["file", "terminal", "search", "web"],
+      "primary_skills": ["ilma-autonomous-learning", "ilma-evolution", "ilma-research"],
+      "fallback_tools": ["file", "search"],
+      "forbidden_tools": ["credential_use", "unsafe_network"],
+      "parallelizable_steps": ["evidence_collection", "metric_logging", "checkpointing"],
+      "non_parallelizable_steps": ["learning_iteration", "model_update", "evaluation_cycle"],
+      "validation_steps": ["terminal:benchmark", "file:write", "ilma_autonomy_execution_semantics:gate"],
+      "output_artifact_format": "learning_report",
+      "execution_order": ["file:read", "terminal:benchmark", "web:research", "file:write"],
+      "safety_note": "Requires autonomy contract — must respect canary gates"
+    }
+  },
+
+  "tool_to_capability_map": {
+    "terminal": {
+      "capabilities": ["coding", "networking", "devops", "database", "system_administration"],
+      "commands": ["python3", "pytest", "git", "curl", "bash"],
+      "safety_class": "elevated"
+    },
+    "file": {
+      "capabilities": ["writing", "documentation", "planning", "reporting"],
+      "operations": ["read", "write", "patch"],
+      "safety_class": "normal"
+    },
+    "web": {
+      "capabilities": ["research", "networking"],
+      "operations": ["web_search", "web_extract"],
+      "safety_class": "normal"
+    },
+    "search": {
+      "capabilities": ["code_analysis", "research", "audit"],
+      "operations": ["search_files", "grep"],
+      "safety_class": "normal"
+    },
+    "delegate_task": {
+      "capabilities": ["orchestration", "delegation"],
+      "operations": ["spawn_subagent"],
+      "safety_class": "elevated"
+    },
+    "send_message": {
+      "capabilities": ["messaging"],
+      "operations": ["send"],
+      "safety_class": "normal"
+    },
+    "browser": {
+      "capabilities": ["research", "automation"],
+      "operations": ["navigate", "snapshot", "vision"],
+      "safety_class": "normal"
+    },
+    "skill": {
+      "capabilities": ["any_with_skill"],
+      "operations": ["load_skill", "execute_skill"],
+      "safety_class": "normal"
+    }
+  },
+
+  "skill_priority_by_task": {
+    "coding": ["ilma-python-patterns", "ilma-refactor-cleaner", "ilma-testing", "ilma-code-quality", "ilma-debug"],
+    "writing": ["ilma-writing", "ilma-documentation", "ilma-humanizer"],
+    "research": ["ilma-research", "arxiv", "blogwatcher"],
+    "audit": ["ilma-security-audit", "ilma-code-review", "security", "ilma-testing"],
+    "planning": ["ilma-planning", "ilma-problem-solve"],
+    "artifact": ["powerpoint", "design-md", "excalidraw"],
+    "internal": ["ilma-self-improvement", "ilma-evolution-routine", "ilma-learning-engine"],
+    "self_optimization": ["ilma-evolution", "ilma-refactor-cleaner", "ilma-testing"],
+    "workflow_repair": ["ilma-workflow-ecc", "ilma-debug", "ilma-refactor-cleaner"],
+    "capability_upgrade": ["ilma-evolution", "ilma-skill-builder", "ilma-testing"],
+    "evidence_backfill": ["ilma-evidence-collector", "ilma-research"],
+    "registry_truth_audit": ["ilma-code-review", "ilma-security-audit"],
+    "performance_parallelization": ["ilma-optimization", "ilma-python-patterns"],
+    "lesson_memory_repair": ["ilma-memory", "ilma-evidence-collector"],
+    "judge_rubric_repair": ["ilma-judge-rubric", "ilma-documentation"],
+    "services_decomposition": ["ilma-architecture", "ilma-refactor-cleaner", "ilma-testing"],
+    "long_run_autolearning": ["ilma-autonomous-learning", "ilma-evolution", "ilma-research"]
+  },
+
+  "no_hallucination_rules": {
+    "forbidden_tool_patterns": [
+      "never claim tool exists that is not in available_toolsets",
+      "never claim skill exists that is not in available_skills",
+      "never claim file exists without verification",
+      "never claim API works without testing",
+      "never claim execution_order step exists without validation"
+    ],
+    "verification_required": {
+      "tool_claim": "check toolset list first",
+      "skill_claim": "check skills_list first",
+      "file_claim": "use file read or stat",
+      "api_claim": "test with small request first",
+      "script_claim": "verify script exists in scripts/ directory"
+    },
+    "allowed_to_fail_gracefully": [
+      "skill_load",
+      "optional_capability",
+      "fallback_tool",
+      "non_critical_script"
+    ],
+    "must_never_fail": [
+      "safety_check",
+      "claim_boundary_verification",
+      "forbidden_tool_detection"
+    ]
+  },
+
+  "execution_constraints": {
+    "max_tool_calls_per_task": 50,
+    "max_skill_loads_per_task": 10,
+    "timeout_per_tool_call": 60,
+    "timeout_per_skill": 120,
+    "require_tool_after_5_calls": "checkpoint_progress",
+    "parallel_task_threshold": 5,
+    "max_parallel_steps": 3
+  },
+
+  "task_class_to_policy_key_mapping": {
+    "code": "if_coding_task",
+    "coding": "if_coding_task",
+    "debugging": "if_coding_task",
+    "refactor": "if_coding_task",
+    "write": "if_document_task",
+    "writing": "if_document_task",
+    "document": "if_document_task",
+    "longform": "if_document_task",
+    "document_artifact": "if_document_task",
+    "slides": "if_slides_pdf_task",
+    "pdf": "if_slides_pdf_task",
+    "spreadsheet": "if_slides_pdf_task",
+    "research": "if_research_task",
+    "audit": "if_audit_task",
+    "security_review": "if_audit_task",
+    "evidence_workflow": "if_audit_task",
+    "internal": "if_internal_ilma_task",
+    "internal_ilma": "if_internal_ilma_task",
+    "self_optimization": "if_self_optimization",
+    "workflow_repair": "if_workflow_repair",
+    "capability_upgrade": "if_capability_upgrade",
+    "evidence_backfill": "if_evidence_backfill",
+    "registry_truth_audit": "if_registry_truth_audit",
+    "performance_parallelization": "if_performance_parallelization",
+    "lesson_memory_repair": "if_lesson_memory_repair",
+    "judge_rubric_repair": "if_judge_rubric_repair",
+    "services_decomposition": "if_services_decomposition",
+    "long_run_autolearning": "if_long_run_autolearning",
+    "auto_learning": "if_long_run_autolearning",
+    "unsafe": "if_unsafe_task",
+    "simple": "if_document_task",
+    "plan": "if_document_task"
+  }
+}
