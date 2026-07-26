@@ -115,7 +115,37 @@ Sequence that AVOIDS the loop:
 If you must re-audit post-commit without restart: rely on technique #2 (marker
 comparison) so runtime vs marker still matches.
 
+## Technique 7 — Independent hard re-audit (don't trust "100/100" self-claims) — V-audit rule
+
+When Bos asks "is it REALLY production-ready / enterprise-grade", the smoke+load
+`production_audit.py` is NOT enough — it only proves the happy path. Do a HARD
+READ-ONLY re-audit that actively tries to DISPROVE the self-claim:
+
+1. **Run the repo test suite** — any `FAILED` line kills a "100/100" claim.
+   `cd /root/wrapper && python3 -m pytest -q`. (2026-07-27: 75 passed / **1 failed**
+   — `tests/test_central_client.py::test_disabled_client_does_not_enqueue_or_open_connections`.)
+2. **Read the actual code**, not docstrings. Look for duplicated helpers that
+   drifted from `common/` (FOUND: `wrapper_nous.py:49-53` local `_sanitize_header_value`
+   weaker than `common/middleware.py:88-103` SEC2 fix), and unpinned deps
+   (`requirements.txt` all `>=`, no hash pin → supply-chain drift).
+3. **Live curl probes** — auth bypass (no-token chat must →401), oversized
+   (13MB →413), invalid model (→400), header injection. Recipe + raw results in
+   `references/hard-reaudit-probe-recipe.md`.
+4. **Write report to `/root/audit_report/`** — NOT `/root/wrapper/audit_report/`
+   (the latter pollutes the synced repo). Give an honest numeric score; state
+   whether runtime is SAFE even if the claim is false.
+
+**Key lesson:** commit messages and module docstrings saying "true 100/100
+enterprise" are NOT evidence. Verify independently. A red test, a duplicated
+security fix, or unpinned deps each downgrade the score.
+
 ## Pitfalls
+- **V-audit report location:** write hard re-audit reports to `/root/audit_report/`,
+  never `/root/wrapper/audit_report/` (would be committed into the synced repo).
+  See `references/hard-reaudit-probe-recipe.md` for the full probe kit.
+- **Self-claimed "100/100" is not a pass.** A red pytest, duplicated/weaker
+  security helper, or unpinned `requirements.txt` each downgrade the score. The
+  2026-07-27 run scored ~85/100 despite commits saying "true 100/100 enterprise".
 - **Don't hardcode `/root/wrapper`** in source — use `Path(__file__)` + `git
   rev-parse --show-toplevel`. Portability matters for the "deploy elsewhere" case.
 - **Don't truncate `git_commit` to 12 chars in `/health`** if the audit compares
