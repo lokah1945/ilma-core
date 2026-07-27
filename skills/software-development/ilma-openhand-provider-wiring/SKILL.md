@@ -37,6 +37,11 @@ description: Configure OpenHand SDK coding agent (v1.21.0+) to use a custom Open
 - **execute_code is blocked** by cron-safety in this environment — use `terminal` for curl / python-subprocess probes.
 - **Port drift.** wrapper-nous currently runs on **9102** (old 9106 is VOID per SOUL.md). Always verify with `curl http://127.0.0.1:9102/v1/models` before assuming the endpoint.
 - **Benign cost warning.** LiteLLM prints `Cost calculation failed: This model isn't mapped yet` for free slugs — this is NOT a connection failure; the call still succeeds.
+- **TWO different settings files — do not confuse them:**
+  - `~/.openhands/settings.json` = **PersistedSettings** shape (`{schema_version, agent_settings:{agent_kind,agent,llm}}`). Read by `web` / `serve` (Docker, via `OH_PERSISTENCE_DIR`).
+  - `~/.openhands/agent_settings.json` = **`Agent` object** shape (`{llm:{model,api_key,base_url,...}, tools, condenser,...}`). Read by the **bare `openhands` CLI/TUI** (`AgentStore.load_or_create` → `load_from_disk` → `Agent.model_validate_json`). If this file is missing/valid, the TUI force-shows the "agent settings" onboarding screen (`is_initial_setup_required=True`).
+- **🔴 CRITICAL — SecretStr masks api_key to `"**********"`.** Generating `agent_settings.json` via `Agent.model_dump_json()` serializes the `LLM.api_key` (a pydantic `SecretStr`) as the literal masked string `"**********"`. On reload, OpenHand parses that as invalid → `llm.api_key = None`. LiteLLM then rejects `openai/<slug>` with `LLMServiceUnavailableError: OpenAIException - Missing credentials. Please pass an api_key... or set OPENAI_API_KEY`. Symptom: even a trivial prompt like "hallo" fails with a conversation error. **Fix:** after writing the file, replace `"**********"` with the real key (`wrapper-local-key`) — either `patch` the JSON directly or set env `OPENAI_API_KEY=wrapper-local-key` when launching `openhands`. Verify with: `Agent.model_validate_json(open(...).read()).llm.api_key is not None`.
+- **Verify the EXACT failure path before claiming fixed.** Reproduce with `LLM(model=..., base_url=..., api_key=None)` → must raise the same `Missing credentials` error; then `api_key='wrapper-local-key'` → must return a real response. Only then is the TUI fix confirmed.
 
 ## Verification recipe
 ```bash
