@@ -152,7 +152,133 @@ Smoke assertion: `HTTP 200` AND `returned_model in (None, requested_model)`. For
 
 Transient upstream errors (opencode Zen 429/503, blackbox 404 on some models) are NOT wrapper bugs — retry after cooldown; verify the wrapper itself with direct curl (tools → expect `function_call`). The audit loop that hit this: `42 PASS / 0 FAIL / 0 BLOCKED` after cooldown + per-service markers on `/root/wrapper` (2026-07-25, commit `44729e5`).
 
+## HTTP 500 diagnostic (code-bug class, NOT model availability)
+A `500 Internal Server Error` from a wrapper is a DIFFERENT class from the 404/410
+model-unavailable problem above. It means the request crashed *inside the wrapper
+process*, not that NVIDIA rejected it. Never treat a 500 as "model unavailable".
+
+**Fast triage — which layer died?**
+| Symptom | Meaning | Next step |
+|---|---|---|
+| Every request 500, body `Internal server error` | Wrapper crashed in handler (code bug) | Read the wrapper `.log`, find the traceback |
+| 500 only on `/v1/messages` but `/v1/chat/completions` 200 | Path-specific bug in Anthropic route | Read traceback line for that route |
+| 400 `model_not_found` | Wrapper is fine; wrong model id | Fix model name (see gotcha below) |
+| 404 `Function not found for account` | Upstream NVIDIA account issue | See taxonomy above — NOT a code bug |
+
+**The `#1 cause observed (2026-07-27): `common` package missing from `PYTHONPATH`.**
+The wrapper services are launched by systemd with a NARROW `PYTHONPATH`, e.g.
+`wrapper-nvidia-python.service` sets `Environment=PYTHONPATH=/root/wrapper/nvidia-python`
+only. But `src/main.py` does `from common.middleware import ...` where `common` lives
+at `/root/wrapper/common/` (repo root, NOT inside `nvidia-python/`). The import is
+wrapped in `try/except ImportError` so startup does NOT crash (`_HAS_SIZE_LIMITER=False`),
+but a function imported from that module (`sanitize_header_value`) is still CALLED
+downstream without a guard → `NameError: name 'sanitize_header_value' is not defined`
+→ `500` on EVERY request.
+
+**Repro + confirm (from the 2026-07-27 `wrapper-nvidia` 500 session):**
+```bash
+# 1. Reproduce the 500
+curl -s -w "\nHTTP %{http_code}\n" -X POST http://127.0.0.1:9101/v1/chat/completions \
+  -H "Authorization: Bearer wrapper-local-key" \
+  -d '{"model":"meta/llama-3.3-70b-instruct","messages":[{"role":"user","content":"ping"}],"max_tokens":16}'
+# → HTTP 500 {"error":{"message":"Internal server error"}}
+
+# 2. Find the traceback in the service log (NOT journald — log goes to a file)
+tail -60 /root/wrapper/nvidia-python/nvidia_py.log
+# → NameError: name 'sanitize_header_value' is not defined  (in forward_headers)
+
+# 3. Confirm common is at repo root, not in the service's PYTHONPATH
+grep -n "PYTHONPATH" /root/.config/systemd/user/wrapper-nvidia-python.service
+find /root/wrapper -name middleware.py | grep -v pyc   # → /root/wrapper/common/middleware.py
+python3 -c "import common" 2>&1 | head -1              # ModuleNotFoundError if cwd != /root/wrapper
+```
+
+**Fix (surgical, applied 2026-07-27 — verified working):**
+In `src/main.py`, before `from common.middleware import ...`, insert the repo root
+onto `sys.path` so the import succeeds at runtime:
+```python
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # /root/wrapper
+    from common.middleware import RequestSizeLimiter, sanitize_header_value
+    _HAS_SIZE_LIMITER = True
+except ImportError:
+    _HAS_SIZE_LIMITER = False
+    def sanitize_header_value(value):  # fallback guard so a missing import never 500s
+        if not isinstance(value, str):
+            value = str(value)
+        return re_module.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', value).strip()
+```
+Then restart: `systemctl --user restart wrapper-nvidia-python.service`, wait ~3s.
+A 500→400/404 transition after restart PROVES the fix (request now reaches validation/upstream).
+
+**Verify the fix stuck (don't trust "restarted OK"):**
+```bash
+# NameError count should be ZERO after the restart timestamp
+grep "NameError: name" /root/wrapper/nvidia-python/nvidia_py.log | grep -o '"ts": "[^"]*"' | tail -3
+tail -5 /root/wrapper/nvidia-python/nvidia_py.log   # expect: Application startup complete; 400/404/200, NO 500
+```
+
+## Model-name gotcha (prefix trap)
+The wrapper catalog uses ids WITHOUT a provider prefix for most models, but WITH
+`nvidia/` for a specific Nemotron subset:
+- ❌ `nvidia/meta/llama-3.3-70b-instruct`  → 400 `model_not_found`
+- ✅ `meta/llama-3.3-70b-instruct`         → valid (if deployed in account)
+- ✅ `nvidia/llama-3.3-nemotron-super-49b-v1` → valid (the `nvidia/` prefix only applies to Nemotron-super)
+Enumerate the real ids: `curl -s http://127.0.0.1:9101/v1/models | python3 -c "import sys,json; print('\n'.join(m['id'] for m in json.load(sys.stdin)['data']))"`
+
+## Decision tree: 500 vs 400 vs 404
+```
+Request fails
+ ├─ HTTP 500 + "Internal server error"  → CODE BUG in wrapper. Read .log, find traceback, fix, restart.
+ ├─ HTTP 400 "model_not_found"          → wrong model id (prefix trap) OR catalog mismatch. Check /v1/models.
+ ├─ HTTP 404 "Function not found for account" → upstream NVIDIA account. NOT a wrapper bug (see taxonomy).
+ └─ HTTP 200                             → works.
+```
+
+## Codex-hang verification (BUG-CODEX1 / BUG-CODEX2) — wrapper-nous
+
+Symptom Bos reports: *"wrapper-nous dipakai di Codex, proses berhenti sebelum final response / final process berhasil dijalankan."* This is the stream-finalization / heartbeat hang, fixed upstream in commit `f5bfeea`. To **verify the fix is actually live** (not just "code exists"):
+
+**Root causes (from CROSS_WRAPPER_BUG_POLICY.md):**
+- **BUG-CODEX1 (stream finalization):** `store_conversation` called after stream could block generator finalization → process stops before final response. Fix = wrap in `try/finally` (nous `wrapper_nous.py:1876`).
+- **BUG-CODEX2 (heartbeat):** `stream_with_heartbeat` only fired when upstream sent data → Codex times out on idle upstream. Fix = `asyncio.wait_for(timeout)` to emit heartbeats during idle (nous `wrapper_nous.py:1035/1044`).
+
+**Verify it is fixed (do NOT trust "restarted OK"):**
+
+```bash
+# 1. Log must show ZERO errors/hangs AFTER the restart timestamp
+#    (wrapper-nous logs to a FILE, not journald)
+tail -80 /root/wrapper/nous/wrapper_nous.log
+# Look for: POST /v1/responses → 200 OK, GET /v1/models → 200 OK
+# Look for ABSENCE of: Traceback, NameError, timeout, "store_conversation", hang
+
+# 2. Reproduce the exact Codex traffic shape (Responses API, streaming)
+# NOTE: use the local BEARER_TOKEN (wrapper-local-key), see auth pitfall below
+curl -s -N -o /tmp/nous_r.txt -w "HTTP %{http_code} time=%{time_total}s\n" \
+  -X POST http://127.0.0.1:9102/v1/responses \
+  -H "Authorization: Bearer wrapper-local-key" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"poolside/laguna-s-2.1:free","input":"say hi in one word","stream":true}' \
+  --max-time 90
+# → Expect: HTTP 200, a few seconds, non-zero bytes (complete stream). NO hang.
+
+# 3. Confirm Codex config points at the LIVE port (9102), not legacy 9100
+grep -E "base_url" /root/.codex/config.toml
+# → http://127.0.0.1:9102/v1  ✅   (NOT 9100 — legacy removed)
+```
+
+**Auth pitfall (cost a 401 in the 2026-07-27 session):** When reproducing with curl, use `Authorization: Bearer wrapper-local-key` (the local `BEARER_TOKEN` from `nous/.env`). Using `NOUS_API_KEY_1` directly returns **401 Unauthorized** — the wrapper expects its local bearer token, then rotates upstream `NOUS_API_KEY_*` internally. Same for nvidia-python/opencode/blackbox: always `wrapper-local-key` for local curl repro.
+
+**Port-mismatch findings (2026-07-27):**
+- `blackbox/.env` says `LISTEN_PORT=9108` but `wrapper-blackbox.service` runs on **9104** (CLI `--port 9104` overrides). 9108 is CLOSED. Misleading, not fatal — fix `.env` to 9104 for consistency.
+- `/root/.codex/config.openrouter-nemotron.toml` still points to `base_url=http://127.0.0.1:9100/v1` — **legacy wrapper-nvidia (9100) was REMOVED**. That Codex profile will fail to connect. Update to 9101 (nvidia-python) or 9102 (nous).
+- Memory note "wrapper-nvidia:9100" is OBSOLETE → active NVIDIA wrapper is `wrapper-nvidia-python` on **9101**.
+
+Full recipe + transcript: `references/wrapper-nous-codex-hang-verify.md`.
+
 ## References
+- `references/wrapper-nvidia-500-nameerror-debug.md` — full 2026-07-27 HTTP 500 `NameError: sanitize_header_value` repro transcript, PYTHONPATH root cause, fix, and post-restart verification.
+- `references/wrapper-nous-codex-hang-verify.md` — 2026-07-27 Codex-hang (BUG-CODEX1/2) verification: log-grep recipe, curl `/v1/responses` repro with `Bearer wrapper-local-key`, port-mismatch findings (blackbox 9108≠9104, legacy 9100 in codex config).
 - `references/wrapper-nvidia-model-unavailable-debug.md` — exact repro commands + NVIDIA 404 response-shape table + source-code anchors from a real `moonshotai/kimi-k2.6` audit.
 - `references/wrapper-nvidia-models-enumeration.md` — `/v1/models` enumeration recipe + full `availability_state` taxonomy + real 134→51/83 inventory (2026-07-25) incl. the `minimax-m3` mixed-state case.
 - `references/production-audit-anti-loop.md` — per-service marker recipe, audit-vs-marker (not HEAD) comparison, svc_map, restart-after-commit protocol, external-outage BLOCKED rule, `_run_load` helper, full run command. Use this for any "make the audit 0/0/0" or "production ready" task.

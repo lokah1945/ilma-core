@@ -292,7 +292,7 @@ advanced. Never `git push --force` — rebase preserves both histories. If rebas
   the service was `active running` and `worker_running:true`. This is degraded
   observability (registry not wired to a provider source at runtime), NOT a hard
   failure. Flag as LOW/non-blocking; investigate registry wiring separately.
-- **Verify topology with `ss`/`systemctl`, never from memory.** Ports drift between
+- **Audit report structure (2026-07-27 convention):** when Bos directs `simpan di /root/wrapper/audit_report`, write the deep report there AND update `audit_report/INDEX.md` (already gitignored — see Pitfalls). The report must include a **"Action Items for Next Agent"** section (task-specific playbook: exact repro commands, which port/service, what fix applies, commit/push steps). This lets a future agent resume without re-deriving context. Name the report `AUDIT_COMPREHENSIVE_YYYY-MM-DDTHH-MM.md` so it sorts chronologically alongside the existing 6 files. The INDEX.md should list the new file with a one-line scope + key findings row.
   sessions (2026-07-27 confirmed nous=9102, opencode=9103, nvidia-python=9101; old
   memory said 9106/9107/9100). Run `ss -tlnp | grep 910` + `systemctl --user
   list-units --type=service | grep wrapper` at the START of every audit. Do not
