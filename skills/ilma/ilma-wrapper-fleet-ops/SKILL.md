@@ -17,6 +17,12 @@ description: Manage the /root/wrapper LLM proxy fleet — git pull from github, 
 - Each wrapper is a Python FastAPI/uvicorn service on `127.0.0.1:910X`, managed as a **systemd user unit** in `~/.config/systemd/user/` (NOT a system unit).
 - Unit `ExecStartPre` writes `runtime/<name>.commit` (git HEAD) — auto-generated, safe to stash/ignore.
 
+## Standardized wrapper structure (post-2026-07-28 restructure)
+- Every wrapper now lives at `<wrapper>/src/main.py` (was `<wrapper>/wrapper_<name>.py`).
+- ALL 5 LLM wrappers run via `python3 -m uvicorn src.main:app` from `WorkingDirectory=/root/wrapper/<wrapper>` (nous + vercel were updated to this — they previously used `wrapper_*.py`).
+- `wrappers.json` is now `{ "wrappers": { "nous": { "port": 9102, "module": "nous.src.main", "entry_point": "nous.src.main:app", ... } } }` (was a flat array).
+- When aligning after a pull, also refresh `runtime/*.commit` files to the new HEAD (they pin the deployed commit per wrapper).
+
 ## Wrapper inventory (commit 4706765)
 | Wrapper | Port | systemd unit | LLM? |
 |---------|------|--------------|------|
@@ -45,8 +51,10 @@ Client auth for all LLM wrappers: `Authorization: Bearer wrapper-local-key` (BEA
 Check these FIRST when a wrapper 500s after pull:
 1. `Metrics.snapshot()` called in `/health` but class has no `snapshot()` → `AttributeError`. Fix: change to `await metrics.summary()` (matches nvidia/blackbox) OR add a `snapshot()` method.
 2. `_dynamic_alias_lock = asyncio.Lock()` used with `with` (sync) → `TypeError: 'Lock' object does not support the context manager protocol`. Fix: `threading.Lock()`.
-3. Vercel wrapper (flat `vercel/wrapper_vercel.py`, no `src/`) has 3 bugs: relative imports (`from .key_pool`), wrong uvicorn entrypoint (`src.main:app`), wrong repo-root detection (`parents[2]` → `/root` instead of `/root/wrapper`). See references for exact fixes.
+3. **VERCEL post-restructure broken imports** (2026-07-28): upstream moved `vercel/wrapper_vercel.py` → `vercel/src/main.py` but left `key_pool.py`/`metrics.py` at FLAT `vercel/` level. `vercel/src/main.py` does `from .key_pool import KeyPool` → resolves to `vercel.src.key_pool` → `ModuleNotFoundError`. Fix: `git mv vercel/key_pool.py vercel/src/key_pool.py` (and metrics.py). With siblings in `src/`, the relative import resolves ✅. Dashboard path stays `Path(__file__).parent.parent / "dashboard.html"` (= `vercel/dashboard.html`, which exists).
 4. New wrapper in `wrappers.json` but no systemd unit → create `~/.config/systemd/user/wrapper-<name>.service` from the wrapper-nous template, adjust WorkingDirectory/port/ExecStart, then `daemon-reload && enable && start`.
+5. **`[wrapper]` NameError in latency middleware** (`add_latency_tracking`): logs `f"[{wrapper}]..."` but `wrapper` is never defined → `NameError` 500 on every request. Affects nous/vercel/opencode. Fix: `[wrapper]` → `[app.title]` (app.title = "wrapper-nous" etc.). Don't hunt for a missing `wrapper` var — just use `app.title`.
+6. **Upstream push race** (2026-07-28): between your `pull` and `push`, remote `github/main` may gain a commit that REVERSES your fixes or breaks imports (seen: `e908334` re-broke vercel + reverted `threading.Lock`/`await metrics.summary`). Symptom: `git push` rejected "fetch first". Fix flow: `git fetch github` → inspect new commit diff → `git reset --hard <pre-your-commit>` → `git pull --rebase github main` → re-apply ONLY your verified-working fixes on top → test all 6 → commit → push. See references/restructure-2026-07-28.md.
 
 ## OpenCode custom provider registration (references/opencode-provider-setup.md)
 - Binary `/root/.opencode/bin/opencode`, config `~/.config/opencode/opencode.jsonc`.
@@ -60,8 +68,11 @@ Check these FIRST when a wrapper 500s after pull:
 - After `reset --hard`, recurring bug fixes are GONE → wrappers 500 until re-fixed or user pushes to github.
 - `/health` returning 500 ≠ port not listening. Check both: `ss -ltnp` for bind, `/health` for app errors.
 - OpenCode model list is static — re-sync `opencode.jsonc` when models change in a wrapper.
+- **Upstream race on push**: if `git push` is rejected with "fetch first", someone pushed to `github/main` after your pull. NEVER force-push. `git fetch` → inspect the new commit (it may reverse your fixes or re-break imports) → `git reset --hard` to your pre-commit base → `git pull --rebase` → re-apply your verified fixes → retest all 6 → push.
+- After ANY wrapper change, verify ALL 6 ports (9101–9105) return 200, not just the one you touched — a restructure commit can break siblings. Also hit `/v1/models` with an `x-request-id` header to exercise the latency middleware (catches the `[wrapper]` NameError that `/health` alone may miss).
 
 ## Support files
 - `references/recurring-bugs.md` — exact bug transcripts + diffs.
 - `references/opencode-provider-setup.md` — jsonc template + install + verify.
+- `references/restructure-2026-07-28.md` — restructure pull, 4 bugs found + fixes, upstream-race recovery, verification recipe.
 - `scripts/verify_wrappers.py` — probe all wrapper ports, print health table.
