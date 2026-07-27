@@ -279,6 +279,40 @@ Full recipe + transcript: `references/wrapper-nous-codex-hang-verify.md`.
 ## References
 - `references/wrapper-nvidia-500-nameerror-debug.md` — full 2026-07-27 HTTP 500 `NameError: sanitize_header_value` repro transcript, PYTHONPATH root cause, fix, and post-restart verification.
 - `references/wrapper-nous-codex-hang-verify.md` — 2026-07-27 Codex-hang (BUG-CODEX1/2) verification: log-grep recipe, curl `/v1/responses` repro with `Bearer wrapper-local-key`, port-mismatch findings (blackbox 9108≠9104, legacy 9100 in codex config).
-- `references/wrapper-nvidia-model-unavailable-debug.md` — exact repro commands + NVIDIA 404 response-shape table + source-code anchors from a real `moonshotai/kimi-k2.6` audit.
+## Pull → restart → fix workflow (2026-07-28 session)
+
+When Bos says *"pull wrapper repo github, update local, restart service"*, the upstream `main` branch frequently ships **code that crashes on startup or on `/health`**. Do NOT assume a clean pull = working service. Sequence that survived this session:
+
+1. **Snapshot local fixes first.** If you have uncommitted local patches, `git stash push -u -m "ilma-local-fix-$(date +%s)"` BEFORE `git pull`. Otherwise your fix is lost or conflicts.
+2. **Pull from `github`, not `origin`.** Repo convention: `github` = cloud `lokah1945/wrappers` (main→github/main); `origin` = local bare `/root/wrapper_remote.git`. Use `git pull github main`.
+3. **Check if upstream already fixed your local bug** before restoring the stash. If remote still broken, restore ONLY the needed file: `git checkout stash@{0} -- <path>` then `git stash drop`.
+4. **Restart all units:** `systemctl --user restart wrapper-nvidia-python wrapper-nous wrapper-opencode wrapper-blackbox wrapper-vercel wrapper-model-registry` (plus any new unit — see Vercel note). `daemon-reload` + `enable` first for NEW wrappers.
+5. **WAIT ~4s, then verify with raw curl** `/health` + `/v1/models` per port. Restart "active" in systemd does NOT mean the process bound the port or passed startup — a crashing process with `Restart=always` still shows `active`.
+
+### The 5 recurring upstream crash bugs (all seen 2026-07-28, commit 4706765)
+These appear after a pull and must be patched locally (they are upstream defects):
+
+| # | Symptom | Root cause | Fix |
+|---|---------|-----------|-----|
+| 1 | `/health` → 500 `AttributeError: 'Metrics' object has no attribute 'snapshot'` | `health` endpoint calls `metrics.snapshot()` but the wrapper's `metrics.py` only defines `summary()` | Add a sync `def snapshot(self) -> Dict:` to `metrics.py` returning the same dict as `summary()` (see reference) |
+| 2 | Vercel: `uvicorn.run("src.main:app")` → `No module named 'src'` | `wrapper_vercel.py` is FLAT (no `src/`), but `main()` hardcodes the nested module path | Change to `uvicorn.run("wrapper_vercel:app", ...)` |
+| 3 | Vercel: `ModuleNotFoundError: No module named 'common'` | `sys.path.insert(0, parents[2])` from `/root/wrapper/vercel/wrapper_vercel.py` resolves to `/root` (flat structure needs `parents[1]`) | Detect repo root: `root = parents[1]; if not (root/'common'/'__init__.py').exists(): root = parents[2]` |
+| 4 | Vercel: `ImportError: attempted relative import with no known parent package` | `from .key_pool import ...` / `from .metrics import ...` fail when run as a script (`python3 wrapper_vercel.py`) | Change to absolute `from key_pool import ...` / `from metrics import ...` (PYTHONPATH already = `/root/wrapper/vercel`) |
+| 5 | Nous: `TypeError: 'Lock' object does not support the context manager protocol` at `with _dynamic_alias_lock:` | `_dynamic_alias_lock = asyncio.Lock()` but used in a SYNC function with `with` (asyncio.Lock needs `async with`) | Change to `threading.Lock()` (function is sync; `import threading` already present) |
+
+**Bug #1 pattern is the most common** — it hit BOTH `opencode` and `vercel` in the same pull. The `health` endpoint in `wrapper_*.py` calls `metrics.snapshot()`; the `Metrics` class (copied from an older template) only has `summary()`. Fix once per wrapper that shows it.
+
+**Vercel is a NEW wrapper** (added commit 8f45d82, port 9105). It ships with ALL of bugs #2–#4. Create its systemd unit at `~/.config/systemd/user/wrapper-vercel.service` (copy the `wrapper-nous.service` template, swap `WorkingDirectory`/`EnvironmentFile`/`ExecStart` to `/root/wrapper/vercel` + `wrapper_vercel.py` + port 9105). Then apply fixes #2–#4 + #1. Note: Vercel `.env` needs `VERCEL_API_KEY` or `available_keys=0` (health shows `degraded` but endpoint works).
+
+### Verification acceptance (post-restart)
+```bash
+for p in 9101 9102 9103 9104 9105; do
+  curl -s -m8 http://127.0.0.1:$p/health | python3 -c "import sys,json;d=json.load(sys.stdin);print(':$p',d.get('status'),d.get('git_commit','?')[:7])"
+done
+# every port must return status ok/degraded (NOT 500) and git_commit == pulled HEAD
+```
+
+## References
 - `references/wrapper-nvidia-models-enumeration.md` — `/v1/models` enumeration recipe + full `availability_state` taxonomy + real 134→51/83 inventory (2026-07-25) incl. the `minimax-m3` mixed-state case.
 - `references/production-audit-anti-loop.md` — per-service marker recipe, audit-vs-marker (not HEAD) comparison, svc_map, restart-after-commit protocol, external-outage BLOCKED rule, `_run_load` helper, full run command. Use this for any "make the audit 0/0/0" or "production ready" task.
+- `references/wrapper-pull-restart-bugfix-2026-07-28.md` — full pull→restart→fix transcript: stash strategy, 5 upstream crash bugs with exact line numbers + fixes, Vercel new-wrapper unit creation, final health verification for all 5 wrappers.

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // ILMA-managed: all /root/wrapper LLM proxies as custom OpenAI-compatible providers.
+  // Auth: Bearer wrapper-local-key. Models synced by sync_opencode_providers.py.
+  "provider": {
+    "wrapper-nvidia": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Wrapper NVIDIA (NIM)",
+      "options": { "baseURL": "http://localhost:9101/v1", "apiKey": "wrapper-local-key" },
+      "models": {
+        "nvidia/llama-3.3-nemotron-super-49b-v1": { "name": "nvidia/llama-3.3-nemotron-super-49b-v1", "limit": { "context": 30000, "output": 4096 } }
+      }
+    },
+    "wrapper-nous": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Wrapper Nous (free)",
+      "options": { "baseURL": "http://localhost:9102/v1", "apiKey": "wrapper-local-key" },
+      "models": {
+        "tencent/hy3:free": { "name": "tencent/hy3:free", "limit": { "context": 200000, "output": 8192 } }
+      }
+    },
+    "wrapper-opencode": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Wrapper OpenCode Zen (free)",
+      "options": { "baseURL": "http://localhost:9103/v1", "apiKey": "wrapper-local-key" },
+      "models": {
+        "deepseek-v4-flash-free": { "name": "deepseek-v4-flash-free", "limit": { "context": 200000, "output": 8192 } }
+      }
+    },
+    "wrapper-blackbox": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Wrapper BlackBox (free)",
+      "options": { "baseURL": "http://localhost:9104/v1", "apiKey": "wrapper-local-key" },
+      "models": {
+        "blackboxai/nvidia/nemotron-nano-12b-v2-vl": { "name": "blackboxai/nvidia/nemotron-nano-12b-v2-vl", "limit": { "context": 200000, "output": 8192 } }
+      }
+    },
+    "wrapper-vercel": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Wrapper Vercel (free)",
+      "options": { "baseURL": "http://localhost:9105/v1", "apiKey": "wrapper-local-key" },
+      "models": {
+        "gpt-5.4-mini": { "name": "gpt-5.4-mini", "limit": { "context": 200000, "output": 8192 } }
+      }
+    }
+  }
+}
