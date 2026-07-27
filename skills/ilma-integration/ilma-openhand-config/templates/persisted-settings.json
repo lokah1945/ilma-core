@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "agent_settings": {
+    "agent_kind": "openhands",
+    "agent": "CodeActAgent",
+    "llm": {
+      "model": "openai/tencent/hy3:free",
+      "base_url": "http://127.0.0.1:9102/v1",
+      "api_key": "wrapper-local-key",
+      "reasoning_effort": "xhigh",
+      "num_retries": 3
+    },
+    "max_iterations": 100,
+    "security_analyzer": "none"
+  },
+  "conversation_settings": { "max_iterations": 100, "confirmation_mode": "none" },
+  "active_profile": "wrapper-nous-hy3",
+  "misc_settings": {}
+}

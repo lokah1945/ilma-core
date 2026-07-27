@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "llm": {
+    "model": "openai/tencent/hy3:free",
+    "base_url": "http://127.0.0.1:9102/v1",
+    "api_key": "wrapper-local-key",
+    "reasoning_effort": "xhigh",
+    "num_retries": 3
+  },
+  "agent": "CodeActAgent",
+  "max_iterations": 100,
+  "security_analyzer": "none"
+}
