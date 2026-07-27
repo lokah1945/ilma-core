@@ -152,6 +152,71 @@ Smoke assertion: `HTTP 200` AND `returned_model in (None, requested_model)`. For
 
 Transient upstream errors (opencode Zen 429/503, blackbox 404 on some models) are NOT wrapper bugs — retry after cooldown; verify the wrapper itself with direct curl (tools → expect `function_call`). The audit loop that hit this: `42 PASS / 0 FAIL / 0 BLOCKED` after cooldown + per-service markers on `/root/wrapper` (2026-07-25, commit `44729e5`).
 
+## Misleading "All API keys exhausted" (classification.get() object bug — nvidia-python 2026-07-28)
+
+**This is the #1 trap that makes you wrongly conclude "key exhaustion".** The wrapper
+reports "All API keys exhausted" but the keys were NEVER exhausted — a wrapper code bug
+ate the real upstream error. Bos explicitly flagged this: *"Bukan masalah key exhaustion,
+tp cara anda call upstream pasti salah"*.
+
+**Root cause:** `classify_upstream_error()` (from `common/model/errors.py`) returns an
+`ErrorClassification` **OBJECT**, not a dict. The object defines `__getitem__` (so
+`classification['state']` works) but has NO `.get()` method. Yet `nvidia-python/src/main.py`
+around line 2355/2357 does:
+```python
+state = classification.get('state', '')              # ❌ AttributeError
+if classification.get('retry_same_model'):           # ❌ AttributeError
+```
+When upstream returns ANY error (e.g. 404 model-not-found), the retry loop calls
+`.get()` → `AttributeError` → exception swallowed → every key marked failed → wrapper
+reports the MISLEADING "All API keys exhausted".
+
+**Telltale in the wrapper log:**
+```
+[proxy_openai] error: 'ErrorClassification' object has no attribute 'get'
+[proxy_openai] error: 'ErrorClassification' object has no attribute 'get'
+... (N times = N keys)
+[wrapper-nvidia] request_id=... method=POST path=/v1/chat/completions latency=...ms status=503
+```
+
+**Repro that proves it's the bug, not the keys:**
+```bash
+TOK=wrapper-local-key
+# A model that WORKS (no error path) -> 200
+curl -s -m60 -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
+  -d '{"model":"minimaxai/minimax-m3","messages":[{"role":"user","content":"hallo"}],"max_tokens":60}' \
+  http://127.0.0.1:9101/v1/chat/completions
+# -> {"choices":[{"message":{"content":"Halo! ..."}}]}   (status 200)
+
+# A model that triggers upstream 404 -> wrapper reports "exhausted" (WRONG)
+curl -s -m60 -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
+  -d '{"model":"nvidia/llama-3.1-nemotron-70b-instruct","messages":[{"role":"user","content":"hallo"}],"max_tokens":80}' \
+  http://127.0.0.1:9101/v1/chat/completions
+# -> before fix: {"error":{"message":"All API keys exhausted ...","type":"server_error"}}
+# -> after fix:  {"error":{"message":"Function '...': Not found for account '...'","code":404}}
+```
+If `minimaxai/minimax-m3` returns 200 but `nvidia/llama-3.1-nemotron-70b-instruct` returns
+"exhausted" with the SAME key pool, the keys are fine — the error path crashed.
+
+**Fix (surgical, applied commit 461ad81):**
+```python
+state = classification['state']                       # ✅ bracket, not .get()
+if classification['retry_same_model']:                # ✅ bracket, not .get()
+    return True
+```
+`ErrorClassification.__getitem__` (common/model/contracts.py:210) maps `'state'` →
+`self.state.value`, `'retry_same_model'` → `self.retry_same_model`, etc. So bracket access
+is the correct dict-compat path. Do NOT add a `.get()` method — just use brackets.
+
+**Verify the fix:** restart `wrapper-nvidia-python`, re-call the failing model, and confirm
+the REAL upstream error now appears (404 "Function not found for account" = model not
+deployed in that NVIDIA account; or other genuine upstream status). The misleading
+"exhausted" message must be gone.
+
+**KEY RULE (sharpened):** "All API keys exhausted" is NEVER automatically true. If ANY other
+model on the same wrapper works, treat "exhausted" as a SUSPECT wrapper error and check the
+log for `'ErrorClassification' object has no attribute 'get'` BEFORE rotating keys.
+
 ## HTTP 500 diagnostic (code-bug class, NOT model availability)
 A `500 Internal Server Error` from a wrapper is a DIFFERENT class from the 404/410
 model-unavailable problem above. It means the request crashed *inside the wrapper
@@ -252,9 +317,20 @@ POST /v1/chat/completions fails
  │     nothing. tencent/hy3:free (ILMA default) returns EMPTY with
  │     max_tokens<=80 + trivial prompt. Fix: max_tokens>=200 + substantive
  │     prompt ("hallo, jawab singkat") → gets "Halo! Saya". Not a bug.
- ├─ HTTP 200 error: "All API keys exhausted"  → UPSTREAM key pool empty/
- │     rate-limited for that model. NOT a wrapper bug. Rotate/top-up the
- │     <WRAPPER>_API_KEY_* in .env. (nvidia-python hit this 2026-07-28.)
+ ├─ HTTP 200 error: "All API keys exhausted"  → TWO possible causes, MUST distinguish:
+ │     (A) UPSTREAM key pool empty / rate-limited for that model. NOT a wrapper bug.
+ │         Rotate/top-up <WRAPPER>_API_KEY_* in .env, or wait for cooldown.
+ │     (B) WRAPPER CODE BUG masks the real upstream error (seen nvidia-python 2026-07-28).
+ │         If the SAME model returns 200 on one call but "exhausted" on another, OR if
+ │         other models on the SAME wrapper work fine, suspect (B): the per-key retry
+ │         loop crashed on `classification.get(...)` (see next subsection). The real
+ │         upstream error (e.g. 404 "Function not found for account") is hidden.
+ │         TELLTALE: wrapper `.log` shows repeated
+ │           `[proxy_openai] error: 'ErrorClassification' object has no attribute 'get'`
+ │         Fix: change `classification.get('state','')` → `classification['state']`
+ │         (ErrorClassification defines __getitem__ for dict-compat, NOT .get()).
+ │         After fix, the REAL error surfaces (e.g. 404 model not deployed in account)
+ │         proving keys were never exhausted.
  ├─ HTTP 200 error: "No capacity" / rate_limit → UPSTREAM key has no
  │     entitlement / is cooling down. Transient (circuit breaker 30s) or
  │     account-tier issue. Retry after cooldown; not a wrapper bug.
@@ -272,6 +348,45 @@ POST /v1/chat/completions fails
 ```
 
 KEY RULE: **Upstream key exhaustion / capacity / rate-limit / entitlement is NEVER a wrapper defect.** Only 401 (config), 0-models (config), empty-free-model (param), br-decode (code bug), and 500 (code bug) are wrapper-side. Everything else = rotate keys or wait for cooldown.
+
+## NVIDIA NIM large-model `stream:true` + ≥60s timeout recovery (2026-07-28)
+
+**This is the #2 trap that makes you wrongly conclude "model broken / timeout / key issue".** A request to a LARGE NVIDIA NIM model (`*-70b`, `gpt-oss-120b`, `nemotron-*`, `llama-3.x-70b`) with `stream:false` + a 25s timeout often returns a **client-side timeout** (`curl: (28) timeout`) even though the model is perfectly callable. Bos flagged this class: *"Bukan masalah key exhaustion, tp cara anda call upstream pasti salah."*
+
+**Root cause:** NVIDIA NIM streams large completions; with `stream:false` the full response buffers server-side and small models finish inside 25s, but large models exceed 25s → the CLIENT times out, NOT the upstream. The wrapper may then mark the key/account failed.
+
+**Recovery — always probe large models with `stream:true` and a ≥60s timeout:**
+```bash
+TOK=wrapper-local-key
+curl -N -s --max-time 60 -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
+  -d '{"model":"<large-model-id>","messages":[{"role":"user","content":"hallo"}],"max_tokens":150,"stream":true}' \
+  http://127.0.0.1:9101/v1/chat/completions
+# Read SSE data: lines; collect choices[].delta.content. Non-empty = model works.
+```
+
+**Proven result (2026-07-28 full sweep):** of 47 models that FAILED a non-stream 25s probe, **5 recovered to OK** with `stream:true` + 60s: `google/gemma-4-31b-it`, `meta/llama-3.1-70b-instruct`, `meta/llama-3.2-3b-instruct`, `openai/gpt-oss-120b`, `poolside/laguna-xs-2.1`. The other 42 stayed failed (34 = "Function not found for account" = legit not-deployed; 5 = still >60s even streamed = genuinely overloaded; 2 = wrong id; 1 = embedding-no-stream).
+
+**Rule of thumb:** if a model fails a non-stream probe but you SUSPECT it is deployable, retry with `stream:true`, `max_tokens` ≥ 120, and `--max-time 60` BEFORE concluding it is unavailable. A client `curl: (28)` timeout ≠ upstream failure.
+
+**Reusable script:** `references/nvidia-nim-stream-timeout-recovery.md` holds the exact Python retry harness (`retry_nvidia_failed.py`) that drove the 47-model sweep + the categorized result table.
+
+## "Not found" vs "not deployed" — id-format disambiguation (sharpened)
+
+When a model returns an error, the MESSAGE text decides the class — do NOT conflate:
+- `Function '<uuid>': Not found for account '<account-id>'` → **account-scoped 404**: model published but NOT deployed/subscribed in the wrapper's NVIDIA account. **Legit unavailable for THIS account.** Fix = deploy/subscribe on build.nvidia.com under that account, then restart + re-verify. NOT a call-format bug.
+- `Model "<id>" not found at upstream provider` / `model_not_found` (HTTP 400) → **wrong id format** (e.g. `nvidia/meta/llama-3.3-70b-instruct` should be `meta/llama-3.3-70b-instruct`; `nvdev/...` and bare `llama-3.3-...` also 400). Fix = use the exact id from `GET /v1/models`.
+- `HTTP 000` from curl → **wrapper process hung/overloaded** (e.g. circuit breaker open after a burst of 404s). Restart the wrapper, wait ~5s, retry. NOT a model problem.
+
+Tested id-format matrix for `llama-3.3-70b-instruct` (2026-07-28):
+| id tried | result |
+|---|---|
+| `meta/llama-3.3-70b-instruct` | 404 account-scoped (correct format, not deployed) |
+| `nvdev/meta/llama-3.3-70b-instruct` | 404 account-scoped (same NVCF function, still not deployed) |
+| `ai/llama-3.3-70b-instruct` | 400 not found at upstream (wrong prefix) |
+| `llama-3.3-70b-instruct` | 400 not found at upstream (missing provider) |
+| `nvidia/llama-3.3-70b-instruct` | 400 not found at upstream (wrong prefix) |
+
+→ The `meta/` prefix is the CORRECT format; its 404 is deployment-state, not call-error.
 ```
 
 ## Codex-hang verification (BUG-CODEX1 / BUG-CODEX2) — wrapper-nous
