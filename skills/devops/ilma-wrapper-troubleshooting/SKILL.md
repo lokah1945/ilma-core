@@ -137,7 +137,7 @@ Health `200` only proves the process is up — NOT that inference works. To veri
 | Wrapper | `/v1/models` id field | Auth | Known-good smoke model | Remap/404 pitfall |
 |---|---|---|---|---|
 | **nvidia** (9101) | `data[].id` | open (token `wrapper-local-key`) | `nvidia/llama-3.3-nemotron-super-49b-v1` | none |
-| **nous** (9102) | `data[].slug` (**NOT `id`**) | open | `poolside/laguna-s-2.1:free` | `id` field absent; use `slug` |
+| **nous** (9102) | `data[].slug` (**NOT `id`**) | open | `poolside/laguna-s-2.1:free` | `id` field absent; use `slug`. NOTE: `tencent/hy3:free` (ILMA default model) returns EMPTY content with `max_tokens<=80` + trivial prompt; use `max_tokens>=200` + substantive prompt to get a real reply ("Halo! Saya"). |
 | **opencode** (9103) | `data[].id` | **requires `Authorization: Bearer`** | `deepseek-v4-flash-free` | `/v1/models` 401 without token; upstream Zen free models 429/503 transient |
 | **blackbox** (9104) | `data[].id` | open | `blackboxai/nvidia/nemotron-nano-12b-v2-vl` | `blackboxai/minimax/minimax-free`→404 (backend `dedicated/minimax/minimax-m2.5` not in account); `sonnet`→remapped to `blackboxai/nvidia/nemotron-3-super-120b-a12b:free` (identity mismatch) |
 
@@ -233,6 +233,45 @@ Request fails
  ├─ HTTP 400 "model_not_found"          → wrong model id (prefix trap) OR catalog mismatch. Check /v1/models.
  ├─ HTTP 404 "Function not found for account" → upstream NVIDIA account. NOT a wrapper bug (see taxonomy).
  └─ HTTP 200                             → works.
+
+## Chat response diagnostic decision tree (post-auth, 2026-07-28)
+Once `/health` is 200 and `/v1/models` returns models, a chat request can STILL fail. This tree classifies the failure class so you don't mislabel an upstream key problem as a wrapper bug:
+
+```
+POST /v1/chat/completions fails
+ ├─ HTTP 401 "Unauthorized"                    → BEARER_TOKEN mismatch.
+ │     Check <wrapper>/.env: BEARER_TOKEN must equal the client key
+ │     (wrapper-local-key). Upstream template default is
+ │     'your-secure-random-token-here' → 401 for every client. Fix: set
+ │     BEARER_TOKEN=wrapper-local-key, restart. (See fleet-ops bug #9.)
+ ├─ /v1/models returns data:[] (0 models)     → FREE_ONLY stripped all.
+ │     vercel curated list has no ':free' id → free_only filter deletes
+ │     everything. Fix: FREE_ONLY=no in .env (vercel). (See fleet-ops bug #8.)
+ ├─ HTTP 200 but choices[0].message.content == "" (empty)
+ │                                             → upstream free model returned
+ │     nothing. tencent/hy3:free (ILMA default) returns EMPTY with
+ │     max_tokens<=80 + trivial prompt. Fix: max_tokens>=200 + substantive
+ │     prompt ("hallo, jawab singkat") → gets "Halo! Saya". Not a bug.
+ ├─ HTTP 200 error: "All API keys exhausted"  → UPSTREAM key pool empty/
+ │     rate-limited for that model. NOT a wrapper bug. Rotate/top-up the
+ │     <WRAPPER>_API_KEY_* in .env. (nvidia-python hit this 2026-07-28.)
+ ├─ HTTP 200 error: "No capacity" / rate_limit → UPSTREAM key has no
+ │     entitlement / is cooling down. Transient (circuit breaker 30s) or
+ │     account-tier issue. Retry after cooldown; not a wrapper bug.
+ │     (vercel "No capacity", opencode "circuit breaker open".)
+ ├─ HTTP 200 error: "Can not decode content-encoding: br" → WRAPPER brotli
+ │     bug: proxy_request_with_pool forwards Accept-Encoding: br but does
+ │     not decompress. Code fix needed in <wrapper>/src/main.py (vercel
+ │     hit this on google/gemini-2.0-flash 2026-07-28).
+ ├─ HTTP 404 "dedicated/minimax/minimax-m2.5 does not exist" → model picked
+ │     from upstream CATALOG (not CURATED) resolves to a non-existent
+ │     backend. Use CURATED_FREE_MODELS instead (blackbox:
+ │     blackboxai/nvidia/nemotron-3-super-120b-a12b:free, NOT
+ │     blackboxai/minimax/minimax-free).
+ └─ HTTP 500 "Internal server error"          → CODE BUG (see 500 section above).
+```
+
+KEY RULE: **Upstream key exhaustion / capacity / rate-limit / entitlement is NEVER a wrapper defect.** Only 401 (config), 0-models (config), empty-free-model (param), br-decode (code bug), and 500 (code bug) are wrapper-side. Everything else = rotate keys or wait for cooldown.
 ```
 
 ## Codex-hang verification (BUG-CODEX1 / BUG-CODEX2) — wrapper-nous

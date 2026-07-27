@@ -55,12 +55,42 @@ Check these FIRST when a wrapper 500s after pull:
 4. New wrapper in `wrappers.json` but no systemd unit → create `~/.config/systemd/user/wrapper-<name>.service` from the wrapper-nous template, adjust WorkingDirectory/port/ExecStart, then `daemon-reload && enable && start`.
 5. **`[wrapper]` NameError in latency middleware** (`add_latency_tracking`): logs `f"[{wrapper}]..."` but `wrapper` is never defined → `NameError` 500 on every request. Affects nous/vercel/opencode. Fix: `[wrapper]` → `[app.title]` (app.title = "wrapper-nous" etc.). Don't hunt for a missing `wrapper` var — just use `app.title`.
 6. **Upstream push race** (2026-07-28): between your `pull` and `push`, remote `github/main` may gain a commit that REVERSES your fixes or breaks imports (seen: `e908334` re-broke vercel + reverted `threading.Lock`/`await metrics.summary`). Symptom: `git push` rejected "fetch first". Fix flow: `git fetch github` → inspect new commit diff → `git reset --hard <pre-your-commit>` → `git pull --rebase github main` → re-apply ONLY your verified-working fixes on top → test all 6 → commit → push. See references/restructure-2026-07-28.md.
+7. **NOUS modular split broken (upstream `69af4aa`, 2026-07-28)**: upstream extracted `KeyPool`/`KeyEntry`/`Metrics` from `nous/src/main.py` into `nous/src/key_pool.py` + `metrics.py`, but `key_pool.py` is missing the imports it needs (`Path`, `ModelStateStore`, `asyncio`, `json`, `aiohttp`, `CircuitBreakerError`, `_UPSTREAM_BREAKER`, etc.) → `NameError`/`ImportError` on startup. Symptom: `systemctl --user is-active wrapper-nous` shows `activating` (never `active`), port 9102 curl = `000` (connection refused), log file empty or truncated. Fix: **revert nous to the last working inline commit** — `git checkout <pre-split-sha> -- nous/src/main.py && rm -f nous/src/key_pool.py nous/src/metrics.py` (pre-split = `7591c70` for this incident). Do NOT try to patch the extracted `key_pool.py` (it references ~30 undefined symbols — a Frankenstein file). Re-test import + restart + all-6 health. This is an INTENTIONAL local divergence (see Intentional divergence below).
+
+8. **VERCEL shows 0 models (`/v1/models` empty) when `FREE_ONLY=yes`** (2026-07-28): vercel's curated fallback list (`gpt-5.4-mini`, `claude-*`, `google/gemini-*`, etc.) contains NO id with `free` in the name. `model_allowed()` returns `is_free_model(raw)` → False for all → `free_only` filter strips the entire list → `data: []`. Symptom: `curl /v1/models` → `{"data":[],"free_only":true}`. Fix: set `FREE_ONLY=no` in `vercel/.env` (Vercel AI Gateway has no free-tier curated models; the wrapper still enforces per-key entitlement upstream). After restart, `/v1/models` returns 13 models. NOTE: with `FREE_ONLY=no`, chat may still fail with upstream `"No capacity"` if `VERCEL_API_KEY` lacks entitlement — that is an upstream key issue, not a wrapper bug.
+9. **BEARER_TOKEN placeholder → 401 on every client request** (2026-07-28): all 5 `.env` files shipped with `BEARER_TOKEN=your-secure-random-token-here` (upstream template default). Any client sending the real local key (`wrapper-local-key`) gets `401 Unauthorized`. This was the root cause of OpenHand/Codex/ILMA failing to auth after the restructure. Fix: `sed -i 's/^BEARER_TOKEN=your-secure-random-token-here/BEARER_TOKEN=wrapper-local-key/' <wrapper>/.env` for all 5 wrappers, restart. Verify: `curl -H "Authorization: Bearer wrapper-local-key" http://127.0.0.1:9102/v1/models` → 200.
 
 ## OpenCode custom provider registration (references/opencode-provider-setup.md)
 - Binary `/root/.opencode/bin/opencode`, config `~/.config/opencode/opencode.jsonc`.
 - Custom OpenAI-compatible providers REQUIRE `"npm": "@ai-sdk/openai-compatible"` (install: `cd ~/.config/opencode && npm install @ai-sdk/openai-compatible`).
 - Models MUST be registered manually under `"models"` (OpenCode does NOT auto-fetch `/v1/models` for custom providers).
 - Verify: `opencode models` lists `wrapper-<name>/<model>` lines; smoke test `opencode run "reply exactly: PONG" -m wrapper-nous/tencent/hy3:free`.
+
+## Pre-restart import-test recipe (catches broken imports BEFORE the service dies)
+After ANY code change to a wrapper (pull, revert, patch), do NOT just restart + curl. Test the import directly first — a broken import leaves the service `activating`/`failed` and wastes a restart cycle:
+```bash
+cd /root/wrapper/<wrapper>
+python3 -c "
+import sys; sys.path.insert(0,'.')
+import importlib.util
+spec = importlib.util.spec_from_file_location('src.main','src/main.py', submodule_search_locations=['src'])
+m = importlib.util.module_from_spec(spec)
+try:
+    spec.loader.exec_module(m)
+    print('IMPORT OK, title=', m.app.title)
+except Exception as e:
+    import traceback; traceback.print_exc()
+"
+```
+If this raises (NameError/ImportError/ModuleNotFoundError), FIX before restarting. Note: relative imports (`from .key_pool`) require the `submodule_search_locations=['src']` arg above — loading `src/main.py` as a bare file fails with "attempted relative import with no known parent package".
+
+## Intentional divergence (do NOT "fix" these back)
+- **nous stays INLINE** (`nous/src/main.py` contains `KeyPool`/`KeyEntry`/`Metrics` inline). Upstream's modular split (`key_pool.py`/`metrics.py`) is broken (bug #7). Never re-apply the modular split or delete the inline classes. This divergence is documented in commit messages + runtime/*.commit pins so it is traceable.
+- When pushing a fix that reverts an upstream change, the commit message MUST state WHY (e.g. "revert broken nous modular split — upstream key_pool.py missing imports → ImportError"). Future sessions reading `git log` will then know the divergence is deliberate.
+
+## Distrust upstream "audit passed" claims
+- Upstream audit docs (e.g. `AUDIT_ZERO_BUG_2026-07-28.md`) claim "syntax validation passed" / "100/100 production grade" — but **syntax check ≠ import/run check**. In this incident the audited `nous/src/key_pool.py` crashed on import. ALWAYS verify by actually importing + curling `/health`, never by trusting the audit doc.
+- `journalctl --user -u wrapper-<name>` returns "No journal files were found" on this host (user journald not persistent). **Log files are the source of truth**: `tail /root/wrapper/<wrapper>/<wrapper>.log` (or `wrapper_<name>.log`).
 
 ## Pitfalls
 - Never pull from `origin` (local bare repo) — only `github`.
@@ -75,4 +105,6 @@ Check these FIRST when a wrapper 500s after pull:
 - `references/recurring-bugs.md` — exact bug transcripts + diffs.
 - `references/opencode-provider-setup.md` — jsonc template + install + verify.
 - `references/restructure-2026-07-28.md` — restructure pull, 4 bugs found + fixes, upstream-race recovery, verification recipe.
+- `references/nous-modular-split-broken-2026-07-28.md` — upstream `69af4aa` split nous into broken `key_pool.py`; symptom, fix (revert to inline), intentional divergence.
 - `scripts/verify_wrappers.py` — probe all wrapper ports, print health table.
+- `scripts/smoke_hallo_all.py` — **end-to-end chat smoke**: sends "hallo" to all 5 wrappers, picks first `:free` model, reports non-empty reply or error class (401/0-models/exhausted/No-capacity). Usage: `python3 scripts/smoke_hallo_all.py [--token wrapper-local-key] [--prompt "hallo"] [--ports 9101,9102]`. Runs in ONE command — use this (not manual curl loops) to verify chat works after a pull/config change.
