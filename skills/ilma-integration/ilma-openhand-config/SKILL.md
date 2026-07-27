@@ -46,7 +46,15 @@ curl -s -m 5 http://127.0.0.1:9102/v1/models -H "Authorization: Bearer wrapper-l
 - `GET /v1/models` returns `{ "data": [ { "slug": "tencent/hy3:free", ... }, ... ] }`.
   The `slug` is what you pass as the model name.
 
-## Step 1 — Persistent LLM config (`~/.openhands/settings.json`)
+## Step 1 — SDK / ACP LLM config (NOT the web/serve persisted store)
+> ⚠️ **Format warning.** The block below is for the **SDK `LLM` constructor** and
+> `openhands acp --override-with-envs`. It is **NOT** what the `serve`/`web` UI
+> persisted store reads. For `openhands serve` / `openhands web` the file at
+> `~/.openhands/settings.json` MUST be the **`PersistedSettings`** format from
+> Step 3 (schema_version + agent_settings.llm), or the UI stays stuck on the
+> agent-settings onboarding screen. Do not write the `version:2, llm:` shape to
+> `~/.openhands/settings.json` if you launch via `serve`/`web`.
+
 ```json
 {
   "version": 2,
@@ -120,10 +128,61 @@ The locally-installed `openhands` venv is prone to **version skew** (e.g.
 `agent_server` importing `LLM_SECRET_FIELDS` / `marketplace.registration` that are
 absent from the installed `sdk`). When the server won't boot locally, run the
 official Docker image and mount the persisted settings + set `OH_PERSISTENCE_DIR`.
-Use `--network=host` so the container can reach `wrapper-nous` on `127.0.0.1:9102`.
-See `templates/openhand-up.sh`.
+
+**CRITICAL — container → wrapper-nous reachability:**
+- wrapper-nous listens ONLY on `127.0.0.1:9102` (not `0.0.0.0`). A container on the
+  default bridge network CANNOT reach it via `host.docker.internal` (that resolves to
+  the bridge gateway `172.17.0.1`, which wrapper-nous does not listen on → `HTTP 000`).
+- **Fix:** launch the OpenHand container with `--network=host`. Then `127.0.0.1:9102`
+  inside the container IS the host's wrapper-nous. Set the persisted-settings
+  `base_url` to `http://127.0.0.1:9102/v1` (NOT `host.docker.internal`).
+- With `--network=host`, drop `-p 3000:3000` (host mode already exposes 3000).
+
+See `templates/openhand-up.sh` (already uses `--network=host`).
 ```bash
 openhand-up   # -> http://localhost:3000, already configured, no agent-settings prompt
+```
+
+## Step 5 — Patch `gui_launcher.py` so `openhands serve` works directly
+If the user runs **`openhands serve`** (the command they actually use for :3000),
+patch the venv's `gui_launcher.py` (`<venv>/site-packages/openhands_cli/gui_launcher.py`,
+`launch_gui_server`) so the spawned container is pre-wired — no manual `openhand-up`
+needed. Three edits:
+
+1. **`-it` → `-d`** (detached). The script's `-it` fails with
+   *"the input device is not a TTY"* when launched from a non-interactive/background
+   session (e.g. via Hermes). `-d` lets it run headless.
+2. **Inject `OH_PERSISTENCE_DIR=/.openhands`** into the docker run. The launcher
+   already mounts `{config_dir}:/.openhands` (config_dir defaults to `~/.openhands`
+   via `get_persistence_dir()` → `OPENHANDS_PERSISTENCE_DIR` or `~/.openhands`).
+   Setting `OH_PERSISTENCE_DIR=/.openhands` makes the in-container agent-server read
+   the mounted `/.openhands/settings.json` → **skips the agent-settings prompt**.
+3. **Add `--network=host`** (and remove `-p 3000:3000`) so the container reaches
+   wrapper-nous on `127.0.0.1:9102`.
+
+Diff shape (apply via `patch` tool, fuzz-tolerant):
+```diff
+ docker_cmd = [
+     "docker",
+     "run",
+-    "-it",
++    "-d",
+     "--rm",
+     "--pull=always",
+```
+```diff
+ docker_cmd.extend([
+     "-e",
+     "OH_PERSISTENCE_DIR=/.openhands",
++    "--network=host",
+ ])
+-docker_cmd.extend([ "-p", "3000:3000", "--add-host", "host.docker.internal:host-gateway", "--name", "openhands-app", app_image ])
++docker_cmd.extend([ "--add-host", "host.docker.internal:host-gateway", "--name", "openhands-app", app_image ])
+```
+After patching, `~/.openhands/settings.json` MUST hold the **PersistedSettings**
+format (Step 3) with `base_url: http://127.0.0.1:9102/v1`. Then:
+```bash
+openhands serve   # -> http://localhost:3000, hy3 preloaded, no onboarding screen
 ```
 
 ## Pitfalls
@@ -138,10 +197,25 @@ openhand-up   # -> http://localhost:3000, already configured, no agent-settings 
   image — do not hand-stub every missing module (fragile).
 - **`model` must be `openai/<slug>`**, not bare `<slug>`, or LiteLLM routes to a
   hosted provider instead of your wrapper.
+- **Two different `settings.json` shapes — don't mix them up.** The `version:2,
+  llm:` shape is for the SDK `LLM` constructor / `acp --override-with-envs` ONLY.
+  The `serve`/`web` UI reads the **`PersistedSettings`** shape (`schema_version` +
+  `agent_settings.llm`) from `~/.openhands/settings.json`. Writing the SDK shape to
+  the UI path leaves the agent-settings screen stuck.
+- **`host.docker.internal` does NOT reach a `127.0.0.1`-only wrapper.** wrapper-nous
+  binds `127.0.0.1:9102` only; the bridge gateway `172.17.0.1` is not listened on →
+  `HTTP 000` from the container. Use `--network=host` and `base_url:
+  http://127.0.0.1:9102/v1` instead.
+- **`openhands serve` uses `-it` which fails without a TTY.** From a non-interactive
+  session (Hermes/background) it errors *"the input device is not a TTY"*. Patch the
+  launcher to `-d` (Step 5) or use `openhand-up`.
 
 ## References
 - `references/wrapper-nous-facts.md` — verified endpoint facts, sample model list,
   and the local-venv corruption symptom/signature.
+- `references/openhands-serve-agent-settings-fix.md` — exact `gui_launcher.py` patch
+  (3 edits) + verified Docker reachability recipe so `openhands serve` skips the
+  agent-settings prompt and reaches wrapper-nous.
 - `templates/openhand-launcher.sh` — drop-in `openhand` launcher (dynamic model).
 - `templates/persisted-settings.json` — known-good persisted settings (skip onboarding).
 - `templates/openhand-up.sh` — Docker launcher with mounted settings.
