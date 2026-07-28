@@ -26,6 +26,12 @@ plan, pick a deployed model).
      upstream call itself is failing (see below).
    - `502 Can not decode content-encoding: br` → upstream returned bad encoding;
      wrapper/proxy issue, retry.
+   - `403 error code: 1010` / every request 503 `No capacity` / `invalid_credential`
+     but `curl` to same upstream+key = 200 → **Cloudflare bot-block on default
+     Python/aiohttp User-Agent** (WRAPPER-SIDE, fixable). Add browser UA + drop
+     `br` from `Accept-Encoding` on the aiohttp session (see
+     `ilma-wrapper-troubleshooting` → `references/cloudflare-1010-ua-block.md`).
+     Do NOT rotate keys — the key is valid.
 
 ## Prove the key is valid (isolates wrapper vs upstream)
 Test the SAME key DIRECTLY against the upstream, bypassing the wrapper:
@@ -45,9 +51,9 @@ limit (Vercel AI Gateway free tier needs CC). If **200 Not Found** for all model
 |---------|-------|--------|-------|
 | nvidia 9101 | `nvidia/nemotron-3-ultra-550b-a55b` | ✅ 200 "Hallo! Wie..." | works |
 | nous 9102 | `tencent/hy3:free` | ✅ 200 | works |
-| opencode 9103 | `nemotron-3-ultra-free` | ⚠️ 503 No capacity | upstream account empty |
+| opencode 9103 | `nemotron-3-ultra-free` | ✅ 200 "Hallo! Wie..." | **FIXED** (Cloudflare UA block, commit 5bb2e92) |
 | blackbox 9104 | `blackboxai/nvidia/nemotron-3-super-120b-a12b:free` | ✅ 200 "Hallo! 😊" | works |
-| vercel 9105 | `alibaba/qwen-3-235b` | ⚠️ 503 circuit breaker | upstream 403 needs CC |
+| vercel 9105 | `alibaba/qwen-3-235b` | ⚠️ 403 needs CC | upstream account limit (NOT wrapper bug) |
 | openrouter 9106 | `inclusionai/ling-3.0-flash:free` | ✅ 200 | works |
 
 **Lesson**: 4/6 wrappers work end-to-end. The 2 failures (opencode, vercel) are

@@ -90,6 +90,19 @@ Rule of thumb: **`ok == True` ⇒ callable now**. Everything else is not, regard
 
 **Pitfall — `mixed` ≠ `account_unavailable`:** A model like `minimaxai/minimax-m3` can be `catalog_listed=true` AND `ok=false` with state `mixed` (not the 45 `account_unavailable`). It IS in the public catalog and on build.nvidia.com, but the wrapper's verify sweep saw differing account/endpoint states (`last_status:0`), so it is not callable *through this account yet*. Fix is the same deploy-via-build.nvidia.com path, but the diagnosis differs — don't report it as "not deployed" when it's "state not settled / wrong account context".
 
+## Cloudflare 1010 bot-block on default Python/aiohttp UA (WRAPPER-SIDE, fixable)
+A wrapper (esp. opencode 9103, vercel 9105) fails every request with `503 No capacity` /
+`invalid_credential` / `Not Found`, but `curl` to the SAME upstream with the SAME key returns
+200. Real cause: **Cloudflare anti-bot block on the default Python/aiohttp User-Agent**
+(`Python/3.x aiohttp/x.x.x`) → upstream returns `HTTP 403 error code: 1010`. Wrapper marks the
+key invalid → misleading failure. **Fix (commit 5bb2e92):** add a browser `User-Agent`
+(`Mozilla/5.0 ... Chrome/124`) + `Accept-Encoding: gzip, deflate` (DROP `br` — aiohttp can't
+decode brotli) to the `aiohttp.ClientSession(headers=...)` in `<wrapper>/src/main.py`, restart.
+Full repro + diff: `references/cloudflare-1010-ua-block.md`. KEY RULE: if `curl` works but
+aiohttp/urllib fails with 403/1010 or fake `invalid_credential`, SUSPECT UA-block BEFORE
+rotating keys. (Vercel's remaining 403 is a DIFFERENT cause — upstream requires a credit card,
+not a UA issue.)
+
 ## Pitfalls
 - Don't assume Claude Code is broken — it faithfully relays the gateway 404.
 - Don't trust `/v1/models` `"verified":false` as proof of unavailability — the *request* gate uses `_retired_models`, not the `"verified"` flag.
@@ -481,3 +494,4 @@ done
 - `references/wrapper-nvidia-models-enumeration.md` — `/v1/models` enumeration recipe + full `availability_state` taxonomy + real 134→51/83 inventory (2026-07-25) incl. the `minimax-m3` mixed-state case.
 - `references/production-audit-anti-loop.md` — per-service marker recipe, audit-vs-marker (not HEAD) comparison, svc_map, restart-after-commit protocol, external-outage BLOCKED rule, `_run_load` helper, full run command. Use this for any "make the audit 0/0/0" or "production ready" task.
 - `references/wrapper-pull-restart-bugfix-2026-07-28.md` — full pull→restart→fix transcript: stash strategy, 5 upstream crash bugs with exact line numbers + fixes, Vercel new-wrapper unit creation, final health verification for all 5 wrappers.
+- `references/cloudflare-1010-ua-block.md` — Cloudflare 1010 bot-block on default Python/aiohttp UA: symptoms, curl-vs-urllib repro, browser-UA + drop-br fix diff, which wrappers affected.
