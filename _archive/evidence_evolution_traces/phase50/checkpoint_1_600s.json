@@ -1,0 +1,10 @@
+{
+  "checkpoint_id": 1,
+  "timestamp": "2026-05-10T17:28:20.067341",
+  "elapsed": 600.018246016989,
+  "cycle": 8,
+  "heartbeats": 10,
+  "reuse_count": 8,
+  "judge_results": 8,
+  "cycles_so_far": 8
+}

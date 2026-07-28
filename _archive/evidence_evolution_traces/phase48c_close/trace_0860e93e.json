@@ -1,0 +1,198 @@
+{
+  "session_id": "0860e93e",
+  "trigger": "auto learning selama 120 menit fokus registry truth, test coverage, evidence hardening, documentation consistency, safe refactor, runner cleanup, dan autonomous evolution reliability. Jangan install dependency, jangan deploy, jangan delete besar-besaran, jangan OS build, jangan external publish.",
+  "start_time": "2026-05-10T11:02:47.810313",
+  "deadline": null,
+  "run_type": "ACCELERATED_120MIN_SIMULATION",
+  "simulated_duration_min": 120,
+  "actual_duration_sec": 0.0,
+  "total_cycles": 8,
+  "cycles_completed": 8,
+  "action_results": [
+    {
+      "cycle": 1,
+      "action_id": "cycle1_registry_truth_audit",
+      "purpose": "Registry truth verification",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 2,
+      "action_id": "cycle2_evidence_id_integrity",
+      "purpose": "Evidence ID integrity verification",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 3,
+      "action_id": "cycle3_documentation_consistency",
+      "purpose": "Documentation truth scan",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 4,
+      "action_id": "cycle4_runner_count_truth",
+      "purpose": "Runner count truth verification",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 5,
+      "action_id": "cycle5_test_coverage_gap",
+      "purpose": "Test coverage gap identification",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 6,
+      "action_id": "cycle6_safe_refactor_candidates",
+      "purpose": "Safe refactor candidate identification",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 7,
+      "action_id": "cycle7_lesson_memory_reuse",
+      "purpose": "Lesson memory reuse validation",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    },
+    {
+      "cycle": 8,
+      "action_id": "cycle8_status_scope_regression",
+      "purpose": "Status semantics and scope regression",
+      "final_status": "PASS_WITH_WARN",
+      "iterations": 3,
+      "cycle_duration_sec": 0.0,
+      "judge_status": "WARN",
+      "judge_score": 95.0,
+      "judge_warnings": [
+        "No evidence IDs found in artifact"
+      ],
+      "judge_failures": [],
+      "error": null,
+      "exit_reason": "warn_allowed",
+      "verdict": "COMPLETED_WITH_WARN"
+    }
+  ],
+  "checkpoints": [
+    {
+      "timestamp": "2026-05-10T11:02:47.798696",
+      "elapsed_sec": 0.0,
+      "cycles_completed": 3,
+      "verdicts": [
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN"
+      ],
+      "errors": []
+    },
+    {
+      "timestamp": "2026-05-10T11:02:47.805338",
+      "elapsed_sec": 0.0,
+      "cycles_completed": 6,
+      "verdicts": [
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN",
+        "COMPLETED_WITH_WARN"
+      ],
+      "errors": []
+    }
+  ],
+  "final_verdict": "COMPLETED_WITH_WARN",
+  "errors": [],
+  "completed_with_warn": [
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN",
+    "COMPLETED_WITH_WARN"
+  ],
+  "lessons_stored": 1,
+  "lessons_retrieved": 0,
+  "stop_reason": "session_complete",
+  "auto_learning_always_on": false,
+  "owner_triggered": true,
+  "external_publish_in_scope": false,
+  "external_publish_in_forbidden": true,
+  "requires_confirmation": false,
+  "exit_code": 0,
+  "no_crash": true
+}

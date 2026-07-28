@@ -1,0 +1,109 @@
+{
+  "session_id": "49I-run-20260510163442",
+  "type": "real_time_gate",
+  "duration_seconds": 300.00017952919006,
+  "target_duration": 300,
+  "actual_real_time": true,
+  "total_cycles": 12,
+  "passed_cycles": 12,
+  "heartbeats": 12,
+  "checkpoints": 12,
+  "results": [
+    {
+      "cycle": 0,
+      "target": "optimize routing decision accuracy",
+      "lessons_retrieved": 0,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 1.4781951904296875e-05
+    },
+    {
+      "cycle": 1,
+      "target": "improve evidence registry completeness",
+      "lessons_retrieved": 10,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 25.00014042854309
+    },
+    {
+      "cycle": 2,
+      "target": "enhance lesson retrieval precision",
+      "lessons_retrieved": 0,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 50.0001802444458
+    },
+    {
+      "cycle": 3,
+      "target": "validate trace schema integrity",
+      "lessons_retrieved": 1,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 75.00012421607971
+    },
+    {
+      "cycle": 4,
+      "target": "audit security contract enforcement",
+      "lessons_retrieved": 10,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 100.00012493133545
+    },
+    {
+      "cycle": 5,
+      "target": "test capability routing matrix correctness",
+      "lessons_retrieved": 1,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 125.00010776519775
+    },
+    {
+      "cycle": 6,
+      "target": "verify tool skill selection policy",
+      "lessons_retrieved": 2,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 150.0001528263092
+    },
+    {
+      "cycle": 7,
+      "target": "improve artifact generation quality",
+      "lessons_retrieved": 1,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 175.00037503242493
+    },
+    {
+      "cycle": 8,
+      "target": "validate checkpoint rollback mechanisms",
+      "lessons_retrieved": 1,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 200.00011706352234
+    },
+    {
+      "cycle": 9,
+      "target": "audit runtime body map integration",
+      "lessons_retrieved": 10,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 225.00011944770813
+    },
+    {
+      "cycle": 10,
+      "target": "optimize routing decision accuracy",
+      "lessons_retrieved": 0,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 250.00010633468628
+    },
+    {
+      "cycle": 11,
+      "target": "improve evidence registry completeness",
+      "lessons_retrieved": 10,
+      "judge_status": "PASS",
+      "exit_code": 0,
+      "elapsed_at_completion": 275.0001165866852
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "session_id": "49H-run-20260510163236",
+  "cycle_id": 2,
+  "target": "check evidence_id consistency across registry",
+  "artifacts": [
+    {
+      "artifact_id": "49H-run-20260510163236-cycle-2",
+      "created_at": 1778405558.480413,
+      "target": "check evidence_id consistency across registry",
+      "lessons_retrieved": 10,
+      "optimization_plan": "Optimize check evidence_id consistency across registry based on 10 lessons",
+      "expected_improvement": "routing accuracy, evidence quality, runtime cohesion"
+    }
+  ],
+  "judge_result": {
+    "status": "PASS",
+    "score": 0.8,
+    "rubric": "has_plan + has_lessons + testable"
+  },
+  "patch_applied": false,
+  "exit_code": 1,
+  "timestamp": 1778405560.1630754
+}

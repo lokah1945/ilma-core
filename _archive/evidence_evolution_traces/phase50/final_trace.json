@@ -1,0 +1,581 @@
+{
+  "phase": "50",
+  "type": "30min_realtime_canary",
+  "start_time": 181110.261451039,
+  "end_time": 182910.291099266,
+  "wall_clock_seconds": 1800.029648227006,
+  "wall_clock_minutes": 30.000494137116767,
+  "exit_code": 0,
+  "exit_reason": "all_gates_passed",
+  "heartbeats": [
+    {
+      "timestamp": "2026-05-10T17:19:20.130265",
+      "elapsed": 60.08128994901199,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:20:20.100425",
+      "elapsed": 120.051450243016,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:21:20.071344",
+      "elapsed": 180.02237297900137,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:22:20.142158",
+      "elapsed": 240.09318552800687,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:23:20.113343",
+      "elapsed": 300.0643705780094,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:24:20.084869",
+      "elapsed": 360.0358969400113,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:25:20.055367",
+      "elapsed": 420.00639548600884,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:26:20.126361",
+      "elapsed": 480.077387280995,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:27:20.096706",
+      "elapsed": 540.0477350330038,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:28:20.067218",
+      "elapsed": 600.018246016989,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 0
+    },
+    {
+      "timestamp": "2026-05-10T17:29:20.139333",
+      "elapsed": 660.090361229988,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:30:20.110649",
+      "elapsed": 720.0616788850166,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:31:20.080766",
+      "elapsed": 780.0317951680045,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:32:20.051952",
+      "elapsed": 840.0029802579957,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:33:20.123325",
+      "elapsed": 900.0743545530131,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:34:20.093291",
+      "elapsed": 960.0443183919997,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:35:20.064394",
+      "elapsed": 1020.0154230229964,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:36:20.133273",
+      "elapsed": 1080.084301824012,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:37:20.102805",
+      "elapsed": 1140.0538329330157,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:38:20.074544",
+      "elapsed": 1200.0255734600069,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 1
+    },
+    {
+      "timestamp": "2026-05-10T17:39:20.145772",
+      "elapsed": 1260.0968005600153,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:40:20.115668",
+      "elapsed": 1320.0666974970081,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:41:20.086799",
+      "elapsed": 1380.0378277919954,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:42:20.056708",
+      "elapsed": 1440.0077363869932,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:43:20.127213",
+      "elapsed": 1500.078242235002,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:44:20.097805",
+      "elapsed": 1560.048833148001,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:45:20.067546",
+      "elapsed": 1620.0185484650137,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:46:20.136875",
+      "elapsed": 1680.0879033580131,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    },
+    {
+      "timestamp": "2026-05-10T17:47:20.106972",
+      "elapsed": 1740.057999882003,
+      "cycle": 8,
+      "reuse_count": 8,
+      "checkpoints": 2
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpoint_id": 1,
+      "timestamp": "2026-05-10T17:28:20.067341",
+      "elapsed": 600.018246016989,
+      "cycle": 8,
+      "heartbeats": 10,
+      "reuse_count": 8,
+      "judge_results": 8,
+      "cycles_so_far": 8
+    },
+    {
+      "checkpoint_id": 2,
+      "timestamp": "2026-05-10T17:38:20.074654",
+      "elapsed": 1200.0255734600069,
+      "cycle": 8,
+      "heartbeats": 20,
+      "reuse_count": 8,
+      "judge_results": 8,
+      "cycles_so_far": 8
+    }
+  ],
+  "cycles": [
+    {
+      "cycle_id": 1,
+      "start_elapsed": 5.3400988690555096e-05,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.6,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 1 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.0015734189946670085
+    },
+    {
+      "cycle_id": 2,
+      "start_elapsed": 0.001671720005106181,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.85,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 2 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.0013809170050080866
+    },
+    {
+      "cycle_id": 3,
+      "start_elapsed": 0.003093637991696596,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.6833333333333333,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 3 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.001503319013863802
+    },
+    {
+      "cycle_id": 4,
+      "start_elapsed": 0.004638457001419738,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.6833333333333333,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 4 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.001319215982221067
+    },
+    {
+      "cycle_id": 5,
+      "start_elapsed": 0.005998073989758268,
+      "router_result": {
+        "task_class": "write",
+        "workflow_type": "planning_workflow",
+        "confidence": 0.6833333333333333,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "file"
+        ],
+        "skills": [
+          "ilma-writing",
+          "ilma-documentation"
+        ],
+        "execution_order": [
+          "file:read",
+          "file:write"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 5 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.0013522160006687045
+    },
+    {
+      "cycle_id": 6,
+      "start_elapsed": 0.007390990998828784,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.85,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 6 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.0014434180047828704
+    },
+    {
+      "cycle_id": 7,
+      "start_elapsed": 0.0089263099944219,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.85,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 7 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.0014022169925738126
+    },
+    {
+      "cycle_id": 8,
+      "start_elapsed": 0.010379228013334796,
+      "router_result": {
+        "task_class": "audit",
+        "workflow_type": "audit_workflow",
+        "confidence": 0.85,
+        "safety_class": "normal"
+      },
+      "selector_result": {
+        "tools": [
+          "terminal",
+          "file",
+          "search"
+        ],
+        "skills": [
+          "ilma-security-audit",
+          "ilma-code-review",
+          "security"
+        ],
+        "execution_order": [
+          "file:read",
+          "search:grep",
+          "terminal:compile",
+          "file:write_report"
+        ]
+      },
+      "lessons_retrieved": [],
+      "artifact": "Cycle 8 artifact: Independent optimization (no prior lessons)",
+      "judge_result": {
+        "status": "PASS",
+        "score": 85,
+        "note": "Agent body working"
+      },
+      "reuse_incremented": true,
+      "duration_seconds": 0.0014166170149110258
+    }
+  ],
+  "judge_results": [
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    },
+    {
+      "status": "PASS",
+      "score": 85,
+      "note": "Agent body working"
+    }
+  ],
+  "lesson_reuse_count": 8,
+  "gates_passed": {
+    "wall_clock_1800s": true,
+    "heartbeats_28": true,
+    "checkpoints_2": true,
+    "cycles_3": true,
+    "judge_3": true,
+    "reuse_incremented": true
+  }
+}
