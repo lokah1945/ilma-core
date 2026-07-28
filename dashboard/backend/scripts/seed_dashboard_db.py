@@ -98,23 +98,43 @@ def upsert(session: Session, model_cls, key_fields: Dict[str, Any], data: Dict[s
 # 1. SEED PROVIDERS
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _load_master_providers():
+    """Load providers+models from PROVIDER_INTELLIGENCE_MASTER.json (SOT)."""
+    master = ILMA_DIR / "ilma_model_router_data" / "PROVIDER_INTELLIGENCE_MASTER.json"
+    if not master.exists():
+        return {}
+    try:
+        d = json.load(open(master))
+        return d.get("providers", {})
+    except Exception as e:
+        _stats.errors.append(f"master_load: {e}")
+        return {}
+
+
 def seed_providers(session: Session):
-    """Extract unique providers from model_specialization_database.json + bridge providers."""
+    """Extract unique providers from model_specialization_database.json + bridge providers,
+    with fallback to PROVIDER_INTELLIGENCE_MASTER.json (SOT)."""
+    all_providers = set()
+    provider_source_types = {}
+    master_providers = _load_master_providers()
+
     spec_path = ILMA_DIR / "model_specialization_database.json"
-    if not spec_path.exists():
+    if spec_path.exists():
+        data = json.load(open(spec_path))
+        models = data.get("models", {})
+        for m in models.values():
+            p = m.get("provider", "")
+            if p:
+                all_providers.add(p)
+    elif master_providers:
+        # Fallback: derive providers from MASTER
+        for pid, pdata in master_providers.items():
+            all_providers.add(pid)
+            st = (pdata.get("provider_info", {}) or {}).get("source_type", "")
+            provider_source_types[pid] = st or "NATIVE"
+    else:
         _stats.missing_sources.append("model_specialization_database.json")
         return
-
-    data = json.load(open(spec_path))
-    models = data.get("models", {})
-    providers_seen = set()
-
-    # Collect all providers from spec DB
-    all_providers = set()
-    for m in models.values():
-        p = m.get("provider", "")
-        if p:
-            all_providers.add(p)
 
     # Add bridge providers (may not appear in spec DB)
     bridge_providers = {"qwen", "arena", "useai"}
@@ -169,12 +189,8 @@ def seed_providers(session: Session):
     }
 
     for provider in sorted(all_providers):
-        if provider in providers_seen:
-            continue
-        providers_seen.add(provider)
-
         display = provider_names.get(provider, provider.title())
-        source_type = source_types.get(provider, "NATIVE")
+        source_type = provider_source_types.get(provider) or source_types.get(provider, "NATIVE")
         api_key_present = bool(os.getenv(f"{provider.upper()}_API_KEY", ""))
         if provider in bridge_providers:
             api_key_source = "bridge"
@@ -204,14 +220,25 @@ def seed_providers(session: Session):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def seed_models_and_benchmarks(session: Session):
-    """Ingest all 1088 models + quality/coding/reasoning/tool_use benchmarks."""
+    """Ingest models + benchmarks. Primary: model_specialization_database.json;
+    Fallback: PROVIDER_INTELLIGENCE_MASTER.json (SOT)."""
     spec_path = ILMA_DIR / "model_specialization_database.json"
-    if not spec_path.exists():
-        return
-
-    data = json.load(open(spec_path))
-    schema_version = data.get("schema_version", "1.1")
-    models = data.get("models", {})
+    models = {}
+    if spec_path.exists():
+        data = json.load(open(spec_path))
+        models = data.get("models", {})
+    else:
+        master_providers = _load_master_providers()
+        if master_providers:
+            # Flatten MASTER: provider -> models dict
+            for pid, pdata in master_providers.items():
+                pmodels = pdata.get("models", {})
+                for mid, m in pmodels.items():
+                    m = dict(m)
+                    m.setdefault("provider", pid)
+                    models[mid] = m
+        else:
+            return
 
     evidence_level_map = {
         "LIVE_BENCHMARKED": "LIVE_RUNTIME",
@@ -224,17 +251,22 @@ def seed_models_and_benchmarks(session: Session):
     for model_key, m in models.items():
         canonical_id = m.get("canonical_model_id", model_key)
         provider = m.get("provider", "")
-        free_or_paid = m.get("free_or_paid", "FREE").upper()
-        quality = m.get("quality_score", 0.0)
+        # MASTER-style fields
+        is_free = m.get("is_free", None)
+        if is_free is None:
+            free_or_paid = str(m.get("free_or_paid", "FREE")).upper()
+        else:
+            free_or_paid = "FREE" if is_free else "PAID"
+        quality = m.get("quality_score", m.get("score", 0.0))
         coding = m.get("coding_score", 0.0)
         reasoning = m.get("reasoning_score", 0.0)
         tool_use = m.get("tool_use_score", 0.0)
-        context_window = m.get("context_window", 128000)
-        evidence_level = m.get("evidence_level", "")
+        context_window = m.get("context_window", m.get("raw_metadata", {}).get("context_length", 128000))
+        evidence_level = m.get("evidence_level", m.get("score_source", ""))
         source_type = evidence_level_map.get(evidence_level, evidence_level or "UNVERIFIED")
-        trust_level = max(1, min(10, int(quality * 10)))
+        trust_level = max(1, min(10, int(float(quality) * 10) if quality else 1))
         caveat = m.get("caveat", "")
-        last_updated = m.get("last_updated", "")
+        last_updated = m.get("last_updated", m.get("refreshed_at", m.get("last_verified", "")))
 
         model_record = {
             "canonical_model_id": canonical_id,
@@ -257,7 +289,7 @@ def seed_models_and_benchmarks(session: Session):
             "source_type": source_type,
             "trust_level": trust_level,
             "last_verified": last_updated,
-            "benchmark_coverage": schema_version,
+            "benchmark_coverage": "master-sot",
             "caveat": caveat,
         }
         upsert(session, ModelRecord, {"canonical_model_id": canonical_id}, model_record)

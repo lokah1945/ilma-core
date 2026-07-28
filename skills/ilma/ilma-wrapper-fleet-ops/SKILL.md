@@ -85,6 +85,31 @@ except Exception as e:
 ```
 If this raises (NameError/ImportError/ModuleNotFoundError), FIX before restarting. Note: relative imports (`from .key_pool`) require the `submodule_search_locations=['src']` arg above — loading `src/main.py` as a bare file fails with "attempted relative import with no known parent package".
 
+## Reachability / "site can't be reached" (bind host + CORS) — 2026-07-28
+Symptom: user reports ALL wrappers + dashboard show "This site can't be reached" in the browser, even though `systemctl --user` shows `active (running)`.
+Root causes, in priority order:
+1. **Wrappers bound to `127.0.0.1` only.** Every `wrapper-*.service` ExecStart used `--host 127.0.0.1`. Opening via the machine LAN IP (e.g. `172.16.102.11:9102`) or any non-localhost name → connection refused → browser "site can't be reached". Fix: `--host 127.0.0.1` → `--host 0.0.0.0` in each unit, `daemon-reload`, restart.
+2. **Vite frontend bound to `[::1]` (IPv6 localhost) only.** `vite.config.ts` had no `host` set and `ilma-dashboard-frontend.service` hardcoded `--port 3001`. With no host, Vite defaults to `[::1]` → `127.0.0.1:3001` REFUSED. Fix: add `host: '0.0.0.0'` + `strictPort: true` to `vite.config.ts` `server:{}`, and change the unit ExecStart to `--port 3000 --host 0.0.0.0` (match config port). After fix `ss -tlnp` shows `0.0.0.0:3000`.
+3. **Backend CORS blocks LAN-origin browser.** `dashboard/backend/app/main.py` CORSMiddleware `allow_origins=["http://localhost:3000","http://127.0.0.1:3000"]`. Browser hitting the dashboard from `http://172.16.102.11:3000` sends `Origin: http://172.16.102.11:3000` → CORS reject → dashboard loads but every `/api` call fails silently. Fix: `allow_origins=["*"]` (dev/LAN only — see security note).
+
+Diagnosis recipe (run BEFORE assuming a crash):
+```bash
+# 1. What is actually listening, and on which interface?
+ss -tlnp 2>/dev/null | grep -E ':(9101|9102|9103|9104|9105|8000|3000|3001)'
+#   127.0.0.1:9102  = localhost-only, LAN IP fails
+#   [::1]:3001       = IPv6 localhost-only, 127.0.0.1 fails
+#   0.0.0.0:9102     = all interfaces, GOOD
+# 2. Test from the machine LAN IP (what the user's browser does), not localhost
+curl -s -o /dev/null -w "%{http_code}\n" --max-time 5 http://172.16.102.11:9102/
+#   000 = connection refused (bind issue); 200/404 = reachable
+# 3. Test CORS header from the LAN origin
+curl -s -i -H "Origin: http://172.16.102.11:3000" http://172.16.102.11:8000/ | grep -i access-control
+#   must echo back the Origin (or "*")
+```
+Port-mismatch gotcha: if the systemd unit hardcodes `--port 3001` but `vite.config.ts` says `port: 3000` with `strictPort: true`, Vite refuses 3000 and falls back to 3001 (or exits). Make unit + config port AGREE — prefer editing the unit to match config (config is the app's source of truth).
+
+Security note: opening bind to `0.0.0.0` + CORS `*` exposes wrapper ports (9101–9105, 8000, 3000) to the whole network. If the machine is internet-reachable (CloudflareWARP / public IP), recommend a reverse proxy (nginx) + basic-auth/TLS, or firewall-limit to the Bos IP. Don't leave `0.0.0.0`+`*` open on a public host without auth. Full transcript in `references/reachability-bind-host-2026-07-28.md`.
+
 ## Intentional divergence (do NOT "fix" these back)
 - **nous stays INLINE** (`nous/src/main.py` contains `KeyPool`/`KeyEntry`/`Metrics` inline). Upstream's modular split (`key_pool.py`/`metrics.py`) is broken (bug #7). Never re-apply the modular split or delete the inline classes. This divergence is documented in commit messages + runtime/*.commit pins so it is traceable.
 - When pushing a fix that reverts an upstream change, the commit message MUST state WHY (e.g. "revert broken nous modular split — upstream key_pool.py missing imports → ImportError"). Future sessions reading `git log` will then know the divergence is deliberate.
@@ -98,12 +123,14 @@ If this raises (NameError/ImportError/ModuleNotFoundError), FIX before restartin
 - `git reset --hard` destroys uncommitted work — only on explicit "abaikan local".
 - After `reset --hard`, recurring bug fixes are GONE → wrappers 500 until re-fixed or user pushes to github.
 - `/health` returning 500 ≠ port not listening. Check both: `ss -ltnp` for bind, `/health` for app errors.
+- **"Site can't be reached" with `active (running)` service = bind-host issue, NOT a crash.** Check the interface column in `ss -tlnp` FIRST: `127.0.0.1:*` = localhost-only (LAN IP fails), `[::1]:*` = IPv6-localhost-only (`127.0.0.1` fails). Fix the `--host`/Vite `host` flag, not the app code. A LAN-IP `curl` returning `000` while `localhost` returns `200` is the smoking gun.
 - OpenCode model list is static — re-sync `opencode.jsonc` when models change in a wrapper.
 - **Upstream race on push**: if `git push` is rejected with "fetch first", someone pushed to `github/main` after your pull. NEVER force-push. `git fetch` → inspect the new commit (it may reverse your fixes or re-break imports) → `git reset --hard` to your pre-commit base → `git pull --rebase` → re-apply your verified fixes → retest all 6 → push.
 - After ANY wrapper change, verify ALL 6 ports (9101–9105) return 200, not just the one you touched — a restructure commit can break siblings. Also hit `/v1/models` with an `x-request-id` header to exercise the latency middleware (catches the `[wrapper]` NameError that `/health` alone may miss).
 
 ## Support files
 - `references/recurring-bugs.md` — exact bug transcripts + diffs.
+- `references/reachability-bind-host-2026-07-28.md` — "site can't be reached" root cause (127.0.0.1 / [::1] / CORS) + ss/curl diagnosis transcript + fix diffs for all 5 wrapper units + Vite + dashboard backend.
 - `references/opencode-provider-setup.md` — jsonc template + install + verify.
 - `references/restructure-2026-07-28.md` — restructure pull, 4 bugs found + fixes, upstream-race recovery, verification recipe.
 - `references/nous-modular-split-broken-2026-07-28.md` — upstream `69af4aa` split nous into broken `key_pool.py`; symptom, fix (revert to inline), intentional divergence.
