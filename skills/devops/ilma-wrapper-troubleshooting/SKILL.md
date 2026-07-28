@@ -152,6 +152,17 @@ Smoke assertion: `HTTP 200` AND `returned_model in (None, requested_model)`. For
 
 Transient upstream errors (opencode Zen 429/503, blackbox 404 on some models) are NOT wrapper bugs — retry after cooldown; verify the wrapper itself with direct curl (tools → expect `function_call`). The audit loop that hit this: `42 PASS / 0 FAIL / 0 BLOCKED` after cooldown + per-service markers on `/root/wrapper` (2026-07-25, commit `44729e5`).
 
+## "Unauthorized authentication_error seen in the dashboard" — it's NOT the ILMA dashboard
+A user may report seeing `{"error":{"message":"Unauthorized","type":"authentication_error"}}` and call it a "dashboard error". **The ILMA Web Observability Dashboard backend has NO auth** — `app/main.py` and all routers contain zero `401`/`Unauthorized`/`Depends`/`HTTPBearer`. So that error CANNOT originate from `ilma-dashboard-backend` (8000) or its frontend (3000). It comes from a **wrapper API** (`wrapper-nvidia` 9101, `wrapper-nous` 9102, `wrapper-opencode` 9103, `wrapper-blackbox` 9104, `wrapper-vercel` 9105), which require a client `Bearer` token.
+
+**Triage:**
+- `curl -s http://127.0.0.1:9101/v1/chat/completions` (no token) → `401 Unauthorized` (by design). With `Authorization: Bearer wrapper-local-key` → works.
+- The ILMA dashboard frontend does NOT call any 910x port (verified: `grep -r 9101 src/` returns nothing). So the 401 is either (a) the user opened a wrapper URL directly in a browser, or (b) a client (Claude Code/Codex/OpenHand) hitting a wrapper with a wrong/missing key.
+- **Bos-preference rule (2026-07-27):** when a task needs a fix, DIAGNOSE THEN APPLY — do not stop at a root-cause report. Here the "fix" for a user-facing 401 is: supply the correct client key (`wrapper-local-key` for local curl; the client's configured `ANTHROPIC_AUTH_TOKEN`/base URL for Claude Code/Codex), or confirm the wrapper `.env` `BEARER_TOKEN=wrapper-local-key`.
+
+## "Site can't be reached" for wrappers at LAN IP = bind address, not outage
+If a wrapper is reachable on `127.0.0.1:PORT` but `curl http://<LAN-IP>:PORT` fails with connection-refused, the systemd unit binds `--host 127.0.0.1` only. All wrapper units were switched to `--host 0.0.0.0` on 2026-07-28 for exactly this reason. Fix: edit `~/.config/systemd/user/wrapper-*.service` `ExecStart` uvicorn `--host 127.0.0.1` → `--host 0.0.0.0`, `daemon-reload`, restart, then `curl http://<LAN-IP>:PORT` → 200. (Same bind fix applies to the ILMA dashboard — see `ilma-web-observability-dashboard` skill pitfall #8.)
+
 ## Misleading "All API keys exhausted" (classification.get() object bug — nvidia-python 2026-07-28)
 
 **This is the #1 trap that makes you wrongly conclude "key exhaustion".** The wrapper

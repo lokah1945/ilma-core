@@ -110,6 +110,23 @@ Port-mismatch gotcha: if the systemd unit hardcodes `--port 3001` but `vite.conf
 
 Security note: opening bind to `0.0.0.0` + CORS `*` exposes wrapper ports (9101–9105, 8000, 3000) to the whole network. If the machine is internet-reachable (CloudflareWARP / public IP), recommend a reverse proxy (nginx) + basic-auth/TLS, or firewall-limit to the Bos IP. Don't leave `0.0.0.0`+`*` open on a public host without auth. Full transcript in `references/reachability-bind-host-2026-07-28.md`.
 
+## Pre-auth / open LAN access mode (user preference: "tanpa auth / pre-auth")
+Bos wants ALL wrappers + dashboards reachable from the LAN IP **without** sending a bearer token (pre-auth / open mode). This is a recurring preference — apply it whenever Bos says "akses tanpa auth", "pre-auth saja", or "buka untuk user".
+
+**CRITICAL GOTCHA — do NOT blank `BEARER_TOKEN`.** `nvidia-python/src/main.py::validate_config()` does `if not os.environ.get('BEARER_TOKEN'): sys.exit(1)` → blanking it makes the wrapper crash-loop (`activating (auto-restart)`, port 9101 curl `000`). Keep `BEARER_TOKEN=wrapper-local-key` and disable auth a different way.
+
+**Correct procedure:**
+1. Keep `BEARER_TOKEN=wrapper-local-key` in each `.env`. ADD a new line `DISABLE_AUTH=1`.
+2. Patch each wrapper's auth gate to respect `DISABLE_AUTH`. Each wrapper has a DIFFERENT gate location/form (see `references/pre-auth-open-access.md` for exact diffs):
+   - **nvidia-python**: `auth_middleware` → `if BEARER_TOKEN and not is_public:` → `if BEARER_TOKEN and not is_public and not os.environ.get('DISABLE_AUTH'):`
+   - **nous**: `_auth_check` → after `if not BEARER_TOKEN: return` add `if os.environ.get('DISABLE_AUTH'): return`
+   - **opencode / vercel / blackbox**: `_auth_check` → after `if request.method == 'OPTIONS': return` add `if os.environ.get('DISABLE_AUTH'): return  # pre-auth mode`
+3. **model-registry (9200)** has its OWN `.env` at `/root/wrapper/model-registry/.env` with `MODEL_REGISTRY_HOST=127.0.0.1` that OVERRIDES the default in `service.py`. To open it: set `MODEL_REGISTRY_HOST=0.0.0.0` there (not just patching service.py — the .env wins).
+4. `daemon-reload` is NOT needed for `.env` changes (services re-read via `EnvironmentFile` on restart) — just `systemctl --user restart <unit>`.
+5. Verify: `curl -X POST http://<LAN-IP>:9102/v1/chat/completions -d '{"model":"tencent/hy3:free","messages":[{"role":"user","content":"hi"}]}'` → must return a chat completion (NOT 401). A `400`/`404` from upstream (e.g. NVIDIA "Function not found for account") is EXPECTED and means auth was bypassed successfully — only `401` means auth still on.
+
+**Security note:** open + `0.0.0.0` exposes all LLM wrappers to the network. If internet-reachable (CloudflareWARP / public IP), recommend nginx + basic-auth/TLS or firewall-limit to Bos IP. Don't leave pre-auth open on a public host.
+
 ## Intentional divergence (do NOT "fix" these back)
 - **nous stays INLINE** (`nous/src/main.py` contains `KeyPool`/`KeyEntry`/`Metrics` inline). Upstream's modular split (`key_pool.py`/`metrics.py`) is broken (bug #7). Never re-apply the modular split or delete the inline classes. This divergence is documented in commit messages + runtime/*.commit pins so it is traceable.
 - When pushing a fix that reverts an upstream change, the commit message MUST state WHY (e.g. "revert broken nous modular split — upstream key_pool.py missing imports → ImportError"). Future sessions reading `git log` will then know the divergence is deliberate.
@@ -125,10 +142,12 @@ Security note: opening bind to `0.0.0.0` + CORS `*` exposes wrapper ports (9101�
 - `/health` returning 500 ≠ port not listening. Check both: `ss -ltnp` for bind, `/health` for app errors.
 - **"Site can't be reached" with `active (running)` service = bind-host issue, NOT a crash.** Check the interface column in `ss -tlnp` FIRST: `127.0.0.1:*` = localhost-only (LAN IP fails), `[::1]:*` = IPv6-localhost-only (`127.0.0.1` fails). Fix the `--host`/Vite `host` flag, not the app code. A LAN-IP `curl` returning `000` while `localhost` returns `200` is the smoking gun.
 - OpenCode model list is static — re-sync `opencode.jsonc` when models change in a wrapper.
+- **Pre-auth open mode:** never blank `BEARER_TOKEN` (nvidia-python `validate_config()` will `sys.exit(1)` and crash-loop). Keep the token, add `DISABLE_AUTH=1` to each `.env`, and patch each wrapper's auth gate to honor it (gate locations differ per wrapper — see `references/pre-auth-open-access.md`). `model-registry` `.env` (`MODEL_REGISTRY_HOST`) overrides `service.py` defaults, so edit the `.env`, not just the code.
 - **Upstream race on push**: if `git push` is rejected with "fetch first", someone pushed to `github/main` after your pull. NEVER force-push. `git fetch` → inspect the new commit (it may reverse your fixes or re-break imports) → `git reset --hard` to your pre-commit base → `git pull --rebase` → re-apply your verified fixes → retest all 6 → push.
 - After ANY wrapper change, verify ALL 6 ports (9101–9105) return 200, not just the one you touched — a restructure commit can break siblings. Also hit `/v1/models` with an `x-request-id` header to exercise the latency middleware (catches the `[wrapper]` NameError that `/health` alone may miss).
 
 ## Support files
+- `references/pre-auth-open-access.md` — exact `DISABLE_AUTH` diffs for all 5 wrappers + model-registry `.env`, and the "don't blank BEARER_TOKEN" crash gotcha.
 - `references/recurring-bugs.md` — exact bug transcripts + diffs.
 - `references/reachability-bind-host-2026-07-28.md` — "site can't be reached" root cause (127.0.0.1 / [::1] / CORS) + ss/curl diagnosis transcript + fix diffs for all 5 wrapper units + Vite + dashboard backend.
 - `references/opencode-provider-setup.md` — jsonc template + install + verify.
