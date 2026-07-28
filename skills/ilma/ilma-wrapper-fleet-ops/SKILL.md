@@ -127,6 +127,24 @@ Bos wants ALL wrappers + dashboards reachable from the LAN IP **without** sendin
 
 **Security note:** open + `0.0.0.0` exposes all LLM wrappers to the network. If internet-reachable (CloudflareWARP / public IP), recommend nginx + basic-auth/TLS or firewall-limit to Bos IP. Don't leave pre-auth open on a public host.
 
+## Dashboard `/dashboard` browser prompt (BEARER_TOKEN banner) — REMOVE IT
+Bos explicitly does NOT want the `window.prompt('Enter wrapper BEARER_TOKEN (leave blank if auth is disabled):')` popup when opening any wrapper's `/dashboard`. Recurring preference (2026-07-28): **hardcode the token into the page, drop the prompt.**
+
+Each wrapper serves a `dashboard.html` (path `Path(__file__).parent.parent / "dashboard.html"` = `<wrapper>/dashboard.html`). The JS calls `window.prompt(...)` to ask for the bearer token, stores it in sessionStorage/localStorage, then sends `Authorization: Bearer <token>`.
+
+**Fix (user-approved):** replace the `window.prompt(...) || ''` line with a hardcoded `'wrapper-local-key'`. Since `DISABLE_AUTH=1`, the token is NEVER validated server-side — the hardcoded string is purely cosmetic, safe to ship.
+
+Exact replacements (see `references/dashboard-prompt-removal.md` for line numbers + the 5-file diff):
+- `nvidia-python/dashboard.html` (~line 827): `token = window.prompt('Enter wrapper bearer token (leave empty if auth is disabled):') || '';` → `token = 'wrapper-local-key';`
+- `nous/dashboard.html` (~line 335): same pattern → `token = 'wrapper-local-key';`
+- `opencode/dashboard.html` (~line 337): `tok = window.prompt('Enter wrapper BEARER_TOKEN (leave blank if auth is disabled):') || '';` → `tok = 'wrapper-local-key';`
+- `blackbox/dashboard.html` (~line 337): same as opencode → `tok = 'wrapper-local-key';`
+- `vercel/dashboard.html` (~line 337): same as opencode → `tok = 'wrapper-local-key';`
+
+After editing, restart the wrapper (`systemctl --user restart wrapper-<name>`) so it re-serves the new `dashboard.html`.
+
+**Gotcha — `git pull` can overwrite your hardcode.** Pulling `github/main` rewrites `dashboard.html` from the cloud version. Cloud version `638212d` ALREADY has no prompt + hardcoded `wrapper-local-key` (Bos pushed the fix), so the prompt stays gone after pull. But ALWAYS verify post-pull: `grep -c "window.prompt" <wrapper>/dashboard.html` → must be **0**. If a future pull reverts to a prompt version, re-apply the hardcode above.
+
 ## Intentional divergence (do NOT "fix" these back)
 - **nous stays INLINE** (`nous/src/main.py` contains `KeyPool`/`KeyEntry`/`Metrics` inline). Upstream's modular split (`key_pool.py`/`metrics.py`) is broken (bug #7). Never re-apply the modular split or delete the inline classes. This divergence is documented in commit messages + runtime/*.commit pins so it is traceable.
 - When pushing a fix that reverts an upstream change, the commit message MUST state WHY (e.g. "revert broken nous modular split — upstream key_pool.py missing imports → ImportError"). Future sessions reading `git log` will then know the divergence is deliberate.
@@ -145,6 +163,9 @@ Bos wants ALL wrappers + dashboards reachable from the LAN IP **without** sendin
 - **Pre-auth open mode:** never blank `BEARER_TOKEN` (nvidia-python `validate_config()` will `sys.exit(1)` and crash-loop). Keep the token, add `DISABLE_AUTH=1` to each `.env`, and patch each wrapper's auth gate to honor it (gate locations differ per wrapper — see `references/pre-auth-open-access.md`). `model-registry` `.env` (`MODEL_REGISTRY_HOST`) overrides `service.py` defaults, so edit the `.env`, not just the code.
 - **Upstream race on push**: if `git push` is rejected with "fetch first", someone pushed to `github/main` after your pull. NEVER force-push. `git fetch` → inspect the new commit (it may reverse your fixes or re-break imports) → `git reset --hard` to your pre-commit base → `git pull --rebase` → re-apply your verified fixes → retest all 6 → push.
 - After ANY wrapper change, verify ALL 6 ports (9101–9105) return 200, not just the one you touched — a restructure commit can break siblings. Also hit `/v1/models` with an `x-request-id` header to exercise the latency middleware (catches the `[wrapper]` NameError that `/health` alone may miss).
+- **Diagnose THEN fix — never deliver a root-cause report alone.** When Bos reports a wrapper/dashboard failure ("masih muncul", "site can't be reached", "no record"), go STRAIGHT to remediation: apply the fix, restart, verify. Do not stop at "root cause = X" without executing the fix. Confirmed user preference 2026-07-27/28 ("masih conversation error" = expected the fix applied, not another diagnosis).
+- **`systemctl --user restart` loop can hit the 60s foreground timeout.** Restarting all 5 wrappers in ONE terminal call can exceed the default 60s (nvidia-python re-import is slow) → command times out, later units not restarted. Fix: restart units ONE AT A TIME in separate calls, OR use `terminal(background=true)` for the batch. Always finish with `systemctl --user is-active wrapper-nous wrapper-nvidia-python wrapper-opencode wrapper-blackbox wrapper-vercel wrapper-model-registry | tr '\n' ' '` to confirm all `active`.
+- **`git pull` on wrappers overwrites `dashboard.html`.** See "Dashboard `/dashboard` browser prompt" above — verify the prompt is still gone after pull.
 
 ## Support files
 - `references/pre-auth-open-access.md` — exact `DISABLE_AUTH` diffs for all 5 wrappers + model-registry `.env`, and the "don't blank BEARER_TOKEN" crash gotcha.
@@ -152,6 +173,8 @@ Bos wants ALL wrappers + dashboards reachable from the LAN IP **without** sendin
 - `references/reachability-bind-host-2026-07-28.md` — "site can't be reached" root cause (127.0.0.1 / [::1] / CORS) + ss/curl diagnosis transcript + fix diffs for all 5 wrapper units + Vite + dashboard backend.
 - `references/opencode-provider-setup.md` — jsonc template + install + verify.
 - `references/restructure-2026-07-28.md` — restructure pull, 4 bugs found + fixes, upstream-race recovery, verification recipe.
+- `references/dashboard-prompt-removal.md` — exact `window.prompt → 'wrapper-local-key'` diffs for all 5 `dashboard.html` files + post-pull verification.
+- `references/nvidia-nim-fetcher-ops.md` — SEPARATE repo `/root/project/nvidia-nim_model_fetcher` (pull from `origin`, NOT `github`); MCP server on 9100 renders dashboard LIVE from DB; manual restart procedure (no systemd unit).
 - `references/nous-modular-split-broken-2026-07-28.md` — upstream `69af4aa` split nous into broken `key_pool.py`; symptom, fix (revert to inline), intentional divergence.
 - `scripts/verify_wrappers.py` — probe all wrapper ports, print health table.
 - `scripts/smoke_hallo_all.py` — **end-to-end chat smoke**: sends "hallo" to all 5 wrappers, picks first `:free` model, reports non-empty reply or error class (401/0-models/exhausted/No-capacity). Usage: `python3 scripts/smoke_hallo_all.py [--token wrapper-local-key] [--prompt "hallo"] [--ports 9101,9102]`. Runs in ONE command — use this (not manual curl loops) to verify chat works after a pull/config change.
