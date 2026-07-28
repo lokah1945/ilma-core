@@ -309,16 +309,157 @@ After applying this pattern to ILMA v3.0:
 - Cleaner architecture (12 canonical + 240 utilities)
 - No functionality lost
 
+---
+
+## Service Teardown (running systemd --user services)
+
+When the deletion target is a **running service** (not just an unused code file), the
+delete step must defeat `Restart=always` and unregister the unit, or the process
+respawns on next boot / after a crash. This is the teardown half of the optimizer
+loop — complementary to the stub/duplicate detection above.
+
+### Safe teardown sequence (defeats auto-restart)
+```bash
+SVC=ilma-dashboard-backend.service
+PORT=8000
+
+# 1. Disable — removes symlink in default.target.wants, kills boot auto-start
+systemctl --user disable "$SVC"
+
+# 2. Stop
+systemctl --user stop "$SVC"
+
+# 3. Kill any lingering proc still bound to the port (disable+stop can race)
+for p in $(ss -tlnp 2>/dev/null | grep ":$PORT" | grep -oP 'pid=\K[0-9]+' | sort -u); do
+  kill -9 "$p"
+done
+
+# 4. Remove the unit file (check both user + system dirs)
+rm -f ~/.config/systemd/user/"$SVC" /etc/systemd/system/"$SVC"
+
+# 5. Reload
+systemctl --user daemon-reload
+
+# 6. Remove code/data dir
+rm -rf /path/to/component
+
+# 7. Verify port FREE + unit GONE
+ss -tlnp 2>/dev/null | grep ":$PORT" || echo "PORT FREE"
+systemctl --user list-units --all 2>/dev/null | grep -i dashboard || echo "no unit"
+```
+A re-runnable version lives at `scripts/teardown-systemd-service.sh`.
+
+### Pitfall T1: Shared DB / shared resource
+A DB file or data dir may be referenced by OTHER modules you are NOT deleting.
+Before `rm -rf` or `rm data/x.db`:
+```bash
+# Find every file that references the resource path
+grep -rIl 'data/ilma_dashboard.db' --include='*.py' --include='*.json' . 2>/dev/null
+```
+If matches exist outside the component being deleted:
+- Check whether the *running* service that references it uses a **different** path
+  (read its code / `systemctl show <svc> -p ExecStart`). Different path ⇒ safe to delete.
+- Check whether the referencing module **guards** the missing file
+  (`if DASHBOARD_DB.exists():`) — if so it degrades gracefully, no crash.
+- If a module would hard-crash on the missing file, either KEEP the DB or PATCH the
+  module to skip-when-missing. Do NOT leave a broken import/reference behind.
+- Real example (2026-07-28): `ilma_dashboard.db` was shared by
+  `ilma_model_registry.py`, `ilma_kanban_free_model_optimizer.py`,
+  `ilma_wrapper_nvidia_dashboard_sync.py`. The active `wrapper-model-registry.service`
+  used a DIFFERENT db (`/root/wrapper/.../registry-state.db`), so deletion was safe;
+  `ilma_kanban_free_model_optimizer.py` had an `if exists()` guard; only
+  `ilma_model_registry.py` lacked a guard and was flagged for a follow-up patch.
+
+### Pitfall T2: Name collision / scope discipline
+A name like "dashboard" or a port like "3000" matches MULTIPLE unrelated components.
+Before deleting:
+- `ss -tlnp | grep ':3000'` → read `pid=`, then `cat /proc/<pid>/cmdline` +
+  `readlink /proc/<pid>/cwd` to confirm WHICH component owns it.
+- `grep` the port number across skills/configs — `vps_project.json` may mention
+  "3000" for a *different* blog project; `ilma-dashboard-design` skill is generic
+  design, NOT the observability dashboard.
+- Only delete what the audit proves belongs to the target.
+
+### Pitfall T3: Orphan import check
+Before deleting a `.py` module, confirm no other module imports it:
+```bash
+grep -rn "import module_name\|from module_name" --include='*.py' . | grep -v __pycache__
+```
+0 matches ⇒ safe to delete. >0 matches ⇒ those importers break; keep or migrate first.
+
+### Keep vs delete boundary (worked example, 2026-07-28)
+- `ilma_super_coding_command_center.py` did NOT import the deleted
+  `command_center_core.py` ⇒ kept as a separate tool.
+- `ilma-command-center` skill dir + evidence JSON + log ⇒ deleted (part of component).
+- Running services sharing a port *class* but different numbers (command-center on
+  18790, not 3000/8000) ⇒ untouched.
+
+## Full-Filesystem Redundancy Sweep (whole-tree, not single component)
+
+When the task is "clean up redundant ILMA/AYDA/ClawHub files scattered under /root", do
+NOT grep-and-delete blindly. A bare `find /root -iname '*ilma*'` returns 10k–15k hits;
+~90% live inside `/root/backup/` (legitimate rollback). Use a classify-then-delete
+pipeline. **For clearly-scoped "remove redundant junk" requests, proceed with this
+classification (keep rollback dirs) — do not over-confirm each bucket. Only clarify
+when a bucket is genuinely ambiguous (mixed backup + historical).**
+
+### Scan recipe (exclude known-good roots)
+```bash
+# Loose redundant set = every ilma* EXCEPT active profile, skills, plugins, wrapper, backups
+find /root -iname '*ilma*' 2>/dev/null \
+  | grep -vE '/\.hermes/profiles/ilma/|/\.hermes/skills/|/\.hermes/plugins/|/wrapper/|/wrapper_remote.git/|node_modules/'
+```
+
+### Distribution triage (find the big buckets fast)
+```bash
+find /root -iname '*ilma*' 2>/dev/null | grep -vE 'EXCLUDE_ABOVE' \
+  | sed 's|/[^/]*$||' | sort | uniq -c | sort -rn | head -25
+```
+Real example (2026-07-28): surfaced `/root/.hermes/profiles/ilma_test/` holding
+1,209 of 1,209 residual items (4.2 GB duplicate profile) — the single biggest win.
+
+### Classification buckets
+| Bucket | Action |
+|--------|--------|
+| `/root/backup/`, `/root/backups/`, `/root/backup_archive/`, `/root/ilma_reset_backup/`, `/root/ilma_sot_audit_backup/`, `*.tar.gz` | **KEEP** — rollback point |
+| Duplicate profile `/root/.hermes/profiles/ilma_test/` | **DELETE** if no systemd unit + no running process + not referenced by active profile runtime |
+| Loose `test_*.py/sh/js/json`, `update_*.py` (AYDA-era provider scripts) | **DELETE** — orphan scratch |
+| `/root/.deprecated/`, `/root/__pycache__/`, `/root/.pytest_cache/` | **DELETE** — deprecated / regenerable |
+| `/root/clawhub_data/`, `*.bak.ayda-removal*` | **DELETE** — OpenClaw/AYDA leftovers |
+| `/root/ilma_audit_reports/`, `/root/konsep/`, `/root/upload/`, `/root/.ilma/`, `/root/hermes_ilma/`, `/root/shared-memory/` | **DELETE** if not referenced by active profile |
+| Active systemd units (`hermes-gateway-ilma`, `ilma-chrome`, `ilma-sot-sync`, `ilma-sync-*`) | **KEEP** |
+| Other Hermes profiles (`master-chief`), `hermes-agent` venv/git, browser watchdog | **KEEP** — not ILMA-redundant |
+
+### Verify a duplicate profile is safe to delete
+```bash
+SVC=ilma_test
+systemctl --user list-units --all 2>/dev/null | grep -i "$SVC" || echo "no unit"
+ps aux 2>/dev/null | grep -i "$SVC" | grep -v grep || echo "no process"
+grep -rIl "$SVC" /root/.hermes/profiles/ilma/ 2>/dev/null | head -3 || echo "not referenced"
+```
+
+### Pitfall F1: Backup dominance
+90% of `ilma*` hits are inside `backup*/`. Never `rm -rf` a backup dir on a loose
+"clean up ilma files" request. Confirm whether rollback points may go (default: KEEP).
+
+### Pitfall F2: Other-profile false positives
+`master-chief` profile and `hermes-agent` repo also contain `ilma*` strings (skill
+references, git remote `ilma-core`). Exclude them — deleting breaks a different agent.
+
+### Pitfall F3: Loose-file reference check
+Before `rm` a loose `/root/ilma_*.py`, confirm 0 importers in the active profile:
+```bash
+base=$(basename "$f" .py)
+grep -rl "\b$base\b" /root/.hermes/profiles/ilma/*.py /root/.hermes/profiles/ilma/scripts/*.py 2>/dev/null
+```
+0 hits ⇒ orphan ⇒ safe delete. Real example: 9 of 10 loose `/root/ilma_*.py` were
+orphans; `ilma_intelligence_core.py` had an importer ⇒ KEPT.
+
+Session transcript: `references/session-2026-07-28-filesystem-cleanup.md`
+
 ## Related Skills
 
 - `ilma-self-improve` - Continuous improvement
 - `ilma-performance-optimizer` - Performance optimization
 - `ilma-evolution` - System evolution patterns
-
-
-
-## Related Skills
-
-- `ilma-self-improve` - Continuous improvement
-- `ilma-performance-optimizer` - Performance optimization
-- `ilma-evolution` - System evolution patterns
+- `safe-runtime-patching` - sibling: patch (not delete) a running daemon safely
