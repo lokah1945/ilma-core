@@ -313,6 +313,54 @@ advanced. Never `git push --force` — rebase preserves both histories. If rebas
   `reasoning_content` as `content` instead. Benchmark proof: wrapper GLM default
   dropped 4.7s → 0.007s post-patch. See `references/wrapper-latency-debug-glm.md`.
 
+### 2026-07-29 Deep Audit Findings (NEW — add to every subsequent audit)
+- **wrapper-nous Brotli streaming bug (CVE-class):** Nous upstream returns
+  `Content-Encoding: br` (Brotli). aiohttp 3.13.5 with `auto_decompress=True` CAN
+  decompress Brotli — but ONLY if the `brotlipy` package (not system `brotli`) is
+  installed. System `brotli` (Debian `python3-brotli`) provides `brotli.Decompressor`
+  with `.process()` only (no `.decompress()`). aiohttp's `BrotliDecompressor` tries
+  `.decompress()` first, falls back to `.process()` with `max_length` (which
+  `brotlipy` doesn't accept). Result: `ClientPayloadError: Can not decode content-encoding: br`
+  → circuit breaker opens after 10 failures → ALL streaming fails (Codex stops
+  mid-way). **Fix:** `pip install brotlipy --break-system-packages` (replaces system
+  brotli with brotlipy which has `.decompress(data, max_length)`). Verified: all 3
+  streaming surfaces (chat, messages, responses) now complete. Root cause was
+  environment-dependent — `brotlipy` was not in any wrapper's requirements.
+  **Add to pre-deployment checklist:** verify `brotlipy` import works.
+- **wrapper-nvidia-python (port 9101) MISSING ENTIRELY.** Directory
+  `/root/wrapper/nvidia/` exists but contains only `metrics_data/`. No `src/`,
+  no `main.py`, no systemd service. This is the NVIDIA NIM catalog builder +
+  model fetcher. Must be deployed from monorepo `nvidia-python/` if it exists, or
+  rebuilt from wrapper-openrouter's catalog logic. Without it, the shared catalog
+  DB (`/root/wrapper/model_fetcher/data/active_nvidia_nim.sqlite3`) is never
+  populated → 0 models in catalog.
+- **model_fetcher catalog EMPTY (0 models).** DB schema exists but 0 rows. The
+  catalog population script (likely `nvidia-python` or `model_fetcher/src/`) was
+  never run. Need to populate from NVIDIA NIM API or OpenRouter model list. All
+  wrapper catalog integrations (`/catalog/health`, `/catalog/models`, `/mcp/sse`)
+  return "not_available" / "MCP not available".
+- **wrapper-openrouter catalog integration non-functional.** Catalog routes
+  registered at module level AFTER `app = create_app()` → catch-all proxy route
+  intercepts `/catalog/*` before catalog routes can match. Fix: register catalog
+  routes INSIDE `create_app()` before the catch-all, or add catalog path prefix to
+  PUBLIC_PATHS auth middleware.
+- **wrapper-nous missing `/ready` and `/metrics/activity` endpoints.** All
+  production wrappers should expose: `/health` (liveness), `/ready` (readiness -
+  key pool + upstream reachable), `/metrics` (JSON), `/metrics/prom` (Prometheus),
+  `/metrics/activity` (recent request log for load verification). Missing these
+  prevents automated health checks and load verification.
+- **FREE_ONLY policy inconsistent across wrappers.** nous=TRUE, opencode=TRUE,
+  blackbox=TRUE, vercel=FALSE, openrouter="no". Need unified policy via central
+  config or `common/env_config.py` with `FREE_ONLY=true` as default, overridable
+  per-service.
+- **Bind host inconsistency.** Some wrappers bind `127.0.0.1` (opencode, blackbox,
+  vercel), some `0.0.0.0` (nous, openrouter). For internal mesh, use `127.0.0.1`
+  consistently; expose via reverse proxy if external needed.
+- **Python path/venv inconsistency.** OpenRouter uses `.venv` + explicit
+  `PYTHONPATH=/root/wrapper`, others use system python + implicit path. Standardize
+  on: each wrapper has `.venv`, systemd `ExecStart=.venv/bin/python -m uvicorn
+  src.main:app`, `WorkingDirectory=/root/wrapper/<svc>`.
+
 ## Verification (end of every audit)
 ```bash
 git -C /root/wrapper status --short   # must be empty (clean tree) for 0 BLOCKED
