@@ -35,6 +35,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # ===================
 
 ILMA_PROFILE = Path("/root/.hermes/profiles/ilma")
+MODEL_REGISTRY_DB = ILMA_PROFILE / "ilma_model_router_data/model_registry.db"
 DASHBOARD_DB = ILMA_PROFILE / "data/ilma_dashboard.db"
 BENCHMARK_DB = ILMA_PROFILE / "ilma_model_router_data/benchmark_database.json"
 PROVIDER_INTEL = ILMA_PROFILE / "ilma_model_router_data/PROVIDER_INTELLIGENCE_MASTER.json"
@@ -156,7 +157,7 @@ class ModelRegistry:
         benchmark_path: str = str(BENCHMARK_DB),
         provider_intel_path: str = str(PROVIDER_INTEL),
     ):
-        self.db_path = db_path
+        self.db_path = str(MODEL_REGISTRY_DB)
         self.benchmark_path = benchmark_path
         self.provider_intel_path = provider_intel_path
         
