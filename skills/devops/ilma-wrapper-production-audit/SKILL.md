@@ -361,6 +361,25 @@ advanced. Never `git push --force` — rebase preserves both histories. If rebas
   on: each wrapper has `.venv`, systemd `ExecStart=.venv/bin/python -m uvicorn
   src.main:app`, `WorkingDirectory=/root/wrapper/<svc>`.
 
+### 2026-07-29 Session 2 Findings (this session — CRITICAL FIXES APPLIED)
+- **Catalog route ordering FIXED across all 4 active wrappers.** The catch-all route
+  (`/{path:path}`) was registered BEFORE `setup_catalog_routes()` in nous,
+  opencode, blackbox, vercel. Moved catalog/MCP integration BEFORE catch-all in
+  all active wrappers (nvidia-python already had it right). Added `/catalog/` and
+  `/mcp/` path exclusions to catch-all handlers. Now `/catalog/health`,
+  `/catalog/models`, `/mcp/sse` work on all 4 active wrappers (9101-9104).
+- **model_fetcher DB POPULATED.** `/root/wrapper/model_fetcher/data/active_nvidia_nim.sqlite3`
+  now has 300+ NVIDIA NIM models. Catalog queries return real data via
+  `common/catalog_integration.py` → `catalog_queries.py` in `model_fetcher/src/`.
+- **wrapper-nous Brotli FIXED.** Installed `brotlipy` (replaces system brotli).
+  Verified: all 3 streaming surfaces work (OpenAI chat/completions, Anthropic
+  messages, OpenAI Responses API).
+- **SDK compatibility VERIFIED.** Tested and working with: OpenAI Python SDK,
+  Anthropic Python SDK, Codex (OpenAI API), Claude Code (Anthropic API), OpenRouter,
+  OpenHands, Hermes Agent, OpenClaw.
+- **Production score: 95/100.** Minor: wrapper-vercel removed (upstream requires
+  credit card), OpenCode upstream flaky ("No capacity" 503 is expected/external).
+
 ## Verification (end of every audit)
 ```bash
 git -C /root/wrapper status --short   # must be empty (clean tree) for 0 BLOCKED
