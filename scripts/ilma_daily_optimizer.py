@@ -164,7 +164,7 @@ def phase_audit() -> OptimizationPhase:
     try:
         # Run self-improve audit (use -v for verbose output)
         exit_code, stdout, stderr = run_command(
-            ["python3", f"{SCRIPTS_DIR}/ilma_self_improve.py", "-v"],
+            ["python3", f"{SCRIPTS_DIR}/ilma_self_improve_loop.py", "-v"],
             timeout=120
         )
         
