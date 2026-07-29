@@ -1,105 +1,117 @@
-# Model Fetcher Catalog Setup — 2026-07-29
-
-## Context
-The `/root/wrapper/model_fetcher/` directory provides the central model catalog for all wrappers via `common/catalog_integration.py`. It was empty (0 models in SQLite DB) before this session.
+# Model Fetcher Catalog Setup & MCP Integration
 
 ## Architecture
 ```
 /root/wrapper/model_fetcher/
-├── __init__.py
 ├── data/
-│   └── active_nvidia_nim.sqlite3    # 300+ NVIDIA NIM models
-├── provider_management.py            # Admin API for provider keys
-└── src/
-    ├── catalog_queries.py            # search_models, get_model, list_providers, etc.
-    └── env_config.py                 # FREE_ONLY config (shared across wrappers)
+│   └── active_nvidia_nim.sqlite3    ← 300+ NVIDIA NIM models (81KB)
+├── src/
+│   ├── catalog_queries.py           ← SQL queries: search_models, get_model, list_providers, search_provider_models
+│   └── env_config.py                ← FREE_ONLY, is_free_model, free_model_allowlist, CATALOG_DB path
+├── provider_management.py           ← OpenRouter Management API (CRUD keys, rotation, usage)
+└── __init__.py
 ```
 
-## Catalog Integration Flow
-```
-common/catalog_integration.py
-  → imports from model_fetcher.src.catalog_queries
-  → opens /root/wrapper/model_fetcher/data/active_nvidia_nim.sqlite3
-  → mounts /catalog/* routes on each wrapper
-  → mounts /mcp/sse (FastMCP SSE transport)
-```
-
-## Population (This Session)
-The SQLite DB was empty. It was populated with 300+ NVIDIA NIM models from the NVIDIA NIM API / OpenRouter model list.
-
+## Catalog DB Schema (active_nvidia_nim.sqlite3)
 ```sql
--- Schema
 CREATE TABLE models (
-    id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY,           -- e.g., "nvidia/nemotron-3-ultra-550b-a55b"
     canonical_slug TEXT,
     hugging_face_id TEXT,
     name TEXT,
     created INTEGER,
     description TEXT,
     context_length INTEGER,
-    modality TEXT,
-    input_modalities TEXT,      -- JSON array
-    output_modalities TEXT,     -- JSON array
+    modality TEXT,                  -- "text", "vision", "image", "ranking"
+    input_modalities TEXT,          -- JSON array: ["text"]
+    output_modalities TEXT,         -- JSON array: ["text"]
     tokenizer TEXT,
-    instruct_type TEXT,
-    pricing_prompt REAL,
-    pricing_completion REAL,
+    instruct_type TEXT,             -- "chat", "completion"
+    pricing_prompt REAL,            -- 0.0 for free
+    pricing_completion REAL,        -- 0.0 for free
     top_provider_context_length INTEGER,
     top_provider_max_completion_tokens INTEGER,
     top_provider_is_moderated INTEGER,
-    supported_parameters TEXT,   -- JSON array
-    default_parameters TEXT,     -- JSON object
+    supported_parameters TEXT,      -- JSON array: ["temperature", "top_p", "max_tokens"]
+    default_parameters TEXT,        -- JSON: {"temperature": 0.7, "top_p": 1.0, "max_tokens": 4096}
     supported_voices TEXT,
-    knowledge_cutoff TEXT,
+    knowledge_cutoff TEXT,          -- "2024-01"
     expiration_date TEXT,
-    provider TEXT,
+    provider TEXT,                  -- "nvidia"
     publisher TEXT,
-    tier TEXT,                    -- free, paid
-    architecture TEXT,           -- JSON object
-    availability_state TEXT,     -- available, retired, etc.
-    reason_code TEXT,            -- OK, QUOTA, etc.
-    checked_at REAL,             -- Unix timestamp
-    source TEXT                  -- nvidia_nim_api, openrouter, etc.
+    tier TEXT,                      -- "free"
+    architecture TEXT,              -- JSON: {"input_modalities":["text"],"output_modalities":["text"],...}
+    availability_state TEXT,        -- "available", "unavailable"
+    reason_code TEXT,               -- "OK"
+    checked_at REAL,                -- Unix timestamp
+    source TEXT                     -- "nvidia_nim_api"
 );
 ```
 
-## Verification
+## Key Functions (catalog_queries.py)
+```python
+search_models(db, query=None, modality=None, tier=None, working_only=False, 
+              free_only=False, publisher=None, limit=50) -> list[dict]
+
+get_model(db, catalog_id: str) -> Optional[dict]
+
+list_providers(db) -> list[dict]
+
+search_provider_models(db, provider=None, query=None, free_only=False, limit=50) -> list[dict]
+
+stats(db) -> dict  -- total models, by tier, by modality, by provider
+```
+
+## Shared Integration (common/catalog_integration.py)
+```python
+# Mounted by ALL wrappers in main.py:
+from common.catalog_integration import setup_catalog_routes, setup_mcp_server, free_only_enabled
+
+setup_catalog_routes(app)          # → /catalog/health, /catalog/models, /catalog/search, /catalog/providers, /catalog/model, /catalog/provider-models
+setup_mcp_server(app, "nous")      # → /mcp/sse (FastMCP SSE transport)
+
+# MCP Tools exposed:
+# - search_nim_models(query, modality, tier, working_only, free_only, publisher, limit)
+# - get_nim_model(catalog_id)
+# - list_providers()
+# - search_provider_models(provider, query, free_only, limit)
+# - openrouter_list_keys(offset)       # only if management enabled
+# - openrouter_key_usage()             # only if management enabled
+```
+
+## FREE_ONLY Logic (env_config.py)
+```python
+# Environment: FREE_ONLY=yes|true|1|on|y
+def free_only() -> bool:
+    v = os.environ.get("FREE_ONLY", "no").lower()
+    return v in ("yes", "true", "1", "on", "y")
+
+# Model ID qualifies as free if:
+# - ends with ":free" or "-free"
+# - in FREE_MODEL_ALLOWLIST (comma-separated env var)
+# - pricing_prompt = 0 in catalog
+```
+
+## Population (Manual - needs automation)
+Current: DB populated via git commit (model_fetcher/data/active_nvidia_nim.sqlite3 tracked)
+Future: Run `model_fetcher/src/populate_catalog.py` (not yet created) to fetch from:
+- NVIDIA NIM API: `https://integrate.api.nvidia.com/v1/models`
+- OpenRouter API: `https://openrouter.ai/api/v1/models`
+- Nous API: `https://inference-api.nousresearch.com/v1/models`
+
+## MCP Server Endpoints
+All 4 active wrappers expose:
+- `GET /mcp/sse?request=<json>` — SSE transport (requires `request` query param with MCP initialize call)
+- `POST /mcp/messages` — message handler
+
+Test:
 ```bash
-# Check DB has models
-sqlite3 /root/wrapper/model_fetcher/data/active_nvidia_nim.sqlite3 "SELECT COUNT(*) FROM models;"
-# → 300+
-
-# Test catalog endpoints on all wrappers
-for p in 9101 9102 9103 9104; do
-  curl -s http://127.0.0.1:$p/catalog/health
-  curl -s http://127.0.0.1:$p/catalog/models?limit=3
-done
-
-# Test MCP tools
-curl -s "http://127.0.0.1:9102/mcp/sse?request={\"method\":\"tools/call\",\"params\":{\"name\":\"search_nim_models\",\"arguments\":{\"query\":\"nemotron\",\"limit\":2}}}"
+curl -s "http://localhost:9102/mcp/sse?request={\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"test\",\"version\":\"1.0\"}}}"
 ```
 
-## FREE_ONLY Config
-`model_fetcher/src/env_config.py` provides the shared `free_only_enabled()` function used by all wrappers. This ensures consistent FREE-TIER-FIRST behavior.
-
-```python
-def free_only_enabled() -> bool:
-    """Returns True if FREE_ONLY mode is active (default: True)."""
-    return os.environ.get("FREE_ONLY", "true").lower() in ("1", "true", "yes")
-```
-
-Wrappers override via `common/catalog_integration.py`:
-```python
-from common.catalog_integration import free_only_enabled as _cfe
-free_only_enabled = _cfe  # override local with shared version
-```
-
-## Maintenance
-- **Re-populate catalog**: Run the model fetcher population script (TBD - likely in model_fetcher/src/)
-- **Update frequency**: Weekly or when new NVIDIA NIM models released
-- **Backup**: DB is committed to git (committed this session)
-
-## Pitfalls
-- `catalog_queries.py` is in `model_fetcher/src/` NOT `model_fetcher/` root — `common/catalog_integration.py` was fixed to check both locations
-- SQLite is read-only in production (URI `file:path?mode=ro`) — writes need separate process
-- DB path configurable via `CATALOG_DB` env var, defaults to `model_fetcher/data/active_nvidia_nim.sqlite3`
+## Verification Checklist
+- [ ] `sqlite3 /root/wrapper/model_fetcher/data/active_nvidia_nim.sqlite3 "SELECT COUNT(*) FROM models;"` returns > 0
+- [ ] `curl http://localhost:9102/catalog/health` → `{"ok":true,"db":"present"}`
+- [ ] `curl http://localhost:9102/catalog/models?limit=3` → 3 models with NVIDIA provider
+- [ ] `curl http://localhost:9102/catalog/search?q=nemotron&limit=2` → results
+- [ ] `curl "http://localhost:9102/mcp/sse?request={\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"test\",\"version\":\"1.0\"}}}"` → SSE stream

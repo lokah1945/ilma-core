@@ -1,51 +1,72 @@
-# Wrapper Vercel Removal — 2026-07-29
+# Wrapper Ecosystem Cleanup & Removal Protocol
 
-## Context
-Vercel AI Gateway wrapper (port 9105) was removed entirely from the fleet because the upstream requires a credit card on file to service requests. The free tier is not usable without a payment method, making it non-viable for our FREE-TIER-FIRST policy.
+## When to Use
+- Removing a non-viable wrapper (e.g., vercel requires credit card)
+- Cleaning up stale/legacy artifacts across the monorepo
+- Ensuring zero references remain after removal
 
-## Removal Scope (Comprehensive)
+## Comprehensive Removal Checklist
 
-### Source Code
-- `vercel/` directory: `src/main.py`, `key_pool.py`, `metrics.py`, `dashboard.html`, `requirements.txt`, `.env.example`, `README.md`
-
-### Systemd Service
-- `wrapper-vercel.service` stopped, disabled, removed from `~/.config/systemd/user/`
-
-### Configuration Files
-- `wrappers.json`: removed vercel entry from wrapper list
-- `README.md`: removed from wrapper table, documentation links, repository layout
-- `update_readmes.py`: removed vercel from wrapper list
-- `WRAPPER_CONTRACT.md`: removed section 5 (vercel), updated port mapping table
-
-### Code References
-- `openrouter/src/main.py`: removed "Vercel" from model listings comment
-- `common/catalog_integration.py`: removed "Vercel" from provider list comment
-
-### Logs
-- `model-registry/registry.log`: removed (contained vercel manifest warnings)
-
-### Verification After Removal
+### 1. Source Code & Directories
 ```bash
-# 1. No vercel references in codebase (except historical audit docs)
-grep -r "vercel" /root/wrapper/ --exclude-dir=.git --exclude-dir=audit_report
-
-# 2. Systemd shows only 4 wrapper services
-systemctl --user list-unit-files | grep wrapper
-
-# 3. All 4 remaining wrappers healthy
-for p in 9101 9102 9103 9104; do curl -s http://127.0.0.1:$p/ready; done
+rm -rf /root/wrapper/vercel/          # Source directory
+rm -f /root/.config/systemd/user/wrapper-vercel.service  # Systemd unit
+systemctl --user daemon-reload
 ```
 
-## Decision Record
-- **Why remove, not disable?** Upstream limitation is permanent (credit card requirement). Keeping a disabled service adds maintenance noise and false inventory.
-- **FREE-TIER-FIRST policy**: Our constitutional rule (2026-06-21) mandates free-tier first. Vercel violates this.
-- **No fallback needed**: The 4 remaining wrappers (NVIDIA NIM, Nous, OpenCode, Blackbox) provide sufficient free model coverage.
+### 2. Configuration & Metadata
+- `wrappers.json` — remove entry
+- `.env.example` — remove vercel section
+- `README.md` — remove from wrapper table, docs list, repo layout
+- `update_readmes.py` — remove from wrapper dict
+- `WRAPPER_CONTRACT.md` — remove section, port mapping table
+- `.claude/settings.local.json` — remove service commands
 
-## Audit Update
-- Production audit now covers **4 LLM wrappers** (9101-9104) + model-registry (9200)
-- Score: **95/100** (minor: OpenCode upstream flaky "No capacity" 503 is expected/external)
-- All endpoints verified: `/ready`, `/catalog/health`, `/mcp/sse`, `/v1/models`, streaming (chat/messages/responses)
+### 3. Code References (grep -r "vercel")
+- `common/catalog_integration.py` — comments, provider lists
+- `openrouter/src/main.py` — model listing comments
+- `nvidia-python/src/main.py` — any vercel references
+- All audit reports (historical, keep but note removal)
 
-## Git Commits
-1. `2b989e0` - remove: wrapper-vercel (port 9105) - upstream requires credit card
-2. `833c852` - cleanup: remove wrapper-vercel comprehensively (port 9105)
+### 4. Git Workflow
+```bash
+cd /root/wrapper
+git add -A
+git commit -m "remove: wrapper-vercel (port 9105) - upstream requires credit card
+
+- Remove vercel/ directory and systemd service
+- Update wrappers.json, README.md, WRAPPER_CONTRACT.md
+- Remove vercel references from code comments
+- Update update_readmes.py wrapper list
+
+Co-authored-by: openhands <openhands@all-hands.dev>"
+
+# Proper rebase workflow (github/main may have advanced):
+git fetch github
+git stash push -u -m "ilma-cleanup-stash"
+git rebase github/main
+git stash pop
+git push github main
+```
+
+### 5. Verification
+```bash
+# No vercel references remain (except historical audit reports)
+grep -r "vercel" /root/wrapper/ --exclude-dir=.git --exclude-dir=audit_report
+
+# No systemd unit
+systemctl --user list-unit-files | grep vercel
+
+# No directory
+ls /root/wrapper/vercel 2>&1  # should error
+
+# Remaining wrappers healthy
+for p in 9101 9102 9103 9104; do curl -s http://localhost:$p/ready | jq .ready; done
+```
+
+## Lessons Learned (2026-07-29)
+- **vercel upstream requires credit card** — not viable for free-tier automation. Trap: "free models" but 403 without CC.
+- **Cleanup must be comprehensive** — missed references cause confusion in future audits
+- **Systemd unit must be stopped+disabled+removed** before directory deletion
+- **Git rebase, never force-push** — preserves history if remote advanced
+- **All 4 remaining wrappers verified** post-cleanup: health, catalog, MCP, streaming
