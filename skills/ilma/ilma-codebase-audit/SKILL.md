@@ -137,3 +137,12 @@ See `references/ilma-audit-bug-patterns.md` for the 2026-07-09 findings as a reu
 - One Telegram message = one report (Bos pref: no duplicate delivery). End with `✅ terkirim 1x`.
 - Lead with the VERDICT, then the findings table, then "next step" offer (patch now? or see repro?).
 - Never claim a layer is clean without running its verification command.
+
+## POLICY COMPLIANCE AUDIT MODE
+When auditing kebijakan (policy compliance) seperti FREE_ONLY, rate limiting, atau auth:
+- Gunakan skill `ilma-policy-compliance-audit` untuk verifikasi
+- **Jangan** berikan rekomendasi perbaikan kecuali diminta secara eksplisit
+- Fokus pada laporan kepatuhanan, bukan perbaikan
+
+See `references/free-only-implementation-patterns.md` for FREE_ONLY implementation verification steps.
+See `references/policy-enforcement-points.md` for enforcement point locations across wrappers.

@@ -368,6 +368,18 @@ advanced. Never `git push --force` — rebase preserves both histories. If rebas
   all active wrappers (nvidia-python already had it right). Added `/catalog/` and
   `/mcp/` path exclusions to catch-all handlers. Now `/catalog/health`,
   `/catalog/models`, `/mcp/sse` work on all 4 active wrappers (9101-9104).
+- **FREE_ONLY policy inconsistent across wrappers (CRITICAL FINDING).** Verified
+  actual `.env` settings:
+  | Wrapper | FREE_ONLY | FREE_MODEL_ALLOWLIST | Status |
+  |---------|-----------|---------------------|--------|
+  | nvidia-python (9101) | ❌ Not set | — | ✅ OK (NVIDIA NIM is inherently free) |
+  | opencode (9103) | ✅ `FREE_ONLY=yes` | `big-pickle` | ⚠️ Only 1 model allowed |
+  | nous (9102) | ✅ `FREE_ONLY=yes` | *(empty)* | ❌ Blocks all models |
+  | blackbox (9104) | ✅ `FREE_ONLY=yes` | `blackboxai/nvidia/nemotron-nano-12b-v2-vl` | ⚠️ Only 1 model allowed |
+  | openrouter (9106) | ✅ `FREE_ONLY=yes` | *(empty)* | ❌ Blocks all models |
+  **Pitfall:** Empty `FREE_MODEL_ALLOWLIST` blocks ALL models. After `git pull`,
+  always verify `.env` settings match intended policy. Use `grep FREE_ONLY` to
+  audit.
 - **model_fetcher DB POPULATED.** `/root/wrapper/model_fetcher/data/active_nvidia_nim.sqlite3`
   now has 300+ NVIDIA NIM models. Catalog queries return real data via
   `common/catalog_integration.py` → `catalog_queries.py` in `model_fetcher/src/`.
