@@ -72,7 +72,18 @@ Check these FIRST when a wrapper 500s after pull:
 - Models MUST be registered manually under `"models"` (OpenCode does NOT auto-fetch `/v1/models` for custom providers).
 - Verify: `opencode models` lists `wrapper-<name>/<model>` lines; smoke test `opencode run "reply exactly: PONG" -m wrapper-nous/tencent/hy3:free`.
 
-## Pre-restart import-test recipe (catches broken imports BEFORE the service dies)
+## Pre-auth / open LAN access mode (user preference: "tanpa auth / pre-auth")
+Bos wants ALL wrappers + dashboards reachable from the LAN IP **without** sending a bearer token (pre-auth / open mode). This is a recurring preference — apply it whenever Bos says "akses tanpa auth", "pre-auth saja", or "buka untuk user".
+
+**CRITICAL GOTCHA — do NOT blank `BEARER_TOKEN`.** `nvidia-python/src/main.py::validate_config()` does `if not os.environ.get('BEARER_TOKEN'): sys.exit(1)` → blanking it makes the wrapper crash-loop (`activating (auto-restart)`, port 9101 curl `000`). Keep `BEARER_TOKEN=wrapper-local-key` and disable auth a different way.
+
+**Correct procedure:**
+1. Keep `BEARER_TOKEN=wrapper-local-key` in each `.env`. ADD a new line `DISABLE_AUTH=1`.
+2. Patch each wrapper's auth gate to respect `DISABLE_AUTH`. Each wrapper has a DIFFERENT gate location/form (see `references/pre-auth-open-access.md` for exact diffs):
+   - **nvidia-python**: `auth_middleware` → `if BEARER_TOKEN and not is_public:` → `if BEARER_TOKEN and not is_public and not os.environ.get('DISABLE_AUTH'):`
+   - **nous**: `_auth_check` → after `if not BEARER_TOKEN: return` add `if os.environ.get('DISABLE_AUTH'): return`
+   - **opencode / vercel / blackbox**: `_auth_check` → after `if request.method == 'OPTIONS': return` add `if os.environ.get('DISABLE_AUTH'): return  # pre-auth mode`
+3. **model-registry (9200)** has its OWN `.env` at `/root/wrapper/model-registry/.env` with `MODEL_REGISTRY_HOST=127.0.0.1` that OVERRIDES the default in `service.py`. To open it: set `MODEL_REGISTRY_HOST=0.0.0.0` there (not just patching service.py — the .env wins).
 After ANY code change to a wrapper (pull, revert, patch), do NOT just restart + curl. Test the import directly first — a broken import leaves the service `activating`/`failed` and wastes a restart cycle:
 ```bash
 cd /root/wrapper/<wrapper>
