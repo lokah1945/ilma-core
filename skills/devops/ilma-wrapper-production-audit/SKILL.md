@@ -27,6 +27,9 @@ Bos runs this after every code change, restart, or cloud-commit pull.
 | wrapper-opencode | 9103 | `python3 -m uvicorn src.main:app` | `/root/wrapper/opencode/` |
 | wrapper-blackbox | 9104 | `python3 src/main.py` | `/root/wrapper/blackbox/` |
 | wrapper-model-registry | 9200 | `python3 model-registry/service.py` | `/root/wrapper` (PYTHONPATH=/root/wrapper) |
+| wrapper-openrouter | 9106 | `python3 src/main.py` | `/root/wrapper/openrouter/` |
+
+**CRITICAL:** OpenRouter uses non-standard port **9106** (not 9105/9107 as may appear in legacy docs). Always verify with `ss -tlnp | grep 910` at audit start.
 
 - **Deployment model = USER-LEVEL systemd.** Units live at
   `~/.config/systemd/user/wrapper-*.service`, enabled via
