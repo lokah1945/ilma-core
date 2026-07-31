@@ -23,11 +23,11 @@
       "no_agent": false,
       "created_at": "2026-05-10T09:00:00Z",
       "last_run": null,
-      "last_error": "RuntimeError: HTTP 503: The requested model is temporarily unavailable due to upstream capacity limits. Please try again in a moment.",
+      "last_error": null,
       "status": "pending",
-      "next_run_at": "2026-07-31T09:00:00+07:00",
-      "last_run_at": "2026-07-30T09:04:49.218301+07:00",
-      "last_status": "error",
+      "next_run_at": "2026-08-01T09:00:00+07:00",
+      "last_run_at": "2026-07-31T09:05:35.084023+07:00",
+      "last_status": "ok",
       "last_delivery_error": null,
       "fire_claim": null,
       "state": "scheduled"
@@ -88,5 +88,5 @@
       "fire_claim": null
     }
   ],
-  "updated_at": "2026-07-31T00:00:32.188538+07:00"
+  "updated_at": "2026-07-31T09:05:35.084887+07:00"
 }
