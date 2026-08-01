@@ -196,7 +196,9 @@ Documented vs real port deltas are common — re-verify every time.
 - `system-administration` — unread stub; not useful yet
 - `devops` — unread stub; not useful yet
 - `cf-bypass-browser-ua-pattern` — for HTTP provider API key rotation, unrelated
+- `domain` — Hermes ingested skill for domain reconnaissance and website discovery
 
 ## Reference files
 - `references/2026-06-20-fullstackvps-audit.md` — full transcript of the 2026-06-20 matrix-scan on FullStackVPS (smahud.pem + 172.16.103.200 + port reassignments 3100/3200/3201). Use as a worked example when port docs say 3000/3001/1337 but reality disagrees.
-- `references/vps-project-json-surgical-update.md` — recipe for safely updating `vps_project.json` (or any SOT-infra JSON) when ports/keys have drifted from doc reality. Use this after a Step 4 service audit discovers mismatch.
+- `references/vps-project-json-surgical-update.md` — recipe for safely updating `vps_project.json` (or any SOT-infra JSON) when ports/keys have drifted from doc reality.
+- `references/2026-08-02-vpsfullstack-web-recon.md` — VPSFullStack website reconnaissance (2026-08-02). Documents 3 active Next.js/Strapi websites on internal IP 172.16.103.200 with port mappings 3100/3200/3201. Use this after a Step 4 service audit discovers mismatch.
