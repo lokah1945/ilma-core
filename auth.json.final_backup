@@ -1,0 +1,347 @@
+{
+  "version": 1,
+  "providers": {
+    "nous": {
+      "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InByb2QtMjAyNi0wNS0wOC0xIn0.eyJjbGllbnRfaWQiOiJoZXJtZXMtY2xpIiwib3JnX2lkIjoiY21wejN2bWppMDAwa2tqMGI4dGEzZGxnYiIsInNjb3BlIjoiaW5mZXJlbmNlOmludm9rZSB0b29sOmludm9rZSIsInRva2VuX3VzZSI6ImFjY2VzcyIsIm9hdXRoX2NvbnRyYWN0X3ZlcnNpb24iOjEsInNpZCI6InNpZF9iN2NIV2Q2TXdVUXVyN21vUEpZLXVNMVMiLCJwcm9kdWN0X2lkIjoibm91cy1oZXJtZXMtYWdlbnQiLCJub3VzX2NsaWVudCI6Imhlcm1lcy1hZ2VudCIsInRvb2xfZ2F0ZXdheV9hZG1pbiI6ZmFsc2UsInBhaWRfYWNjZXNzIjpmYWxzZSwicHJpdmFjeV9tb2RlIjoic3RhbmRhcmQiLCJwb2xpY3lfcHJlc2VudCI6ZmFsc2UsIm1lbWJlcl9zcGVuZF9jYXBfZXhjZWVkZWQiOmZhbHNlLCJtZW1iZXJfc3BlbmRfY2FwX3VzZCI6bnVsbCwibWVtYmVyX3NwZW5kX3VzZCI6IjAiLCJtZW1iZXJfc3BlbmRfY2FwX3JlbWFpbmluZ191c2QiOm51bGwsInRvb2xfYWNjZXNzIjp7ImVuYWJsZWQiOnRydWUsImNvdmVyYWdlIjp7ImZpcmVjcmF3bCI6dHJ1ZSwiZmFsIjp0cnVlLCJmYWwtdmlkZW8iOmZhbHNlLCJvcGVuYWktYXVkaW8iOnRydWUsImJyb3dzZXItdXNlIjp0cnVlLCJtb2RhbCI6dHJ1ZSwia3JlYSI6ZmFsc2V9fSwic3Vic2NyaXB0aW9uX3RpZXIiOjUsInJhdGVfbGltaXRfcHJvZmlsZV9pZCI6LTEyLCJyYXRlX2xpbWl0X3JwbSI6NTAsInJhdGVfbGltaXRfdHBtIjo1MDAwMDAsInJhdGVfbGltaXRfcnBoIjoyMTAwLCJyYXRlX2xpbWl0X3RwaCI6NjAwMDAwMCwicmF0ZV9saW1pdF9zb3VyY2UiOiJmcmVlX2hlcm1lc19hZ2VudCIsInN1YiI6ImNtcHozdm1oejAwMGlrajBiNTJhdHFmeDAiLCJpc3MiOiJodHRwczovL3BvcnRhbC5ub3VzcmVzZWFyY2guY29tIiwiYXVkIjoiaGVybWVzLWNsaTpoZXJtZXMtY2xpIiwiaWF0IjoxNzg1Njg2Mjc4LCJleHAiOjE3ODU2ODk4NzgsImp0aSI6IkpKWWplbmplUE44aTRTOTh5WTFNN1EifQ.M3TxLVLM6PptcqGa0frWTMSW_ala-80ebzxpJb7QVi_H6RrhlwVGmaDUUlApVy5GOzJhQvfNRFK2MUPsyq3BC-W8y58_YT-Nh69zvmEzunllwL4RCIdOxDvr1USi0ZiQ7Z9MFPPiRsCbUsEdhPm_hep2OQF7t9HudgFDEa0oiSPYkhvigq088p1eogH38SHWbevOwc2VS72ZueBwst2avttbDYVbTCBPGkyzuMAL3r8dRDUroc40IZhKt1AlKrBMnOK0nws8pZm_9FmMCnf7T6MupF5N0DPMKbAi6HWBFY4Zp3Vgk0N2hBQ87PXjjpHix-M-Hfw1BOOG6tSMHsxYGg",
+      "refresh_token": "rt_OQsV_DK0T9CyGN9aH0cyM5JKLqgDny_GqoVjptjp66J7KQFLEQzpFz9vuqJQpyrz",
+      "client_id": "hermes-cli",
+      "portal_base_url": "https://portal.nousresearch.com",
+      "inference_base_url": "https://inference-api.nousresearch.com/v1",
+      "token_type": "Bearer",
+      "scope": "inference:invoke",
+      "obtained_at": "2026-08-02T15:57:59.174069+00:00",
+      "expires_at": "2026-08-02T16:57:58+00:00",
+      "agent_key": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InByb2QtMjAyNi0wNS0wOC0xIn0.eyJjbGllbnRfaWQiOiJoZXJtZXMtY2xpIiwib3JnX2lkIjoiY21wejN2bWppMDAwa2tqMGI4dGEzZGxnYiIsInNjb3BlIjoiaW5mZXJlbmNlOmludm9rZSB0b29sOmludm9rZSIsInRva2VuX3VzZSI6ImFjY2VzcyIsIm9hdXRoX2NvbnRyYWN0X3ZlcnNpb24iOjEsInNpZCI6InNpZF9iN2NIV2Q2TXdVUXVyN21vUEpZLXVNMVMiLCJwcm9kdWN0X2lkIjoibm91cy1oZXJtZXMtYWdlbnQiLCJub3VzX2NsaWVudCI6Imhlcm1lcy1hZ2VudCIsInRvb2xfZ2F0ZXdheV9hZG1pbiI6ZmFsc2UsInBhaWRfYWNjZXNzIjpmYWxzZSwicHJpdmFjeV9tb2RlIjoic3RhbmRhcmQiLCJwb2xpY3lfcHJlc2VudCI6ZmFsc2UsIm1lbWJlcl9zcGVuZF9jYXBfZXhjZWVkZWQiOmZhbHNlLCJtZW1iZXJfc3BlbmRfY2FwX3VzZCI6bnVsbCwibWVtYmVyX3NwZW5kX3VzZCI6IjAiLCJtZW1iZXJfc3BlbmRfY2FwX3JlbWFpbmluZ191c2QiOm51bGwsInRvb2xfYWNjZXNzIjp7ImVuYWJsZWQiOnRydWUsImNvdmVyYWdlIjp7ImZpcmVjcmF3bCI6dHJ1ZSwiZmFsIjp0cnVlLCJmYWwtdmlkZW8iOmZhbHNlLCJvcGVuYWktYXVkaW8iOnRydWUsImJyb3dzZXItdXNlIjp0cnVlLCJtb2RhbCI6dHJ1ZSwia3JlYSI6ZmFsc2V9fSwic3Vic2NyaXB0aW9uX3RpZXIiOjUsInJhdGVfbGltaXRfcHJvZmlsZV9pZCI6LTEyLCJyYXRlX2xpbWl0X3JwbSI6NTAsInJhdGVfbGltaXRfdHBtIjo1MDAwMDAsInJhdGVfbGltaXRfcnBoIjoyMTAwLCJyYXRlX2xpbWl0X3RwaCI6NjAwMDAwMCwicmF0ZV9saW1pdF9zb3VyY2UiOiJmcmVlX2hlcm1lc19hZ2VudCIsInN1YiI6ImNtcHozdm1oejAwMGlrajBiNTJhdHFmeDAiLCJpc3MiOiJodHRwczovL3BvcnRhbC5ub3VzcmVzZWFyY2guY29tIiwiYXVkIjoiaGVybWVzLWNsaTpoZXJtZXMtY2xpIiwiaWF0IjoxNzg1Njg2Mjc4LCJleHAiOjE3ODU2ODk4NzgsImp0aSI6IkpKWWplbmplUE44aTRTOTh5WTFNN1EifQ.M3TxLVLM6PptcqGa0frWTMSW_ala-80ebzxpJb7QVi_H6RrhlwVGmaDUUlApVy5GOzJhQvfNRFK2MUPsyq3BC-W8y58_YT-Nh69zvmEzunllwL4RCIdOxDvr1USi0ZiQ7Z9MFPPiRsCbUsEdhPm_hep2OQF7t9HudgFDEa0oiSPYkhvigq088p1eogH38SHWbevOwc2VS72ZueBwst2avttbDYVbTCBPGkyzuMAL3r8dRDUroc40IZhKt1AlKrBMnOK0nws8pZm_9FmMCnf7T6MupF5N0DPMKbAi6HWBFY4Zp3Vgk0N2hBQ87PXjjpHix-M-Hfw1BOOG6tSMHsxYGg",
+      "agent_key_expires_at": "2026-08-02T16:57:58+00:00",
+      "tls": {
+        "insecure": false,
+        "ca_bundle": null
+      },
+      "expires_in": 3598,
+      "agent_key_id": null,
+      "agent_key_expires_in": 3598,
+      "agent_key_reused": false,
+      "agent_key_obtained_at": "2026-08-02T15:57:59.209042+00:00"
+    }
+  },
+  "credential_pool": {
+    "nvidia": [
+      {
+        "id": "032de6",
+        "label": "NVIDIA_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:NVIDIA_API_KEY",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "https://integrate.api.nvidia.com/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:2ae7bf496a58ff60"
+      }
+    ],
+    "openrouter": [
+      {
+        "id": "cd96a1",
+        "label": "OPENROUTER_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:OPENROUTER_API_KEY",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "https://openrouter.ai/api/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:e528fe50f9891a15"
+      }
+    ],
+    "opencode-zen": [
+      {
+        "id": "38d068",
+        "label": "OPENCODE_ZEN_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:OPENCODE_ZEN_API_KEY",
+        "last_status": "exhausted",
+        "last_status_at": 1782856980.6268382,
+        "last_error_code": 401,
+        "last_error_reason": "ModelError",
+        "last_error_message": "Model minimax-m3-free is not supported",
+        "last_error_reset_at": null,
+        "base_url": "https://opencode.ai/zen/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:584b3d1feef75334"
+      }
+    ],
+    "minimax": [
+      {
+        "id": "d21bb1",
+        "label": "MINIMAX_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:MINIMAX_API_KEY",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "https://api.minimax.io/anthropic",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:39bf4272aac3db01"
+      }
+    ],
+    "nous": [
+      {
+        "id": "5bbf42",
+        "label": "device_code",
+        "auth_type": "oauth",
+        "priority": 0,
+        "source": "device_code",
+        "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InByb2QtMjAyNi0wNS0wOC0xIn0.eyJjbGllbnRfaWQiOiJoZXJtZXMtY2xpIiwib3JnX2lkIjoiY21wejN2bWppMDAwa2tqMGI4dGEzZGxnYiIsInNjb3BlIjoiaW5mZXJlbmNlOmludm9rZSB0b29sOmludm9rZSIsInRva2VuX3VzZSI6ImFjY2VzcyIsIm9hdXRoX2NvbnRyYWN0X3ZlcnNpb24iOjEsInNpZCI6InNpZF9iN2NIV2Q2TXdVUXVyN21vUEpZLXVNMVMiLCJwcm9kdWN0X2lkIjoibm91cy1oZXJtZXMtYWdlbnQiLCJub3VzX2NsaWVudCI6Imhlcm1lcy1hZ2VudCIsInRvb2xfZ2F0ZXdheV9hZG1pbiI6ZmFsc2UsInBhaWRfYWNjZXNzIjpmYWxzZSwicHJpdmFjeV9tb2RlIjoic3RhbmRhcmQiLCJwb2xpY3lfcHJlc2VudCI6ZmFsc2UsIm1lbWJlcl9zcGVuZF9jYXBfZXhjZWVkZWQiOmZhbHNlLCJtZW1iZXJfc3BlbmRfY2FwX3VzZCI6bnVsbCwibWVtYmVyX3NwZW5kX3VzZCI6IjAiLCJtZW1iZXJfc3BlbmRfY2FwX3JlbWFpbmluZ191c2QiOm51bGwsInRvb2xfYWNjZXNzIjp7ImVuYWJsZWQiOnRydWUsImNvdmVyYWdlIjp7ImZpcmVjcmF3bCI6dHJ1ZSwiZmFsIjp0cnVlLCJmYWwtdmlkZW8iOmZhbHNlLCJvcGVuYWktYXVkaW8iOnRydWUsImJyb3dzZXItdXNlIjp0cnVlLCJtb2RhbCI6dHJ1ZSwia3JlYSI6ZmFsc2V9fSwic3Vic2NyaXB0aW9uX3RpZXIiOjUsInJhdGVfbGltaXRfcHJvZmlsZV9pZCI6LTEyLCJyYXRlX2xpbWl0X3JwbSI6NTAsInJhdGVfbGltaXRfdHBtIjo1MDAwMDAsInJhdGVfbGltaXRfcnBoIjoyMTAwLCJyYXRlX2xpbWl0X3RwaCI6NjAwMDAwMCwicmF0ZV9saW1pdF9zb3VyY2UiOiJmcmVlX2hlcm1lc19hZ2VudCIsInN1YiI6ImNtcHozdm1oejAwMGlrajBiNTJhdHFmeDAiLCJpc3MiOiJodHRwczovL3BvcnRhbC5ub3VzcmVzZWFyY2guY29tIiwiYXVkIjoiaGVybWVzLWNsaTpoZXJtZXMtY2xpIiwiaWF0IjoxNzg1Njg2Mjc4LCJleHAiOjE3ODU2ODk4NzgsImp0aSI6IkpKWWplbmplUE44aTRTOTh5WTFNN1EifQ.M3TxLVLM6PptcqGa0frWTMSW_ala-80ebzxpJb7QVi_H6RrhlwVGmaDUUlApVy5GOzJhQvfNRFK2MUPsyq3BC-W8y58_YT-Nh69zvmEzunllwL4RCIdOxDvr1USi0ZiQ7Z9MFPPiRsCbUsEdhPm_hep2OQF7t9HudgFDEa0oiSPYkhvigq088p1eogH38SHWbevOwc2VS72ZueBwst2avttbDYVbTCBPGkyzuMAL3r8dRDUroc40IZhKt1AlKrBMnOK0nws8pZm_9FmMCnf7T6MupF5N0DPMKbAi6HWBFY4Zp3Vgk0N2hBQ87PXjjpHix-M-Hfw1BOOG6tSMHsxYGg",
+        "refresh_token": "rt_OQsV_DK0T9CyGN9aH0cyM5JKLqgDny_GqoVjptjp66J7KQFLEQzpFz9vuqJQpyrz",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "expires_at": "2026-08-02T16:57:58+00:00",
+        "inference_base_url": "https://inference-api.nousresearch.com/v1",
+        "agent_key": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InByb2QtMjAyNi0wNS0wOC0xIn0.eyJjbGllbnRfaWQiOiJoZXJtZXMtY2xpIiwib3JnX2lkIjoiY21wejN2bWppMDAwa2tqMGI4dGEzZGxnYiIsInNjb3BlIjoiaW5mZXJlbmNlOmludm9rZSB0b29sOmludm9rZSIsInRva2VuX3VzZSI6ImFjY2VzcyIsIm9hdXRoX2NvbnRyYWN0X3ZlcnNpb24iOjEsInNpZCI6InNpZF9iN2NIV2Q2TXdVUXVyN21vUEpZLXVNMVMiLCJwcm9kdWN0X2lkIjoibm91cy1oZXJtZXMtYWdlbnQiLCJub3VzX2NsaWVudCI6Imhlcm1lcy1hZ2VudCIsInRvb2xfZ2F0ZXdheV9hZG1pbiI6ZmFsc2UsInBhaWRfYWNjZXNzIjpmYWxzZSwicHJpdmFjeV9tb2RlIjoic3RhbmRhcmQiLCJwb2xpY3lfcHJlc2VudCI6ZmFsc2UsIm1lbWJlcl9zcGVuZF9jYXBfZXhjZWVkZWQiOmZhbHNlLCJtZW1iZXJfc3BlbmRfY2FwX3VzZCI6bnVsbCwibWVtYmVyX3NwZW5kX3VzZCI6IjAiLCJtZW1iZXJfc3BlbmRfY2FwX3JlbWFpbmluZ191c2QiOm51bGwsInRvb2xfYWNjZXNzIjp7ImVuYWJsZWQiOnRydWUsImNvdmVyYWdlIjp7ImZpcmVjcmF3bCI6dHJ1ZSwiZmFsIjp0cnVlLCJmYWwtdmlkZW8iOmZhbHNlLCJvcGVuYWktYXVkaW8iOnRydWUsImJyb3dzZXItdXNlIjp0cnVlLCJtb2RhbCI6dHJ1ZSwia3JlYSI6ZmFsc2V9fSwic3Vic2NyaXB0aW9uX3RpZXIiOjUsInJhdGVfbGltaXRfcHJvZmlsZV9pZCI6LTEyLCJyYXRlX2xpbWl0X3JwbSI6NTAsInJhdGVfbGltaXRfdHBtIjo1MDAwMDAsInJhdGVfbGltaXRfcnBoIjoyMTAwLCJyYXRlX2xpbWl0X3RwaCI6NjAwMDAwMCwicmF0ZV9saW1pdF9zb3VyY2UiOiJmcmVlX2hlcm1lc19hZ2VudCIsInN1YiI6ImNtcHozdm1oejAwMGlrajBiNTJhdHFmeDAiLCJpc3MiOiJodHRwczovL3BvcnRhbC5ub3VzcmVzZWFyY2guY29tIiwiYXVkIjoiaGVybWVzLWNsaTpoZXJtZXMtY2xpIiwiaWF0IjoxNzg1Njg2Mjc4LCJleHAiOjE3ODU2ODk4NzgsImp0aSI6IkpKWWplbmplUE44aTRTOTh5WTFNN1EifQ.M3TxLVLM6PptcqGa0frWTMSW_ala-80ebzxpJb7QVi_H6RrhlwVGmaDUUlApVy5GOzJhQvfNRFK2MUPsyq3BC-W8y58_YT-Nh69zvmEzunllwL4RCIdOxDvr1USi0ZiQ7Z9MFPPiRsCbUsEdhPm_hep2OQF7t9HudgFDEa0oiSPYkhvigq088p1eogH38SHWbevOwc2VS72ZueBwst2avttbDYVbTCBPGkyzuMAL3r8dRDUroc40IZhKt1AlKrBMnOK0nws8pZm_9FmMCnf7T6MupF5N0DPMKbAi6HWBFY4Zp3Vgk0N2hBQ87PXjjpHix-M-Hfw1BOOG6tSMHsxYGg",
+        "agent_key_expires_at": "2026-08-02T16:57:58+00:00",
+        "request_count": 0,
+        "tls": {
+          "insecure": false,
+          "ca_bundle": null
+        },
+        "expires_in": 3598,
+        "scope": "inference:invoke",
+        "portal_base_url": "https://portal.nousresearch.com",
+        "agent_key_expires_in": 3598,
+        "token_type": "Bearer",
+        "agent_key_obtained_at": "2026-08-02T15:57:59.209042+00:00",
+        "agent_key_reused": false,
+        "client_id": "hermes-cli",
+        "obtained_at": "2026-08-02T15:57:59.174069+00:00"
+      }
+    ],
+    "anthropic": [],
+    "gemini": [
+      {
+        "id": "4ca5b8",
+        "label": "GOOGLE_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:GOOGLE_API_KEY",
+        "last_status": null,
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:9c993190f95671b1"
+      }
+    ],
+    "ollama-cloud": [
+      {
+        "id": "8d1cf8",
+        "label": "OLLAMA_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:OLLAMA_API_KEY",
+        "last_status": "exhausted",
+        "last_status_at": 1782923725.976264,
+        "last_error_code": 429,
+        "last_error_reason": null,
+        "last_error_message": "Error code: 429 - {'error': 'you (lokah2150) have reached your weekly usage limit, upgrade for higher limits: https://ollama.com/upgrade (ref: eae93ca2-66ea-4b02-97ac-69935012e0bb)'}",
+        "last_error_reset_at": null,
+        "base_url": "https://ollama.com/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:2eef20777c68299c"
+      }
+    ],
+    "xai": [
+      {
+        "id": "a9bcb1",
+        "label": "XAI_API_KEY",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "env:XAI_API_KEY",
+        "last_status": null,
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "https://api.x.ai/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:d5fba5e0fa98528d"
+      }
+    ],
+    "custom:wrapper-nvidia": [
+      {
+        "id": "5db047",
+        "label": "wrapper-nvidia",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "config:wrapper-nvidia",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9100",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      },
+      {
+        "id": "8ad660",
+        "label": "model_config",
+        "auth_type": "api_key",
+        "priority": 1,
+        "source": "model_config",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9100",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      }
+    ],
+    "custom:wrapper-claude-code": [
+      {
+        "id": "94ff52",
+        "label": "wrapper-claude-code",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "config:wrapper-claude-code",
+        "last_status": null,
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9102/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      },
+      {
+        "id": "0dd0e0",
+        "label": "model_config",
+        "auth_type": "api_key",
+        "priority": 1,
+        "source": "model_config",
+        "last_status": null,
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9102/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      }
+    ],
+    "custom:wrapper-cloudflare": [
+      {
+        "id": "36249e",
+        "label": "wrapper-cloudflare",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "config:wrapper-cloudflare",
+        "last_status": "ok",
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9104/ai/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      },
+      {
+        "id": "a7f076",
+        "label": "model_config",
+        "auth_type": "api_key",
+        "priority": 1,
+        "source": "model_config",
+        "last_status": "exhausted",
+        "last_status_at": 1782245828.6230454,
+        "last_error_code": 429,
+        "last_error_reason": "rate_limit_error",
+        "last_error_message": "wrapper-cloudflare: model \u2014 retry 2s",
+        "last_error_reset_at": 1782245830.620424,
+        "base_url": "http://127.0.0.1:9104/ai/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      }
+    ],
+    "custom:wrapper-antigravity": [
+      {
+        "id": "2bfa04",
+        "label": "wrapper-antigravity",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "config:wrapper-antigravity",
+        "last_status": "exhausted",
+        "last_status_at": 1782690057.2901952,
+        "last_error_code": 402,
+        "last_error_reason": null,
+        "last_error_message": "All stream fallback attempts failed. Last error: agy process failed with exit code 0: Empty stream received from backend model. Possible rate limit or quota exceeded.",
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9101/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      },
+      {
+        "id": "27308b",
+        "label": "model_config",
+        "auth_type": "api_key",
+        "priority": 1,
+        "source": "model_config",
+        "last_status": "exhausted",
+        "last_status_at": 1782690092.4906397,
+        "last_error_code": 402,
+        "last_error_reason": null,
+        "last_error_message": "All stream fallback attempts failed. Last error: agy process failed with exit code 0: Empty stream received from backend model. Possible rate limit or quota exceeded.",
+        "last_error_reset_at": null,
+        "base_url": "http://127.0.0.1:9101/v1",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:ad2113aa682599d1"
+      }
+    ],
+    "copilot": [
+      {
+        "id": "a69bb5",
+        "label": "gh auth token",
+        "auth_type": "api_key",
+        "priority": 0,
+        "source": "gh_cli",
+        "last_status": null,
+        "last_status_at": null,
+        "last_error_code": null,
+        "last_error_reason": null,
+        "last_error_message": null,
+        "last_error_reset_at": null,
+        "base_url": "https://api.githubcopilot.com",
+        "request_count": 0,
+        "secret_fingerprint": "sha256:a72b84d0495ed7d5"
+      }
+    ]
+  },
+  "updated_at": "2026-08-02T15:57:59.324079+00:00",
+  "active_provider": "nous"
+}
