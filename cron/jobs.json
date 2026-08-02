@@ -80,13 +80,13 @@
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
-      "next_run_at": "2026-08-03T00:00:00+07:00",
+      "next_run_at": "2026-08-03T12:00:00+07:00",
       "skill": null,
-      "last_run_at": "2026-08-02T12:00:28.043557+07:00",
+      "last_run_at": "2026-08-03T00:00:43.430741+07:00",
       "last_status": "ok",
       "last_delivery_error": null,
       "fire_claim": null
     }
   ],
-  "updated_at": "2026-08-02T12:00:28.044391+07:00"
+  "updated_at": "2026-08-03T00:00:43.431870+07:00"
 }
