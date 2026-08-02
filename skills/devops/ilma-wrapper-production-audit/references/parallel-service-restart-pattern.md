@@ -1,42 +1,43 @@
-# Parallel Service Restart Pattern (2026-08-01)
+# Parallel Service Restart Pattern (2026-08-02)
 
 ## Problem
-Restarting multiple wrapper services sequentially causes cumulative timeout delays. Each `systemctl --user restart` + health check takes ~2-5 seconds, totaling 10-30 seconds for 5 services.
+Systemd user bus not available in containerized environments. Cannot use `systemctl --user` commands.
 
-## Solution: Background Process Launch + Batch Health Check
+## Solution: Manual Process Management
 
-### Direct Process Start (Works when systemd units fail or timeout)
+### Technique 1: Sequential Background Launch
 ```bash
-# Stop all existing processes
-pkill -f "uvicorn" 2>/dev/null; pkill -f "main.py" 2>/dev/null; pkill -f "model-registry" 2>/dev/null; sleep 2
+# Start services one by one in background
+cd /root/wrapper/nvidia-python && python3 -m uvicorn src.main:app --host 127.0.0.1 --port 9101 &
+cd /root/wrapper/nous && python3 -m uvicorn src.main:app --host 127.0.0.1 --port 9102 &
+# ... etc
+```
 
-# Start services in background
-cd /root/wrapper/nvidia-python && uvicorn src.main:app --host 127.0.0.1 --port 9101 &
-cd /root/wrapper/nous && python -c "import sys; sys.path.insert(0, '.'); from nous.main import app; import uvicorn; uvicorn.run(app, host='127.0.0.1', port=9102, log_level='info')" &
-cd /root/wrapper/opencode && python -c "..." &
-cd /root/wrapper/blackbox && python -c "..." &
-cd /root/wrapper && python model-registry/service.py &
+### Technique 2: Supervisor Script (Hermes-Compatible)
+```bash
+# Create supervisor script
+python3 /root/wrapper/start_wrappers.py &
+```
 
-# Batch health check
-for port in 9101 9102 9103 9104 9106 9200; do
-  echo -n "Port $port: "; curl -s http://127.0.0.1:$port/health 2>/dev/null | jq -r '.status // .ok // "offline"' 2>/dev/null || echo "offline"
+### Technique 3: Health Check After Restart
+```bash
+sleep 2
+for port in 9101 9102 9103 9104 9106; do
+  curl -s --max-time 5 http://127.0.0.1:$port/health | head -c 100
 done
 ```
 
-### Health Check Pattern
-```bash
-curl -s http://127.0.0.1:PORT/health | jq -r '.status // .ok // "offline"'
-```
+## Key Learnings (from this session)
 
-## Evidence
-- Session 2026-08-01 verified all 6 services respond with `ok` within 3 seconds of start
-- NVIDIA wrapper (9101) version: `8.6.5-py` at commit `26c98409cb13ee016178ac2fda8d7ae2523f10a2`
-- NOUS wrapper (9102) version: `2.0.7-audit-hardening`
-- Model-registry (9200) version: `1.0.0-contract`
+1. **Environment check first**: Verify systemd is available before using it
+2. **Fallback to manual**: Always have a manual restart plan for containers
+3. **Health check mandatory**: Verify each service after restart
+4. **PID tracking**: Record PIDs for later reference
 
-## Pitfall to Avoid
-**DO NOT use `systemctl --user restart` in a loop with sleep** - the cumulative timeout causes the Hermes TUI watchdog timeout. Use parallel background launch instead.
+## When to use this pattern
+- Containerized environments without systemd user bus
+- `Failed to connect to bus` errors from systemctl
+- systemd services show as inactive despite running processes
 
 ## Related
-- `references/smoke-and-load-targets.md` for health endpoint formats
-- `references/catalog-route-ordering-fix.md` for post-restart verification
+- `hermes-agent-recovery` skill for other Hermes service recovery patterns
