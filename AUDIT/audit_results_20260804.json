@@ -1,0 +1,109 @@
+{
+  "audit_metadata": {
+    "date": "2026-08-04T04:10:00Z",
+    "profile_path": "/root/.hermes/profiles/ilma",
+    "audit_round": 1000,
+    "auditor": "sub-agent-audit-system"
+  },
+  "summary": {
+    "status": "OPERATIONAL",
+    "overall_health": "DEGRADED",
+    "components_loaded": 10,
+    "components_total": 10,
+    "modules_imported": 37,
+    "modules_total": 37,
+    "capabilities_count": 37,
+    "capabilities_verified": 32,
+    "orphan_modules_verified": 24,
+    "orphan_modules_total": 24
+  },
+  "component_status": {
+    "model_router": {"status": "ready", "providers": 13, "models": 1290, "available": true},
+    "judge": {"status": "ready", "levels": 10, "available": true},
+    "self_improvement": {"status": "ready", "available": true},
+    "agent_civilization": {"status": "ready", "available": true},
+    "unified_core": {"status": "ready", "version": "3.0.0", "available": true},
+    "orchestrator": {"status": "ready", "available": true},
+    "orphan_wiring": {"status": "ready", "capability_count": 24, "imported_ok": 24, "available": true},
+    "model_registry": {"status": "ready", "total_providers": 22, "available": true},
+    "health_manager": {"status": "ready", "available": true},
+    "subagent_router": {"status": "ready", "available": true},
+    "hermes_skills_router": {"status": "ready", "version": "v2.0", "available": true},
+    "kanban": {"status": "ready", "available": true},
+    "hermes_skills": {"status": "ready", "available": true},
+    "ilma_core": {"status": "ready", "version": "3.0.0", "components": 10, "available": true}
+  },
+  "provider_status": {
+    "total_providers": 22,
+    "available_providers": 9,
+    "unavailable_providers": 13,
+    "available_list": ["minimax", "ollama", "google", "alibaba", "together", "cerebras", "aimlapi", "bytez", "felo"],
+    "unavailable_list": ["openrouter", "nvidia", "wrapper-nvidia", "xai", "groq", "bluesminds", "blackbox", "nous", "opencode", "byteplus", "edge", "antigravity"]
+  },
+  "model_status": {
+    "total_models": 2632,
+    "available_models": 2222,
+    "unavailable_models": 410,
+    "availability_rate": 0.844
+  },
+  "service_connectivity": {
+    "browser_cdp": {"endpoint": "http://127.0.0.1:9222", "status": "active", "browser": "HeadlessChrome/149.0.7827.55"},
+    "model_registry": {"endpoint": "http://127.0.0.1:8787", "status": "active"},
+    "nvidia_wrapper": {"endpoint": "http://127.0.0.1:9100", "status": "listening"},
+    "openrouter_api": {"endpoint": "https://openrouter.ai/api/v1", "status": "auth_required"}
+  },
+  "capability_categories": {
+    "operational": {"total": 7, "verified": 6},
+    "integration": {"total": 5, "verified": 5},
+    "memory": {"total": 4, "verified": 4},
+    "meta": {"total": 4, "verified": 3},
+    "cognitive": {"total": 3, "verified": 2},
+    "creative": {"total": 3, "verified": 1},
+    "executive": {"total": 4, "verified": 4},
+    "analytical": {"total": 3, "verified": 3},
+    "communication": {"total": 2, "verified": 2},
+    "security": {"total": 2, "verified": 2}
+  },
+  "cron_jobs": {
+    "total": 3,
+    "enabled": 2,
+    "jobs": [
+      {"name": "ILMA Daily Optimization", "schedule": "0 9 * * *", "enabled": true},
+      {"name": "ILMA Hourly Optimizer", "schedule": "0 * * * *", "enabled": false},
+      {"name": "ILMA Model DB Sync", "schedule": "0 0,12 * * *", "enabled": true}
+    ]
+  },
+  "issues_found": [
+    {
+      "severity": "critical",
+      "category": "provider_credentials",
+      "description": "13 providers unavailable due to missing API keys or restrictions",
+      "impact": "Reduced routing diversity",
+      "recommendation": "Configure API keys in /root/credential/api_key.json or .env file"
+    },
+    {
+      "severity": "high",
+      "category": "model_availability",
+      "description": "410 models (15.6%) unavailable",
+      "impact": "Reduced model selection pool",
+      "recommendation": "Review model status in PROVIDER_INTELLIGENCE_MASTER.json"
+    },
+    {
+      "severity": "medium",
+      "category": "confidence_alignment",
+      "description": "Some capabilities have mismatched confidence scores",
+      "files": ["qa_critic", "memory", "creative_synthesis"],
+      "recommendation": "Align confidence_score with confidence values"
+    }
+  ],
+  "files": {
+    "total_python_files": 608,
+    "duplicate_files": 1,
+    "orphan_files": 0
+  },
+  "backup_status": {
+    "location": "/root/backup",
+    "backup_sets_count": 12,
+    "recent_backup": "2026-08-04"
+  }
+}

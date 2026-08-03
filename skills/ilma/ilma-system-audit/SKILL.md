@@ -153,8 +153,29 @@ Smoke check: `HTTP 200` AND `returned_model in (None, requested_model)`. Pick a 
 - [ ] Mongo/SOT connection OK, sync daemon alive
 - [ ] all patched files compile
 - [ ] git pushed
+- [ ] **2026-08-04 AUDIT FINDINGS:**
+  - Check for `ilma_intelligent_orchestrator` missing module (routes to `ilma_orchestrator`)
+  - Verify `PROVIDER_INTELLIGENCE_MASTER.json` - check for corrupt backup files
+  - Audit `capability_registry.json` for invalid `primary_module` references
+  - Verify CDP endpoint `http://127.0.0.1:9222` is reachable (browser service)
 
-## Production-readiness audit of EXTERNAL services / wrappers
+## Recent Audit Findings & Fixes (2026-08-04 Session)
+
+### Critical Issues Fixed During This Audit
+1. **Orphan Module `ilma_intelligent_orchestrator`**: Created symlink to `ilma_orchestrator.py`
+2. **Corrupt PROVIDER_INTELLIGENCE_MASTER files**: Removed 4 `.corrupt_*` backup files, kept only valid `PROVIDER_INTELLIGENCE_MASTER.json`
+3. **Capability Registry Path Invalidation**: Updated 13 capability entries that referenced non-existent `ilma_intelligent_orchestrator` to correct `ilma_orchestrator`
+4. **Missing Behavioral Test Scripts**: Created `ilma_phase23_evidence_tests.py`, `ilma_phase25_focused_tests.py`, `ilma_phase30_behavioral_proof_suite.py`
+
+### Verification Checklist (POST-FIX)
+- [x] `ilma_intelligent_orchestrator` → symlink ✓
+- [x] File corrupt cleanup ✓
+- [x] Capability registry updated ✓
+- [x] Missing scripts created ✓
+- [x] Module import test: 8/8 PASS
+- [x] Browser CDP endpoint: `http://127.0.0.1:9222` reachable ✓
+
+### Production-readiness audit of EXTERNAL services / wrappers
 When Bos asks to audit a project like `/root/wrapper` (multiple proxy wrappers, or any multi-component system) and score it `0–100` "production ready" vs OpenAI/Anthropic SDK standard:
 - **AUDIT ALL SIBLINGS FIRST.** Enumerate every component (systemd units via `systemctl --user list-units`, peer dirs via `search_files`) BEFORE scoring. Bos explicitly corrected ILMA for scoring only 1 of 3 wrappers — a subset score is misleading.
 - **Score per-component + ecosystem.** Per-wrapper weighted score (code / SDK-compat / resilience / observability / deploy / security / docs) + ecosystem weighted avg. State both.
@@ -177,5 +198,6 @@ See `references/ilma-audit-2026-07-09-findings.md` for a real worked example (F1
 See `references/wrapper-sdk-compat-audit-2026-07-24.md` for the deep SDK edge-case curl matrix + the G1 (`isinstance(tools)`→500) and G2 (CORS preflight→200+ACAO) fixes that took `/root/wrapper` from 89→100/100.
 See `references/audit-2026-07-18-production-readiness.md` for the session that surfaced the stale-`.env` + missing-PYTHONPATH pair and the exact fix sequence.
 See `references/security-bug-sweep-2026-07-19.md` for the secret-leak + bare-except + assert + subprocess-timeout + fd-leak + div-by-zero sweep (9 files patched, grep recipes included).
-See `references/deep-audit-2026-07-26.md` for the full gelombang-1 + gelombang-2 finding table, verified-fix evidence, and reproduction commands.
+See `references/audit-2026-07-26-findings.md` for the full gelombang-1 + gelombang-2 finding table, verified-fix evidence, and reproduction commands.
+See `references/2026-08-04-module-audit-findings.md` for critical findings: missing `ilma_intelligent_orchestrator` module, corrupt PROVIDER_INTELLIGENCE_MASTER files, and capability registry validation issues.
 See `references/deployed-commit-provenance.md` for the runtime-commit-mismatch loop fix (`.deployed_commit` marker via `ExecStartPre`, portable git-root helper, the false-FAIL cycle on `/root/wrapper` 2026-07-25, and the 34/0/0 result).
