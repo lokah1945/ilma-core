@@ -1,9 +1,9 @@
 {
-  "last_report_path": "/root/.hermes/profiles/ilma/logs/curator/20261114-124932",
-  "last_run_at": "2026-11-14T12:49:32.639805+00:00",
-  "last_run_duration_seconds": 2.132393,
+  "last_report_path": "/root/.hermes/profiles/ilma/logs/curator/20261121-130341",
+  "last_run_at": "2026-11-21T13:03:41.944360+00:00",
+  "last_run_duration_seconds": 4.243268,
   "last_run_summary": "auto: no changes; llm: skipped (consolidation off)",
   "last_run_summary_shown_at": "2026-06-27T00:34:51.481529+00:00",
   "paused": false,
-  "run_count": 27
+  "run_count": 28
 }
