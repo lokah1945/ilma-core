@@ -1,13 +1,14 @@
 ---
 name: systematic-debugging
 description: "4-phase root cause debugging: understand bugs before fixing."
-version: 1.2.0
+version: 1.1.0
 author: Hermes Agent (adapted from obra/superpowers)
 license: MIT
+platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [debugging, troubleshooting, problem-solving, root-cause, investigation]
-    related_skills: [test-driven-development, writing-plans, subagent-driven-development]
+    related_skills: [test-driven-development, plan, subagent-driven-development]
 ---
 
 # Systematic Debugging
@@ -27,6 +28,12 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 ```
 
 If you haven't completed Phase 1, you cannot propose fixes.
+
+## The Feedback Loop Rule
+
+The feedback loop is the debugging work. Before reading code to build a theory, create or identify a **tight** command that can go red on the user's exact symptom and green when the bug is fixed. A tight loop is fast, deterministic, agent-runnable, and specific enough to catch this bug — not merely "doesn't crash".
+
+When a clean repro is hard, spend disproportionate effort building the loop. Guessing without a red-capable loop is the failure mode this skill exists to prevent.
 
 ## When to Use
 
@@ -69,21 +76,46 @@ You MUST complete each phase before proceeding to the next.
 
 **Action:** Use `read_file` on the relevant source files. Use `search_files` to find the error string in the codebase.
 
-### 2. Reproduce Consistently
+### 2. Build a Tight Feedback Loop
 
-- Can you trigger it reliably?
-- What are the exact steps?
-- Does it happen every time?
-- If not reproducible → gather more data, don't guess
+- Can you trigger the user's exact symptom with one command?
+- Does the command fail for this bug and only pass once the bug is fixed?
+- Is it fast enough to run repeatedly?
+- Is it deterministic? For flaky bugs, can you raise the reproduction rate high enough to debug?
+- If not reproducible → gather more data, don't guess.
 
-**Action:** Use the `terminal` tool to run the failing test or trigger the bug:
+**Ways to construct a loop — try in roughly this order:**
+
+1. **Failing test** at the seam that reaches the bug: unit, integration, or end-to-end.
+2. **HTTP script / curl** against a running dev server.
+3. **CLI invocation** with fixture input, diffing stdout/stderr against expected output.
+4. **Headless browser script** (Playwright/Puppeteer) asserting on DOM, console, or network.
+5. **Replay a captured trace**: HAR, request payload, event log, queue message, or webhook body.
+6. **Throwaway harness** that boots the smallest useful slice of the system and calls the failing path.
+7. **Property / fuzz loop** when the bug is intermittent wrong output over a broad input space.
+8. **Bisection harness** suitable for `git bisect run` when the bug appeared between two known states.
+9. **Differential loop** comparing old vs new version, two configs, two providers, or two datasets.
+10. **Human-in-the-loop script** only as a last resort: script the human steps and capture their result so the loop stays structured.
+
+**Tighten the loop once it exists:**
+
+- Make it faster: cache setup, narrow scope, skip unrelated initialization.
+- Make the signal sharper: assert the exact symptom, not generic success.
+- Make it more deterministic: pin time, seed randomness, isolate filesystem, freeze network.
+
+For non-deterministic bugs, the immediate goal is a higher reproduction rate, not perfection. Run the trigger 100x, parallelize, add stress, narrow timing windows, or inject sleeps. A 50% flake is debuggable; a 1% flake usually is not.
+
+**Action:** Use the `terminal` tool to run the tight loop:
 
 ```bash
-# Run specific failing test
+# Run a specific failing test
 pytest tests/test_module.py::test_name -v
 
-# Run with verbose output
-pytest tests/test_module.py -v --tb=long
+# Or run a scripted repro
+python scripts/repro_bug.py
+
+# Or run a high-repetition flaky repro
+for i in {1..100}; do pytest tests/test_flake.py::test_name -q || break; done
 ```
 
 ### 3. Check Recent Changes
@@ -143,11 +175,13 @@ search_files("variable_name\\s*=", path="src/", file_glob="*.py")
 ### Phase 1 Completion Checklist
 
 - [ ] Error messages fully read and understood
-- [ ] Issue reproduced consistently
+- [ ] A tight loop command exists and has been run at least once
+- [ ] Loop is red-capable: it asserts the user's exact symptom, not a nearby failure
+- [ ] Loop is deterministic, or a flaky bug has a high enough reproduction rate to debug
 - [ ] Recent changes identified and reviewed
 - [ ] Evidence gathered (logs, state, data flow)
 - [ ] Problem isolated to specific component/code
-- [ ] Root cause hypothesis formed
+- [ ] Root cause hypotheses can be stated and tested
 
 **STOP:** Do not proceed to Phase 2 until you understand WHY it's happening.
 
@@ -156,6 +190,12 @@ search_files("variable_name\\s*=", path="src/", file_glob="*.py")
 ## Phase 2: Pattern Analysis
 
 **Find the pattern before fixing:**
+
+### 0. Minimize the Reproduction
+
+Once the loop is red, shrink the repro to the smallest scenario that still goes red. Cut inputs, callers, config, data, and steps **one at a time**, re-running the loop after each cut. Keep only what is load-bearing for the failure.
+
+Done when removing any remaining element makes the loop go green. A minimal repro narrows the hypothesis space and often becomes the cleanest regression test.
 
 ### 1. Find Working Examples
 
@@ -192,17 +232,22 @@ search_files("similar_pattern", path="src/", file_glob="*.py")
 
 **Scientific method:**
 
-### 1. Form a Single Hypothesis
+### 1. Form Ranked Falsifiable Hypotheses
 
-- State clearly: "I think X is the root cause because Y"
-- Write it down
-- Be specific, not vague
+- Generate 3–5 plausible hypotheses before testing any single one.
+- Rank them by likelihood and cheapness to falsify.
+- State the prediction each hypothesis makes: "If X is the cause, then changing or observing Y should make Z happen."
+- Discard or sharpen any hypothesis that does not make a testable prediction.
+
+If the user is present, show the ranked list before testing. They may have domain knowledge that instantly re-ranks it. If the user is AFK, proceed with your ranking.
 
 ### 2. Test Minimally
 
-- Make the SMALLEST possible change to test the hypothesis
-- One variable at a time
-- Don't fix multiple things at once
+- Test the highest-ranked hypothesis with the smallest possible probe.
+- Change one variable at a time.
+- Don't fix multiple things at once.
+- Prefer debugger/REPL inspection when available; one breakpoint beats ten logs.
+- If you add logs, tag every temporary line with a unique prefix such as `[DEBUG-a4f2]` so cleanup is a single search.
 
 ### 3. Verify Before Continuing
 
@@ -254,23 +299,6 @@ pytest tests/ -q
 - If < 3: Return to Phase 1, re-analyze with new information
 - **If ≥ 3: STOP and question the architecture (step 5 below)**
 - DON'T attempt Fix #4 without architectural discussion
-
-### 4b. Post-Fix Verification with Judge System
-
-After Phase 4 fix verification (pytest passes), **run Judge System** to confirm the solution actually solves the problem:
-
-```bash
-# Quick targeted check
-python3 scripts/ilma_judge_system.py <fixed_file.py> \
-    --task "Debug session: verify fix for [issue]" \
-    --checkpoints L1_syntax L1_import L2_unit_tests
-
-# Full verification
-python3 scripts/ilma_judge_system.py <fixed_file.py> \
-    --task "Debug session: post-fix verification" --json
-```
-
-**Why:** Tests prove code runs. Judge proves solution works. Debugging that doesn't use Judge may have fixed symptoms, not root cause.
 
 ### 5. If 3+ Fixes Failed: Question Architecture
 
@@ -372,112 +400,9 @@ When fixing bugs:
 3. Fix the root cause (GREEN)
 4. The test proves the fix and prevents regression
 
-## Pitfalls
+## Real-World Impact
 
-### Parallel Executor sys.path Shadowing
-
-**Symptom:** A job handler works in isolation but fails in the parallel executor (1 per-cycle failure, every cycle).
-
-**Root cause:** Process startup sets `sys.path.insert(0, "subdir")`, shadowing the root directory. Handlers that import root-level modules via `from module_name import ...` (without absolute path) fail silently because the root is no longer in the search path.
-
-**Rule:** Inside job handler functions in `scripts/`, always explicitly set the root path before importing modules that live at project root:
-
-```python
-def job_handler() -> dict:
-    import sys as _sys
-    _sys.path.insert(0, str(Path(__file__).parent.parent))  # ILMA root
-    from ilma_capability_registry import CapabilityRegistry
-    ...
-```
-
-**See also:** `references/parallel-executor-path-resolution.md`
-
----
-
-### Deep System Cleanup Pattern
-
-**Symptom:** Need to remove deprecated component (legacy proxy project, old feature, deprecated subsystem) completely from codebase. Bos-style directive: "hapus sampai ke akar-akarnya", "no backward compatibility", "zero reference including memory".
-
-**Root cause:** Components spread across active code, backups, archives, skills, sessions, config files, schema enums, JSON data, and documentation. Naive deletion misses hidden references. Semantic usages of the substring (song names, idioms, city names, design patterns) further complicate detection.
-
-**Systematic cleanup pattern:**
-
-**Phase 1: Comprehensive Discovery (5+ search patterns)** — see `references/deep-cleanup-pattern-20260619.md` for the full validated pattern.
-
-**Phase 2: Categorize References** — split into ACTIVE / HISTORICAL / SEMANTIC using the Semantic Disambiguation Table in the reference doc.
-
-**Phase 3: Deletion Strategy (ORDER MATTERS)**
-
-1. **Backups first** — `rm -rf old_dated_folders` prevents old backups re-introducing removed code
-2. **Duplicate folders** — `hermes_profile_<name>/` is often a full tree duplicate
-3. **Schema/manifest before code** — JSON Schema enums must be updated before data validation runs
-4. **Active code** — patch with clean replacements (no `if removed: legacy` stubs!)
-5. **Data files (JSON/YAML)** — use Python script to filter nested dicts/lists
-6. **Skills/Docs** — delete if target-specific, generic-ify if used target as example
-7. **Memory** — mark entries `[HISTORICAL NOTE]` (don't delete, preserves audit trail)
-
-**CRITICAL: No backward-compat stubs**
-
-```python
-# ❌ WRONG — leaves false sense of feature availability
-@property
-def is_target_source(self) -> bool:
-    """Legacy compat — removed."""
-    return False
-
-# ✅ RIGHT — delete the symbol entirely
-# (function deleted entirely, no replacement)
-```
-
-**Verification (4 mandatory checks — also see `scripts/verify_cleanup.sh`)**
-
-```bash
-# Run all 4 checks in one command
-bash scripts/verify_cleanup.sh <target-string>
-
-# Or manually:
-# 1. Active code search — should be ZERO except for semantic usages
-grep -rln "target-x\|target_proxy\|target_sync" --include="*.py" --include="*.json" --include="*.yaml" . 2>/dev/null \
-  | grep -v ".git" | grep -v ".git-rewrite" | grep -v "sessions/" | grep -v "node_modules"
-
-# 2. Module compile check
-python3 -c "import sys; sys.path.insert(0, '.')
-for m in ['ilma_subagent_router', 'ilma_model_registry']: __import__(m)"
-
-# 3. Status check
-python3 ilma.py --status
-
-# 4. Wiring check
-python3 ilma_runtime_wiring.py --verify
-```
-
-**Top 3 Pitfalls (see reference doc for 5):**
-
-1. **`.git-rewrite/t/` is NOT a backup folder** — it's BFG Repo-Cleaner staging. Files there may be the only tracked copy. Always verify with `git ls-files` before deleting "archive" folders.
-2. **Semantic strings look like project names** — "bridge" appears 1752 times in `LEARNINGS.md` but only a fraction is the bridge project. Apply the Semantic Disambiguation Table.
-3. **Schema enum removal can break validation** — JSON Schema enums validate at load time. Patch data files BEFORE schemas.
-
-**Memory marking pattern (preserves audit trail):**
-
-```diff
--SOT LIVE-ONLY (...): ... **TARGET PROJECT FULLY REMOVED YYYY-MM-DD**: Zero target-x reference...
-+SOT LIVE-ONLY (..., updated YYYY-MM-DD): ... **TARGET PROJECT FULLY REMOVED YYYY-MM-DD [HISTORICAL NOTE]**: All target-x sub-components deleted...
-```
-
-**Time Estimate** (validated 2026-06-19)
-
-- Naive deletion (rm -f *target*): 2 minutes → 90% incomplete
-- Systematic cleanup: 20-25 minutes → 100% verified removal
-
-**See also:**
-- `references/deep-cleanup-pattern-20260619.md` — full validated pattern with 5 search patterns, semantic disambiguation table, 5 pitfalls, ordering rationale
-- `scripts/verify_cleanup.sh` — 4-check verification script (re-runnable)
-
----
-
-### Random Fixes Waste Time
-
-Random fixes waste time and create new bugs. Quick patches mask underlying issues.
+From debugging sessions:
 - Systematic approach: 15-30 minutes to fix
 - Random fixes approach: 2-3 hours of thrashing
 - First-time fix rate: 95% vs 40%

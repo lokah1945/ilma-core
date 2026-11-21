@@ -161,9 +161,12 @@ Push status: success (no 502/timeout)
 - ❌ Commented-out paths in .gitignore → `.browser_profile/` was commented out, caused Chrome cache to be committed
 - ❌ `git add .` before updating .gitignore → untracked garbage files enter staging
 - ✅ Always `git add .gitignore` explicitly before commit
-- ✅ Rewrite .gitignore completely for complex cleanups — don't try to patch line-by-line
+## Reference Files
 
-> **References:** `references/repo-cleanup-pattern.md` — comprehensive session transcript: file counts per category (736 Chrome cache, 75 archive/garbage, 833 phase reports, etc.), full .gitignore PHASE 72 CLEANUP section, two-phase workflow (Phase A: `git rm --cached` for tracked files, Phase B: direct delete + `.gitignore` update for untracked), index.lock error fix, and verification commands. Applied to `lokah1945/ilma-core` (`b2e08c3` + `839127b`, removed 2,164 files, repo reduced from ~7,700 → 5,536 tracked files).
+- `references/repo-cleanup-pattern.md` — comprehensive session transcript: file counts per category (736 Chrome cache, 75 archive/garbage, 833 phase reports, etc.), full .gitignore PHASE 72 CLEANUP section, two-phase workflow (Phase A: `git rm --cached` for tracked files, Phase B: direct delete + `.gitignore` update for untracked), index.lock error fix, and verification commands. Applied to `lokah1945/ilma-core` (`b2e08c3` + `839127b`, removed 2,164 files, repo reduced from ~7,700 → 5,536 tracked files).
+- `references/repo-hard-reset-force-push.md` — orphan branch + force-push clean slate pattern (2026-07-26). Pre-flight secret/big-data scan, .gitignore hardening FIRST, `git checkout --orphan`, re-add respecting gitignore, README rewrite, branch swap, force push. Result: 1780→1769 tracked, commit `693581e`, GitHub history cleared.
+- `references/2026-10-31-shankarawell-git-init.md` — Git init on production deploy (ShankaraWell). Scenario: tarball deploy from chat artifact, no source repo on VPS. Init at parent dir, exclude `standalone/`/`standalone.prev/` in .gitignore, commit only docs+scripts, push to private GitHub repo. Includes PAT auth fallback when gh CLI not authenticated. **Extended 2026-10-31**: GitHub PAT multi-account selection (check which account owns `LandingPage_*` pattern), token scope verification (classic PAT needs `repo` scope, fine-grained needs Contents: Read/Write), repo creation via API when gh CLI unavailable, PAT-embedded remote URL for push.
+- `references/2026-10-31-auto-sync-credential-file.md` (in `vps-project-deep-audit` skill) — Auto-sync credential file (github.pat.json) to VPS using inotifywait + systemd. Covers: sync script, watch script, systemd service, debounce, initial sync, verification, reusable template for any credential file. Created from Bos directive: "Selalu pastikan file github.pat.json selalu sync dengan VPS" → "Buat otomatis, setiap file berubah, maka auto sync".
 
 ---
 

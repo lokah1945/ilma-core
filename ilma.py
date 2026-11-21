@@ -138,7 +138,6 @@ def boot_system() -> Dict[str, Any]:
         components["unified_core"] = {
             "status": "ready",
             "version": system.version,
-            "ayda_integrated": system.ayda_capability_orchestrator.get("available", False),
             "available": True
         }
     except Exception as e:
@@ -289,6 +288,82 @@ def boot_system() -> Dict[str, Any]:
     except Exception as e:
         components["hermes_skills"] = {"status": "error", "error": str(e), "available": False}
         errors.append(f"Hermes Skills Router: {e}")
+
+    # 13. External Skills Bridge (Phase 73+ — /root/agent-enhancements read-only bridge)
+    try:
+        from ilma_external_skills_bridge import get_external_skills_bridge
+        bridge = get_external_skills_bridge()
+        stats = bridge.get_stats()
+        components["external_skills_bridge"] = {
+            "status": "ready",
+            "total_skills": stats["total_skills"],
+            "by_category": stats["by_category"],
+            "by_risk": stats["by_risk"],
+            "available": True
+        }
+    except Exception as e:
+        components["external_skills_bridge"] = {"status": "error", "error": str(e), "available": False}
+        errors.append(f"External Skills Bridge: {e}")
+
+    # 14. Extend Capability Registry with External Skills
+    try:
+        from ilma_capability_registry import get_registry, CapabilityEntry, CapabilityCategory, CapabilityStatus
+        from ilma_external_skills_bridge import extend_capability_registry_with_external
+        reg = get_registry()
+        exts = extend_capability_registry_with_external()
+        added = 0
+        for ext in exts:
+            # Convert external extension to CapabilityEntry
+            try:
+                category_map = {
+                    "cognitive": CapabilityCategory.COGNITIVE,
+                    "executive": CapabilityCategory.EXECUTIVE,
+                    "creative": CapabilityCategory.CREATIVE,
+                    "analytical": CapabilityCategory.ANALYTICAL,
+                    "operational": CapabilityCategory.OPERATIONAL,
+                    "communication": CapabilityCategory.COMMUNICATION,
+                    "security": CapabilityCategory.SECURITY,
+                    "integration": CapabilityCategory.INTEGRATION,
+                    "memory": CapabilityCategory.MEMORY,
+                    "meta": CapabilityCategory.META,
+                }
+                cat = category_map.get(ext["category"], CapabilityCategory.COGNITIVE)
+                
+                risk_to_status = {
+                    "critical": CapabilityStatus.PROVISIONAL,
+                    "high": CapabilityStatus.PROVISIONAL,
+                    "medium": CapabilityStatus.PROVISIONAL,
+                    "safe": CapabilityStatus.VERIFIED,
+                    "low": CapabilityStatus.VERIFIED,
+                }
+                status = risk_to_status.get(ext.get("risk_level", "safe"), CapabilityStatus.PROVISIONAL)
+                
+                entry = CapabilityEntry(
+                    name=ext["name"],
+                    category=cat,
+                    status=status,
+                    description=ext["description"][:500],
+                    primary_tool=ext["primary_tool"],
+                    fallback_tools=ext["fallback_tools"],
+                    script_fallback=ext.get("script_fallback"),
+                    evidence_id=ext["evidence_id"],
+                    risk_level=ext.get("risk_level", "medium"),
+                    tags=ext.get("tags", []) + ["external"],
+                    metadata=ext.get("metadata", {}),
+                )
+                reg.register(entry)
+                added += 1
+            except Exception:
+                pass  # Skip individual failures
+        components["external_capabilities"] = {
+            "status": "ready",
+            "extensions_added": added,
+            "total_extensions": len(exts),
+            "available": True
+        }
+    except Exception as e:
+        components["external_capabilities"] = {"status": "error", "error": str(e), "available": False}
+        errors.append(f"External Capabilities: {e}")
 
     boot_time = (time.time() - boot_start) * 1000
 

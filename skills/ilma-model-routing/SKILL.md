@@ -16,6 +16,7 @@ Reference repository for ILMA's pure data-driven model routing system.
 - `codex-oauth-setup.md` — OpenAI Codex OAuth flow
 - `credential-api-key-json-structure.md` — SOT credential JSON schema
 - `free-model-kanban-20250524.md` — Free-tier model kanban tracking
+- `jibas-financial-transaction-search.md` — JIBAS financial transaction search - credential structure, database tables, port 33445, typical tagihan values and patterns
 
 ## Usage
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://ilma.local/schemas/integration-manifest-v2.json",
-  "version": "3.0.0",
-  "updated": "2026-06-18",
+  "version": "3.1.0",
+  "updated": "2026-11-01",
   "profile": "ilma",
   "data_stores": {
     "PROVIDER_INTELLIGENCE_MASTER": {
@@ -24,6 +24,14 @@
       "writers": [
         "ilma_model_router.py"
       ]
+    },
+    "EXTERNAL_SKILLS_INDEX": {
+      "file": "/root/project/AgentEnhancements/unified-integration/skills/all-skills.json",
+      "description": "Agent-enhancements unified skills index (2884 skills) — READ ONLY",
+      "readers": [
+        "ilma_external_skills_bridge.py"
+      ],
+      "writers": []
     }
   },
   "pipeline": {
@@ -106,7 +114,8 @@
       "ilma_actor_critic_core.py",
       "ilma_health_manager.py",
       "ilma_browser_engine.py",
-      "scripts/ilma_model_db_manager.py"
+      "scripts/ilma_model_db_manager.py",
+      "ilma_external_skills_bridge.py"
     ]
   },
   "scheduled_jobs": {

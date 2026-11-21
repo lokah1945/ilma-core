@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-ILMA Backup System — AYDA-style automated backup
-Mirrors: ayda_backup functionality
+ILMA Backup System — Native ILMA automated backup
 """
 import subprocess
 import os

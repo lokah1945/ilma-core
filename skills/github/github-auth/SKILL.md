@@ -4,6 +4,7 @@ description: "GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login."
 version: 1.1.0
 author: Hermes Agent
 license: MIT
+platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [GitHub, Authentication, Git, gh-cli, SSH, Setup]
@@ -219,8 +220,8 @@ if command -v gh &>/dev/null && gh auth status &>/dev/null; then
   echo "AUTH_METHOD=gh"
 elif [ -n "$GITHUB_TOKEN" ]; then
   echo "AUTH_METHOD=curl"
-elif [ -f ~/.hermes/.env ] && grep -q "^GITHUB_TOKEN=" ~/.hermes/.env; then
-  export GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" ~/.hermes/.env | head -1 | cut -d= -f2 | tr -d '\n\r')
+elif _hermes_env="${HERMES_HOME:-$HOME/.hermes}/.env"; [ -f "$_hermes_env" ] && grep -q "^GITHUB_TOKEN=" "$_hermes_env"; then
+  export GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" "$_hermes_env" | head -1 | cut -d= -f2 | tr -d '\n\r')
   echo "AUTH_METHOD=curl"
 elif grep -q "github.com" ~/.git-credentials 2>/dev/null; then
   export GITHUB_TOKEN=$(grep "github.com" ~/.git-credentials | head -1 | sed 's|https://[^:]*:\([^@]*\)@.*|\1|')
@@ -233,144 +234,14 @@ fi
 
 ---
 
-## 🚨 CRITICAL EXTENSION: Credential File Token Extraction (2026-05-16)
-
-**New finding:** On ILMA systems, GitHub tokens are stored in `/root/credential/api_key.json`, NOT in `.git-credentials` or environment variables.
-
-### Token Discovery Pattern
-
-```bash
-# Extract GitHub token from credential file
-python3 -c "
-import json
-with open('/root/credential/api_key.json') as f:
-    d = json.load(f)
-keys = d.get('github', {}).get('keys', [])
-if keys:
-    print(keys[0])
-"
-# Returns: ghp_Fc... (GitHub personal access token)
-```
-
-**Note:** The credential file also contains other keys (OpenAI, Anthropic, etc.) — only extract the GitHub token.
-
-### Verify Token Works
-
-```bash
-export GITHUB_TOKEN=$(python3 -c "
-import json
-with open('/root/credential/api_key.json') as f:
-    print(json.load(f)['github']['keys'][0])
-")
-curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'User: {d.get(\"login\")}')"
-```
-
-### When This Pattern Applies
-
-- When `gh` is not installed and `gh auth status` fails
-- When `.git-credentials` is empty (no stored git credentials)
-- When `~/.netrc` is empty
-- When the system uses `/root/credential/` for all API keys (ILMA architecture)
-
-## 🚨 CONTAINER/SANDBOX LIMITATION: /dev/tty ENXIO
-
-On ILMA systems running in containerized environments, `git push` may fail with:
-
-```
-fatal: could not read Password for 'https://TOKEN@github.com': 
-Tidak ada perangkat atau alamat seperti itu (ENXIO)
-```
-
-**Root cause:** Git tries to read `/dev/tty` for password input. The container has no TTY device. This is NOT a token problem.
-
-**Confirmed behavior in this environment:**
-| Command | Result | Why |
-|---------|--------|-----|
-| `git ls-remote origin` | ✅ Works | No TTY needed |
-| `git push origin master` | ❌ Fails | TTY read fails |
-| `urllib` API calls | ✅ Works | Python HTTP transport |
-| `curl` API calls | ❌ 401 | Different TLS/auth stack |
-
-**Diagnosis:**
-```bash
-strace -e trace=open,openat git push origin master 2>&1 | grep ENXIO
-# Expected: [pid] openat(AT_FDCWD, "/dev/tty", O_RDONLY) = -1 ENXIO
-```
-
-**Token verification (works despite push failure):**
-```python
-import json, urllib.request
-token = "ghp_Fc..."  # from /root/credential/api_key.json.bak_20260505_203624
-headers = {'Authorization': f'token {token}', 'Accept': 'application/vnd.github.v3+json'}
-req = urllib.request.Request('https://api.github.com/user', headers=headers)
-with urllib.request.urlopen(req, timeout=5) as r:
-    print(json.loads(r.read()).get('login'))  # → lokah1945
-```
-
-**Do NOT waste time on:** `.netrc`, `credential.helper=store`, `credential.helper=!true`, `core.askPass=`, `GIT_ASKPASS`, `GIT_TERMINAL_PROMPT=0`, `.git-credentials` — none of these fix the underlying `/dev/tty` problem in this environment.
-
----
-
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
+| `git push` asks for password | GitHub disabled password auth. Use a personal access token as the password, or switch to SSH |
+| `remote: Permission to X denied` | Token may lack `repo` scope — regenerate with correct scopes |
+| `fatal: Authentication failed` | Cached credentials may be stale — run `git credential reject` then re-authenticate |
+| `ssh: connect to host github.com port 22: Connection refused` | Try SSH over HTTPS port: add `Host github.com` with `Port 443` and `Hostname ssh.github.com` to `~/.ssh/config` |
+| Credentials not persisting | Check `git config --global credential.helper` — must be `store` or `cache` |
+| Multiple GitHub accounts | Use SSH with different keys per host alias in `~/.ssh/config`, or per-repo credential URLs |
 | `gh: command not found` + no sudo | Use git-only Method 1 above — no installation needed |
-| `.git-credentials` empty | Check `/root/credential/api_key.json` — token may be there |
-| `gh` not installed but need to create repo | Use GitHub REST API via curl (see below) |
-
----
-
-## 🚨 CREATE REPO VIA REST API (When gh unavailable)
-
-When `gh` is not installed and you need to create a GitHub repository:
-
-```bash
-# Step 1: Get token
-export GITHUB_TOKEN=$(python3 -c "
-import json
-with open('/root/credential/api_key.json') as f:
-    print(json.load(f)['github']['keys'][0])
-")
-
-# Step 2: Create private repo
-curl -s -X POST \
-  -H "Authorization: token $GITHUB_TOKEN" \
-  -H "Content-Type: application/json" \
-  https://api.github.com/user/repos \
-  -d '{"name":"repo-name","private":true,"description":"description"}' \
-  | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Repo: {d.get(\"full_name\",\"ERROR: \"+str(d))}')"
-
-# Step 3: Push using token in remote URL
-git remote add origin https://username:${GITHUB_TOKEN}@github.com/username/repo-name.git
-git push -u origin main
-```
-
-### Verify Repo on GitHub
-
-```bash
-export GITHUB_TOKEN=$(python3 -c "
-import json
-with open('/root/credential/api_key.json') as f:
-    print(json.load(f)['github']['keys'][0])
-")
-curl -s -H "Authorization: token $GITHUB_TOKEN" \
-  https://api.github.com/repos/username/repo-name \
-  | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Private: {d[\"private\"]}, Size: {d[\"size\"]}KB, URL: {d[\"html_url\"]}')"
-```
-
-### Common API Endpoints
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `https://api.github.com/user/repos` | POST | Create repo |
-| `https://api.github.com/repos/<owner>/<repo>/contents/` | GET | List contents |
-| `https://api.github.com/repos/<owner>/<repo>/contents/<path>` | PUT | Create file |
-| `https://api.github.com/repos/<owner>/<repo>/commits?per_page=1` | GET | Check commits |
-
----
-
-## Related Files
-
-- `references/ilma-migration-external-paths.md` — Full migration reference: all external paths, .gitignore, token extraction, API operations, and verification commands from the 2026-05-16 session.
-- `references/ilma-github-push-limitation.md` — Diagnostic reference for the `/dev/tty` ENXIO limitation that blocks `git push` in containerized ILMA environments. Includes verified behavior matrix, what does NOT fix it, API-based workarounds, and diagnostic checklist.

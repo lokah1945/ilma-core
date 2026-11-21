@@ -21,6 +21,7 @@
 | qwen3-235b | 262,144 | Alibaba large |
 | deepseek-v4-pro | 163,840 | Deepseek |
 | mistral-large-3 | 262,144 | Mistral |
+| **mistral-large-4-1t-a52b (NVIDIA NIM)** | **1,048,576 (1M)** | **⚠️ NVIDIA build page spec says 262,144 (that's max_tokens, NOT context). Live-probed 2026-11-02: accepted 967K tokens, rejected 1.13M with `limit:1048576`. Wrapper may misreport 262K — see `ilma-wrapper-troubleshooting` ref `nvidia-build-page-context-contradiction-2026-11-02.md`** |
 | openrouter free (most) | 128,000 | Platform cap |
 
 ## Database
@@ -59,4 +60,4 @@ cur.execute("""
 | `openai/gpt-4o` | 1M ✅ | Provider doc based |
 | Arena models | 200K default | Benchmark configurations |
 | OpenRouter | 128K cap | Platform limitation |
-| NVIDIA NIM | Varies | Per-model specs |
+| NVIDIA NIM | Varies | Per-model specs — **beware build-page contradiction**: `specifications.contextLength` may be max_tokens, not context window. Live-probe to confirm (see wrapper-troubleshooting ref). |

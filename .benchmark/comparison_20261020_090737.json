@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-10-20T09:07:37.266465",
+  "ilma": {
+    "scripts": 324,
+    "script_lines": 96941,
+    "skills": 83,
+    "fabric": 0,
+    "total": 407
+  },
+  "ILMA": {
+    "scripts": 324,
+    "script_lines": 96941,
+    "skills": 83,
+    "fabric": 0,
+    "total": 407
+  },
+  "winner": {
+    "scripts": "ilma",
+    "skills": "ilma",
+    "fabric": "ilma",
+    "total": "ilma"
+  },
+  "ilma_lead": 0
+}

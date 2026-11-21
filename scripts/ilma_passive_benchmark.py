@@ -62,9 +62,9 @@ class PassiveBenchmarkResearch:
             if f.is_file():
                 try:
                     total_size += f.stat().st_size
-                    with open(f) as fp:
+                    with open(f, "r", encoding="utf-8", errors="ignore") as fp:
                         total_lines += len(fp.readlines())
-                except IOError:
+                except (IOError, UnicodeDecodeError):
                     pass
         
         return {

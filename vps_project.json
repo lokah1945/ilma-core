@@ -67,32 +67,10 @@
       "managed_by": "SiakadServer VPS"
     },
 
-    "ayda-gateway": {
-      "name": "AYDA OpenClaw Gateway",
-      "description": "Gateway AI agent AYDA - OpenClaw runtime",
-      "localhost": true,
-      "vps_ip": "127.0.0.1",
-      "services": {
-        "openclaw_gateway": {
-          "port": 18789,
-          "process": "openclaw-gateway",
-          "pid_file": "/root/.openclaw/gateway.pid",
-          "status": "running"
-        },
-        "router_api": {
-          "port": 18755,
-          "framework": "Flask",
-          "script": "scripts/router_api_server.py",
-          "status": "stopped"
-        }
-      },
-      "managed_by": "Localhost (this machine)"
-    },
-
     "backup-server": {
       "name": "Backup Server",
-      "description": "Server backup otomatis workspace AYDA",
-      "backup_path": "/root/backup/openclaw/",
+      "description": "Server backup otomatis workspace ILMA",
+      "backup_path": "/root/backup/ilma/",
       "schedule": "daily_24h",
       "format": "workspace-YYYY-MM-DD-HHMM.tar.xz",
       "retention_days": 7,

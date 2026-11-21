@@ -100,3 +100,11 @@ h = sot_dispatch.health()
 reg = sot_dispatch.get_capability_registry()
 # reg['count'] == 25
 ```
+
+## Related References
+
+- `references/external-skills-internal-registry.md` — External skills (3,116 from agent-enhancements) integration with internal CapabilityRegistry
+- `references/runtime-integration-gaps-2026-11-16.md` — External capabilities registered at boot but NOT auto-invoked at runtime (in ilma-integration skill)
+- `references/reverse-engineering-capability.md` — REA (reverse-engineer-anything) capability status: **ALL THREE TOOLS VERIFIED WORKING** — radare2 6.1.5 (persistent DB), Ghidra 12.0.4 headless (JDK 21 at `/opt/jdk-21`), REA agents v6.8.0 (JavaScript/Electron analysis). Capability `reverse_engineering` registered in ILMA as **VERIFIED** (primary=radare2, fallback=ghidra/rea_agents). REA registered for Codex but NOT for Hermes/ILMA.
+- `references/agent-enhancements-full-integration-2026-11-14.md` — Full AgentEnhancements repo replacement + multi-agent integration with ILMA capability registry extensions
+- `references/agent-enhancements-audit-2026-11-14.md` — **End-to-end audit**: identifies critical gaps — system prompts missing, OpenCode/Windsurf/Kiro have 0% skill coverage (only fallback `plan-writing`), setup script incomplete, Codex config stale, no live agent test

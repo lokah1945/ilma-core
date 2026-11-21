@@ -456,6 +456,7 @@ grep -rl "\b$base\b" /root/.hermes/profiles/ilma/*.py /root/.hermes/profiles/ilm
 orphans; `ilma_intelligence_core.py` had an importer ⇒ KEPT.
 
 Session transcript: `references/session-2026-07-28-filesystem-cleanup.md`
+- Session transcript: `references/session-2026-11-13-storage-analysis.md` — Deep storage analysis of 60G /root, identified 5.4G backup bloat, 3.3G log rotation debt, 1.3G Playwright cache duplication, 4.6G external skills repos, 5.7G npm cache. Priority cleanup list with commands. Freed ~26GB (60G → 34G), disk 90G/124G (72%).
 
 ## Related Skills
 
@@ -463,3 +464,8 @@ Session transcript: `references/session-2026-07-28-filesystem-cleanup.md`
 - `ilma-performance-optimizer` - Performance optimization
 - `ilma-evolution` - System evolution patterns
 - `safe-runtime-patching` - sibling: patch (not delete) a running daemon safely
+
+## Support Files
+
+- `references/session-2026-11-13-storage-analysis.md` — Deep storage analysis of 60G /root, identified 5.4G backup bloat, 3.3G log rotation debt, 1.3G Playwright cache duplication, 4.6G external skills repos, 5.7G npm cache. Priority cleanup list with commands. Freed ~35GB (60G → 25G), disk 81G/124G (65%).
+- `scripts/storage_audit_cleanup.py` — Re-runnable audit & cleanup script. Usage: `--scan` (show reclaimable), `--clean --yes` (execute), `--verify` (post-checks). Covers benchmark backups, log rotation, Playwright caches, package manager caches, legacy CLI dirs, backup tarballs, old models.

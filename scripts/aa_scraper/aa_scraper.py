@@ -25,7 +25,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 AA_SCRAPER_DIR = SCRIPT_DIR
 ILMA_DIR = os.path.dirname(os.path.dirname(SCRIPT_DIR))  # go up 2 levels: aa_scraper -> scripts -> ilma
 CACHE_PATH = os.path.join(ILMA_DIR, "benchmark_aa_cache.json")
-AYDA_CACHE = "/root/.hermes/profiles/ilma/home/.cache/ayda/benchmark_research/artificial_analysis_llms_models_raw.json"
+LEGACY_CACHE = "/root/.hermes/profiles/ilma/home/.cache/ayda/benchmark_research/artificial_analysis_llms_models_raw.json"
 
 def _load_aa_key():
     k = os.environ.get("AA_API_KEY", "")
@@ -50,17 +50,17 @@ AA_API_URL = "https://artificialanalysis.ai/api/v2/data/llms/models"
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
 
-def load_ayda_cache():
-    """Load from AYDA benchmark research cache (20 records).
+def load_legacy_cache():
+    """Load from legacy AYDA benchmark research cache (20 records).
     Records have nested structure: {id, name, slug, release_date, model_creator{...}, evaluations{...}}
     """
-    if not os.path.exists(AYDA_CACHE):
+    if not os.path.exists(LEGACY_CACHE):
         return []
     try:
-        with open(AYDA_CACHE) as f:
+        with open(LEGACY_CACHE) as f:
             data = json.load(f)
         records = data.get("records", [])
-        log(f"Loaded {len(records)} records from AYDA cache")
+        log(f"Loaded {len(records)} records from legacy cache")
         
         # Normalize to flat structure
         normalized = []
@@ -79,13 +79,13 @@ def load_ayda_cache():
                 "mmlu_pro": ev.get("mmlu_pro"),
                 "gpqa": ev.get("gpqa"),
                 "livecodebench": ev.get("livecodebench"),
-                "source": "ayda_cache",
+                "source": "legacy_cache",
                 "fetched_at": None,
             })
         
         return normalized
     except Exception as e:
-        log(f"Failed to load AYDA cache: {e}")
+        log(f"Failed to load legacy cache: {e}")
         return []
 
 def fetch_aa_api():
@@ -197,12 +197,12 @@ def fetch_playwright():
     
     return results
 
-def merge_records(ayda_records, api_records):
-    """Merge AYDA cache + API records. API takes priority (newer data)."""
+def merge_records(legacy_records, api_records):
+    """Merge legacy cache + API records. API takes priority (newer data)."""
     
-    # Build slug -> record map from AYDA
+    # Build slug -> record map from legacy
     by_slug = {}
-    for r in ayda_records:
+    for r in legacy_records:
         slug = r.get("slug", "")
         ev = r.get("evaluations", {})
         by_slug[slug] = {
@@ -217,7 +217,7 @@ def merge_records(ayda_records, api_records):
             "mmlu_pro": ev.get("mmlu_pro"),
             "gpqa": ev.get("gpqa"),
             "livecodebench": ev.get("livecodebench"),
-            "source": "ayda_cache",
+            "source": "legacy_cache",
             "fetched_at": None,
         }
     
@@ -270,9 +270,9 @@ def save_cache(records):
 def main():
     log("=== ILMA AA Scraper v1.0 ===")
     
-    # Step 1: Load AYDA cache
-    log("Step 1: Loading AYDA cache...")
-    ayda_records = load_ayda_cache()
+    # Step 1: Load legacy cache
+    log("Step 1: Loading legacy cache...")
+    legacy_records = load_legacy_cache()
     
     # Step 2: Fetch fresh data from AA API
     log("Step 2: Fetching AA API...")
@@ -281,9 +281,9 @@ def main():
     # Step 3: Merge
     log("Step 3: Merging records...")
     if api_records:
-        all_records = merge_records(ayda_records, api_records)
+        all_records = merge_records(legacy_records, api_records)
     else:
-        all_records = ayda_records
+        all_records = legacy_records
     
     log(f"Total records after merge: {len(all_records)}")
     

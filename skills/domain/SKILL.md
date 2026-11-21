@@ -27,6 +27,10 @@ Beyond traditional domain recon, now covers:
 - SSH credential discovery from known secure folders
 - Database exploration for CMS platforms
 - Multi-website mapping via Strapi multisite architecture
+- Non-standard database port discovery (33445, 3307, etc.)
+
+## Reference Files
+- `references/database-port-discovery.md` - Evidence-based port inference pattern
 
 ## Implementation
 See associated Python modules in this directory.

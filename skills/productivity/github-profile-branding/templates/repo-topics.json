@@ -1,0 +1,26 @@
+{
+  "ai-ml-systems": [
+    "python", "vllm", "llmops", "triton", "grpc", "inference", "llm", "kubernetes",
+    "pytorch", "huggingface", "ray", "mlflow", "tensorrt", "onnx"
+  ],
+  "platform-infrastructure": [
+    "kubernetes", "terraform", "argocd", "gitops", "platform-engineering", "vault",
+    "cert-manager", "cilium", "observability", "helm", "istio", "crossplane"
+  ],
+  "backend-distributed": [
+    "go", "kafka", "distributed-systems", "clickhouse", "concurrency", "streaming",
+    "event-driven", "observability", "redis", "grpc", "protobuf", "nats"
+  ],
+  "applied-ai-qa": [
+    "rag", "vector-search", "qdrant", "evals", "python", "llm-evaluation",
+    "retrieval", "reranking", "hallucination-detection", "langchain", "llamaindex"
+  ],
+  "developer-tooling": [
+    "cli", "sdk", "automation", "developer-experience", "productivity", "bash",
+    "makefile", "docker", "github-actions", "vscode-extension"
+  ],
+  "security-compliance": [
+    "security", "policy-engine", "secrets-management", "compliance", "opa",
+    "kyverno", "gatekeeper", "vault", "sops", "age"
+  ]
+}

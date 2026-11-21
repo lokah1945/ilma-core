@@ -2,7 +2,7 @@
 """
 ILMA WORKFLOW-ECC INTEGRATION LAYER v1.0
 =========================================
-Inspired by AYDA's ayda_workflow_ecc_integration.py
+Native ILMA ECC workflow integration layer.
 
 Connects ILMA Intelligence Core with ECC Runtime (agentic hooks).
 8-step pipeline: 4W1H → ECC → Security → Rules → Hooks → Workflow → Instinct → Report

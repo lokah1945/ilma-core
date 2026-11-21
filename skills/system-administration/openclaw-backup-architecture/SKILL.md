@@ -95,20 +95,134 @@ proves validity.
 
 ---
 
-## Verification Commands
+## MongoDB SOT Backup/Restore (2026-11+)
+
+### Full Credential DB Backup via mongoexport
+
+```bash
+# Export all collections from remote MongoDB (yapsi: 172.16.103.253)
+cd /root/credential
+for coll in providers llm_providers search_providers infra_providers crypto_exchanges messaging sessions system_credentials models model_benchmarks model_alias model_stats model_enrichment model_lifecycle_events model_capabilities model_intelligence model_audit_trail provider_lifecycle_events model_benchmark sot_schema_registry sot_backups sot_sync_state sot_jobs; do
+  mongoexport --uri="mongodb://quantumtraffic:113333555555@172.16.103.253:27017/credentials?authSource=admin" \
+    --collection="$coll" \
+    --out="${coll}_$(date +%F_%H%M%S).json"
+done
+```
+
+### Combine into Single JSON (canonical backup)
+
+```python
+import json, glob, os
+from datetime import datetime
+
+files = glob.glob('/root/credential/*_2026-11-14_*.json')
+coll_map = {}
+for f in files:
+    if 'mongodb_backup_complete' in f:
+        continue
+    fname = os.path.basename(f)
+    coll = '_'.join(fname.split('_')[:-1])
+    if coll not in coll_map or os.path.getsize(f) > os.path.getsize(coll_map[coll]):
+        coll_map[coll] = f
+
+combined = {
+    'backup_timestamp': datetime.utcnow().isoformat() + 'Z',
+    'source': '172.16.103.253:27017/credentials',
+    'collections': {}
+}
+
+for coll, f in coll_map.items():
+    docs = []
+    with open(f) as fp:
+        for line in fp:
+            line = line.strip()
+            if line:
+                try:
+                    docs.append(json.loads(line))
+                except json.JSONDecodeError as e:
+                    print(f'Error in {f}: {e}')
+    combined['collections'][coll] = docs
+
+outfile = '/root/credential/mongodb_backup_complete.json'
+with open(outfile, 'w') as f:
+    json.dump(combined, f, indent=2, default=str)
+```
+
+### Output Format (canonical)
+
+```json
+{
+  "backup_timestamp": "2026-11-14T16:07:34.953206Z",
+  "source": "172.16.103.253:27017/credentials",
+  "collections": {
+    "llm_providers": [...],
+    "search_providers": [...],
+    "infra_providers": [...],
+    "crypto_exchanges": [...],
+    "messaging": [...],
+    "providers": [...],
+    "models": [...],
+    "model_intelligence": [...],
+    "model_capabilities": [...],
+    ...
+  }
+}
+```
+
+### Restore to Local MongoDB
+
+```bash
+# Import single collection
+mongoimport --uri="mongodb://localhost:27017/credentials" \
+  --collection=llm_providers \
+  --file=/root/credential/llm_providers_2026-11-14_230718.json
+
+# Or import from combined (extract collection first)
+python3 -c "
+import json
+with open('/root/credential/mongodb_backup_complete.json') as f:
+    data = json.load(f)
+import sys
+for doc in data['collections']['llm_providers']:
+    print(json.dumps(doc))
+" | mongoimport --uri="mongodb://localhost:27017/credentials" --collection=llm_providers
+```
+
+### Key Collections for Credential Recovery
+
+| Collection | Count | Purpose |
+|------------|-------|---------|
+| `llm_providers` | 26 | **Primary: LLM API keys** (nvidia, openrouter, minimax, blackbox, qwen, etc.) |
+| `search_providers` | 7 | Search API keys (tavily, serper, you, artificial_analysis) |
+| `infra_providers` | 13 | Dev/infra credentials (github, cloudflare, nvidia_build) |
+| `crypto_exchanges` | 4 | Exchange API keys (nicehash, binance, tokocrypto) |
+| `messaging` | 18 | Telegram bot tokens |
+| `system_credentials` | 1 | Mikrotik, restricted system creds |
+| `providers` | 77 | Provider catalog (metadata, endpoints, free_tier flags) |
+| `models` | 1,290 | Full model catalog with capabilities |
+
+### Verification After Restore
+
+```bash
+# Check counts match
+mongosh "mongodb://localhost:27017/credentials" --eval "
+['llm_providers','search_providers','infra_providers','crypto_exchanges','messaging','providers','models'].forEach(c => print(c + ': ' + db[c].countDocuments({})))
+"
+
+# Verify specific key format
+mongosh "mongodb://localhost:27017/credentials" --eval "
+db.llm_providers.find({}, {provider:1, account_email:1, api_key:1, key_status:1}).forEach(printjson)
+"
+```
+
+## Verification Commands (Legacy pre-SOT)
 
 ```bash
 # Legacy (pre-SOT) credential discovery — still works for offline restore
 ls -la /root/credential/                          # check for local backups
 find /root/backup -name "*credential*" -type d     # find credential-containing backup dirs
 find /root/backup -name "auth-backup-*.json"      # find OpenClaw auth backups
-
-## Verification Commands
-
-```bash
-# Legacy (pre-SOT) credential discovery — still works for offline restore
-ls -la /root/credential/                          # check for local backups
-find /root/backup -name "*credential*" -type d     # find credential-containing backup dirs
+```
 
 ## Trial & Error Findings (2026-04-21)
 - `workspace-2026-04-21-0039-backup.tar.gz` → no api_key.json inside (workspace-only)

@@ -109,7 +109,7 @@ class ScoredImprovement:
 
 ### Effort Estimate
 
-{effort_estimate}
+{self.effort_estimate}
 
 ### Source Items
 

@@ -1,0 +1,448 @@
+{
+  "timestamp": "2026-11-13T03:00:01.552912",
+  "source": "ilma",
+  "scripts": {
+    "count": 325,
+    "total_size": 3536976,
+    "total_lines": 97393,
+    "details": [
+      {
+        "name": "ilma_problem_solve.py",
+        "size": 5488,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_serverless.py",
+        "size": 5521,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_hash_tool.py",
+        "size": 5469,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_script_enhancer.py",
+        "size": 5494,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_external_api_client.py",
+        "size": 24432,
+        "lines": 749,
+        "functions": 1,
+        "classes": 9,
+        "imports": 15,
+        "complexity": 0.78
+      },
+      {
+        "name": "ilma_infra_test.py",
+        "size": 5529,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_path_bootstrap.py",
+        "size": 701,
+        "lines": 24,
+        "functions": 1,
+        "classes": 0,
+        "imports": 2,
+        "complexity": 0.06999999999999999
+      },
+      {
+        "name": "ilma_mon_help.py",
+        "size": 5418,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_apt.py",
+        "size": 5350,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_phase69e_acceptance_test.py",
+        "size": 13587,
+        "lines": 333,
+        "functions": 7,
+        "classes": 0,
+        "imports": 7,
+        "complexity": 0.35
+      },
+      {
+        "name": "ilma_memory_cleanup.py",
+        "size": 22468,
+        "lines": 622,
+        "functions": 1,
+        "classes": 3,
+        "imports": 12,
+        "complexity": 0.42000000000000004
+      },
+      {
+        "name": "ilma_api_test.py",
+        "size": 5460,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_web_search.py",
+        "size": 8237,
+        "lines": 265,
+        "functions": 8,
+        "classes": 2,
+        "imports": 8,
+        "complexity": 0.5
+      },
+      {
+        "name": "ilma_devops_engine.py",
+        "size": 39255,
+        "lines": 1142,
+        "functions": 1,
+        "classes": 9,
+        "imports": 14,
+        "complexity": 0.76
+      },
+      {
+        "name": "ilma_codex_browser_oauth_v2.py",
+        "size": 21137,
+        "lines": 535,
+        "functions": 11,
+        "classes": 1,
+        "imports": 17,
+        "complexity": 0.72
+      },
+      {
+        "name": "ilma_fmt.py",
+        "size": 5444,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_wal_automation.py",
+        "size": 25063,
+        "lines": 756,
+        "functions": 2,
+        "classes": 5,
+        "imports": 14,
+        "complexity": 0.5900000000000001
+      },
+      {
+        "name": "ilma_csv_tool.py",
+        "size": 5448,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      },
+      {
+        "name": "ilma_genesis_daemon.py",
+        "size": 9756,
+        "lines": 274,
+        "functions": 1,
+        "classes": 3,
+        "imports": 7,
+        "complexity": 0.32
+      },
+      {
+        "name": "ilma_bulk_skill_creator.py",
+        "size": 5528,
+        "lines": 167,
+        "functions": 3,
+        "classes": 3,
+        "imports": 10,
+        "complexity": 0.44000000000000006
+      }
+    ]
+  },
+  "skills": {
+    "count": 145,
+    "categories": {
+      "unknown": 133,
+      "self-improvement": 1,
+      "hermes-core": 1,
+      "ilma-testing": 1,
+      "system-administration": 1,
+      "ilma": 4,
+      "desktop": 1,
+      "agent-patterns": 1,
+      "ilma-security": 1,
+      "ilma-core": 1
+    },
+    "details": [
+      {
+        "name": "configure-ecc",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "ai-regression-testing",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "reverse-engineer-anything",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 7,
+        "size": 102503
+      },
+      {
+        "name": "ilma-vue-patterns",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "iterative-retrieval",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "ilma-database-replication",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "ilma-felo",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "windows-desktop-e2e",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "git-workflow",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "mmx-cli",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "gaming",
+        "has_description": true,
+        "has_trigger": true,
+        "category": "unknown",
+        "linked_files": 1,
+        "size": 129
+      },
+      {
+        "name": "ilma-performance-testing",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "product-lens",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "ilma-refactor-cleaner",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 1,
+        "size": 5320
+      },
+      {
+        "name": "leisure",
+        "has_description": false,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 1,
+        "size": 6816
+      },
+      {
+        "name": "ilma-test-automation",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "email",
+        "has_description": false,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 3,
+        "size": 9806
+      },
+      {
+        "name": "ilma-auto-evolution-engine",
+        "has_description": true,
+        "has_trigger": true,
+        "category": "self-improvement",
+        "linked_files": 11,
+        "size": 61355
+      },
+      {
+        "name": "yuanbao",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "ilma-felo-free",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 3,
+        "size": 14447
+      },
+      {
+        "name": "ilma-testing",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 2,
+        "size": 11556
+      },
+      {
+        "name": "ilma-angular-patterns",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "tdd-workflow",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "self-improvement",
+        "has_description": false,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 34,
+        "size": 143020
+      },
+      {
+        "name": "creative",
+        "has_description": false,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 235,
+        "size": 2240663
+      },
+      {
+        "name": "council",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "apple",
+        "has_description": false,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 1,
+        "size": 152
+      },
+      {
+        "name": "note-taking",
+        "has_description": false,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 1,
+        "size": 146
+      },
+      {
+        "name": "ilma-fastapi-patterns",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      },
+      {
+        "name": "config-gc",
+        "has_description": true,
+        "has_trigger": false,
+        "category": "unknown",
+        "linked_files": 0,
+        "size": 0
+      }
+    ]
+  }
+}

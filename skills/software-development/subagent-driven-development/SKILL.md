@@ -4,6 +4,7 @@ description: "Execute plans via delegate_task subagents (2-stage review)."
 version: 1.1.0
 author: Hermes Agent (adapted from obra/superpowers)
 license: MIT
+platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [delegation, subagent, implementation, workflow, parallel]
@@ -214,7 +215,6 @@ git add -A && git commit -m "feat: complete [feature name] implementation"
 - Let implementer self-review replace actual review (both are needed)
 - **Start code quality review before spec compliance is PASS** (wrong order)
 - Move to next task while either review has open issues
-- **Trust subagent "completed" status without VERIFYING actual output** (subagents can return completed without patching/writing — always grep or py_compile after delegation to confirm the file actually changed)
 
 ## Handling Issues
 
@@ -341,10 +341,6 @@ Catch issues early
 ```
 
 **Quality is not an accident. It's the result of systematic process.**
-
-## Tool Pitfalls
-
-**execute_code truncates to 1 line** — Use `terminal` tool for all non-trivial Python. See `references/execute_code_pitfalls.md`.
 
 ## Further reading (load when relevant)
 

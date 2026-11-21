@@ -72,6 +72,7 @@ class ILMARuntimeWiring:
         "ilma_provider_kernel",      # Cloud provider: 4 providers, free-tier first
         "scripts/ilma_model_db_manager",  # ⭐ SINGLE SOURCE OF TRUTH — model DB sync, 4-step pipeline (sync_providers → passive_benchmark → enrich)
         "ilma_browser_engine",       # Browser automation: Playwright + DOM control (NO spoofing)
+        "ilma_external_skills_bridge",  # Phase 73+ — Read-only bridge to /root/agent-enhancements (2884 skills)
     ]
     
     LAYER_3_WORKFLOW = [
@@ -153,6 +154,7 @@ class ILMARuntimeWiring:
         "ilma_partner_wrappers": "Partner wrappers: Prometheus-2 (Judge) + DeepSeek-R1 (Critic)",
         "ilma_orphan_wiring": "Phase 70-Autonomy: wires 22 previously-orphan CLI modules (drift/miner/disable/chart/log/etc) into the system via stable Python API + CLI subcommand",
         "ilma_sot_dispatcher": "Phase 73-SOT_FREE: SOT-only capability dispatcher (chat/image/TTS/STT/embedding/video/rerank). FREE-only by default; consults MongoDB credentials.models for live candidates. Single source of truth for runtime call sites.",
+        "ilma_external_skills_bridge": "Phase 73+ — Read-only bridge to /root/agent-enhancements unified skills (2884 skills). Provides skill discovery, content loading, and capability registry extensions without modifying source project.",
         # LAYER 9 — SELF-IMPROVEMENT (v1.2)
         "ilma_self_improve_integrator": "LAYER 9 CANONICAL: unifies LearningLogger + SelfImprovementEngine + KnowledgeGraph + Evidence → unified closed-loop self-improvement",
     }

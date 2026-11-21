@@ -43,13 +43,30 @@ done | sort -u
 
 You rarely need more than 4 keys × 4 users. **Stop as soon as you see one CONN line; do not continue the loop past a match** to avoid noise.
 
+#### Key Format Pre-check (NEW INSIGHT - 2026-06-05)
+Before running the matrix scan, check key formats - this saves 50% of auth time:
+
+```bash
+# Check key formats in /root/credential/
+for key in /root/credential/*.pem; do
+  format=$(head -1 "$key")
+  echo "$(basename $key): $format"
+done
+
+# RSA PEM keys often FAIL when server expects ssh-ed25519
+# Prefer OPENSSH PRIVATE KEY format keys
+```
+
 Key catalog for `/root/credential/` on Bos's LXC:
-| File | Last seen working on |
-|---|---|
-| `smahud.pem` (RSA, may have a duplicate called `private_key.pem`) | 172.16.103.200 FullStackVPS root |
-| `lokah1945.pem` | 172.16.103.253 YAPSIDarussalam root |
-| `smahud_new.pem`, `smahud1945.pem` | usually invalid or rotated |
-| `lokah1945.pem`, `lokah_personal` | varies |
+| File | Format | Last seen working on |
+|---|---|---|
+| `smahud.pem` | OpenSSH | 172.16.103.200 FullStackVPS root |
+| `lokah1945.pem` | OpenSSH | 172.16.103.253 YAPSIDarussalam root |
+| `smahud_new.pem`, `smahud1945.pem` | OpenSSH | usually invalid/rotated |
+| `private_key.pem` | RSA PEM | ❌ does NOT work (format mismatch) |
+| `~/.ssh/id_ed25519` | OpenSSH ED25519 | may be stale (host-specific binding) |
+
+**Critical:** Key format matters! Server supported `ssh-ed25519` but `private_key.pem` was RSA format - it would never work. **Always check `head -1` of key files first.**
 
 **Always run `ssh-keygen -y -f <pem>` first** to confirm the key parses; some `.pem` files on shared credential dirs are encrypted and need a passphrase.
 
@@ -166,17 +183,85 @@ WordPress vs Next.js vs Strapi — quick tells:
 
 If a doc claims "Next.js at port 3000" but `ss` shows the service at 3201 with frame metadata matching Next.js — the doc is wrong, not the host.
 
-## Known infra map (Bos — last audit 2026-06-20)
+## Known infra map (Bos — last audit 2026-11-11)
 
 Save as starting hypothesis, then verify per Step 4:
 
-| Host alias | IP | User | Key | Real ports |
-|---|---|---|---|---|
-| `yapsi` | 172.16.103.253 | root | `lokah1945.pem` | test/scratch (no production service) |
-| `fullstack` | 172.16.103.200 | root | `smahud.pem` | 3100 (prelanding), 3200 (Strapi), 3201 (Next.js blog) |
-| `localhost` | 127.0.0.1 | bos-user varies | n/a | 9100 (model-wrapper), 8642 (Hermes API), 9222 (browser CDP) |
+| Host alias | IP | User | Key (format) | Host-Specific? | Real ports |
+|---|---|---|---|---|---|
+| `yapsi` | 172.16.103.253 | root | `lokah1945.pem` (OpenSSH) | ✅ REQUIRED | 80/443 (LiteSpeed), 3990-3997 (Node HTTPS proxy), 3999/4001-4007 (Next.js internal), 27017 (MongoDB), 33445 (MariaDB), 5432 (PostgreSQL), 20241/20242 (cloudflared) |
+| `fullstack` | 172.16.103.200 | root | `smahud.pem` (OpenSSH) | ✅ REQUIRED | 3100 (prelanding), 3200 (Strapi), 3201 (Next.js blog) |
+| `localhost` | 127.0.0.1 | bos-user varies | n/a | N/A | 9100 (model-wrapper), 8642 (Hermes API), 9222 (browser CDP) |
+
+**IMPORTANT - Updated 2026-06-05:** Keys are HOST-SPECIFIC. Each VPS has different `authorized_keys` with different key fingerprints:
+- `lokah1945.pem` works **ONLY** on `172.16.103.253` (yapsi)
+- `smahud.pem` works **ONLY** on `172.16.103.200` (fullstack)
+- `~/.ssh/id_ed25519` does NOT work on either (likely expired)
+- `private_key.pem` (RSA format) does NOT work at all (format mismatch)
+
+**Never trust `vps_project.json` key field alone - always verify with matrix scan (Step 2) or check this table.**
 
 Documented vs real port deltas are common — re-verify every time.
+
+### Step 6: Database Service Discovery & Recon (NEW - 2026-10-28)
+
+Once SSH access is verified (Step 1-3), if the user asks about a database service (MariaDB/MySQL/PostgreSQL) on the remote host:
+
+#### 6.1 Locate DB credentials
+- Check common config paths: `/var/www/**/include/database.config.php`, `/var/www/**/config/database.php`, `/root/.my.cnf`, `~/.pgpass`, `/etc/mysql/debian.cnf`
+- For JIBAS/PHP apps: look for `$db_host`, `$db_user`, `$db_pass`, `$db_name` in config files
+- Note: port may be non-standard (e.g., `33445` not `3306`)
+
+#### 6.2 Verify connectivity & enumerate
+```bash
+# Test connection
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' -e 'SELECT 1;'"
+
+# List all databases
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' -e 'SHOW DATABASES;'"
+
+# For each DB of interest, count tables
+for db in db1 db2 db3; do
+  ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' \$db -e 'SHOW TABLES;' 2>/dev/null | tail -n +2 | wc -l"
+done
+```
+
+#### 6.3 Compare live schema vs reference dump (installer/backup)
+```bash
+# Get live tables for target DB
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' <db> -e 'SHOW TABLES;'" | tail -n +2 | sort > /tmp/live_tables.txt
+
+# Extract tables from dump for same DB
+grep -A 1000 "Current Database: \`<db>\`" /path/to/dump.sql | grep "CREATE TABLE" | sed 's/.*\`\([^`]*\)\`.*/\1/' | sort > /tmp/dump_tables.txt
+
+# Diff
+comm -23 /tmp/live_tables.txt /tmp/dump_tables.txt   # tables in live but not dump
+comm -13 /tmp/live_tables.txt /tmp/dump_tables.txt   # tables in dump but not live
+comm -12 /tmp/live_tables.txt /tmp/dump_tables.txt   # common tables
+```
+
+#### 6.4 Deep schema comparison for specific tables
+```bash
+# Get CREATE TABLE from live
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' <db> -e 'SHOW CREATE TABLE <table>\\G'"
+
+# Get CREATE TABLE from dump
+sed -n '/CREATE TABLE \`<table>\`/,/UNLOCK TABLES/p' /path/to/dump.sql | head -50
+```
+
+#### 6.5 Check for triggers, FK constraints, charset/engine
+```bash
+# Triggers
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' <db> -e 'SHOW TRIGGERS;'"
+
+# Foreign keys
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' <db> -e 'SELECT TABLE_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND TABLE_SCHEMA = \"<db>\";'"
+
+# Charset/Engine
+ssh <shortcut> "mysql -h <host> -P <port> -u <user> -p'<pass>' <db> -e 'SHOW TABLE STATUS;'"
+```
+
+---
 
 ## Pitfalls
 
@@ -187,7 +272,11 @@ Documented vs real port deltas are common — re-verify every time.
 5. **Internal port vs Public IP.** A Next.js app at `172.16.103.200:3201` is NOT exposed at `yapsi.or.id` — DNS for the public site points to a different IP (often via Nginx/LiteSpeed reverse proxy). Verify the public IP separately.
 6. **Avoid destructive ops on first contact.** No `rm -rf`, no service restarts, no log clears until the user explicitly approves. Initial recon is read-only.
 7. **Approval gates will fire on HTTP requests to private IPs.** The Hermes runtime's security scanner prompts the user even for `http://172.16.103.200:3201/` curls. That's expected and will pass — but make sure the message is informed (mention you're doing recon, what IP, what host).
-8. **Per-host key pinning: a same-named .pem can authorize only one host.** Verified 2026-06-20: `lokah1945.pem` works on `172.16.103.253` (YAPSIDarussalam) but is REJECTED on `172.16.103.200` (FullStackVPS); conversely `smahud.pem` works on `.200` but is rejected on `.253`. Each `authorized_keys` on each host has different fingerprints. So rename keys by intended host (`lokah1945-yapsi.pem`, `smahud-fullstack.pem`) when ambiguous rather than carry generic `lokah1945.pem` and `smahud.pem` per-VPS. Until then, always run the matrix scan from Step 2 — never trust the `private_key_file` field of an SOT config blindly.
+8. **Per-host key pinning: a same-named .pem can authorize only one host.** Verified 2026-06-20: `lokah1945.pem` works on `172.16.103.253` (YAPSIDarussalam) but is REJECTED on `172.16.103.200` (FullStackVPS); conversely `smahud.pem` works on `.200` but is rejected on `.253`. Each `authorized_keys` on each host has different fingerprints. **Updated 2026-06-05:** This is the #1 cause of "Permission denied" after finding the right key format. Always verify key-host binding with a quick test run, don't assume.
+
+9. **Don't trust ~/.ssh/id_ed25519 as the "canonical" key.** Even if format matches, the key may be expired or not authorized on target hosts. Verify each key file against the actual server's `authorized_keys` via Step 2 matrix scan.
+
+10. **Key format mismatch is a common silent failure.** Server advertising `ssh-ed25519` support will reject RSA PEM-format keys (`-----BEGIN RSA PRIVATE KEY-----`) outright. Always check `head -1` of key files before testing - this saves 50% of auth tries.
 9. **Don't fabricate a working combo when evidence says otherwise.** If Step 2 produces zero CONN lines, your answer is "no match found — escalate to user" not "I assume key X works because vps_project.json says so". The skill's contract is evidence, not intent.
 10. **Don't claim "website belum dibuat" until all 4 assets are verified negative.** Single-signal saying "no process" is not enough when source code, DNS, or sibling app may be present. Always run Step 4b. Quick test: if user asks "apakah website X sudah dibuat?" and you only check PM2, you will miss the case where the source is staged but not deployed — and you'll give a wrong answer that's hard to recover from once the user believes it.
 
@@ -202,3 +291,5 @@ Documented vs real port deltas are common — re-verify every time.
 - `references/2026-06-20-fullstackvps-audit.md` — full transcript of the 2026-06-20 matrix-scan on FullStackVPS (smahud.pem + 172.16.103.200 + port reassignments 3100/3200/3201). Use as a worked example when port docs say 3000/3001/1337 but reality disagrees.
 - `references/vps-project-json-surgical-update.md` — recipe for safely updating `vps_project.json` (or any SOT-infra JSON) when ports/keys have drifted from doc reality.
 - `references/2026-08-02-vpsfullstack-web-recon.md` — VPSFullStack website reconnaissance (2026-08-02). Documents 3 active Next.js/Strapi websites on internal IP 172.16.103.200 with port mappings 3100/3200/3201. Use this after a Step 4 service audit discovers mismatch.
+- `references/2026-06-05-172.16.103.253-key-discovery.md` — NEW: SSH key format analysis and host-specific binding discovery for 172.16.103.253 (YAPSIDarussalam). Documents why RSA PEM vs OpenSSH format matters and which keys work on which hosts.
+- `references/2026-10-27-sirat-audit.md` (in `vps-project-deep-audit` skill) — Full SIRAT project audit on 172.16.103.253 (YAPSIDarussalam) using this skill's methodology. Demonstrates Phase 0-4 execution with actual outputs: SSH config alias `yapsi` with `lokah1945.pem`, git repo clean but no remote, 23-model Prisma schema, systemd service active with custom Node HTTPS proxy on :3901, fresh DB with 4 users/6 units/0 letters, 8 stale next-server processes from previous deploy. Cross-reference for VPS audit workflows.

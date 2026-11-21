@@ -8,13 +8,11 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [Coding-Agent, Claude, Anthropic, Code-Review, Refactoring, PTY, Automation]
-    related_skills: [codex, hermes-agent, opencode, ssh-server-discovery-and-recon]
+    related_skills: [codex, hermes-agent, opencode]
 ---
+
 # Claude Code — Hermes Orchestration Guide
 
-[paired-skill] For remote VPS / SSH / unknown-host remote-coding targets, ALWAYS pair with `ssh-server-discovery-and-recon` BEFORE writing any code. Its 4-step matrix-discovery (TCP probe → key+user scan → persist SSH shortcut → service verification via `pm2 list`/`ss`) prevents the "10 keys × 4 users = brute force" failure mode documented 2026-06-20.
-
-Delegate coding tasks to [Claude Code](https://code.claude.com/docs/en/cli-reference) via the Hermes terminal.
 Delegate coding tasks to [Claude Code](https://code.claude.com/docs/en/cli-reference) (Anthropic's autonomous coding agent CLI) via the Hermes terminal. Claude Code v2.x can read files, write code, run shell commands, spawn subagents, and manage git workflows autonomously.
 
 ## Prerequisites
@@ -117,65 +115,6 @@ terminal(command="sleep 15 && tmux capture-pane -t claude-work -p -S -60")
 ```
 
 **Note:** After the first trust acceptance for a directory, the trust dialog won't appear again. Only the permissions dialog recurs each time you use `--dangerously-skip-permissions`.
-
-## Remote Project Workflow (Local → SSH-push → Remote verify)
-
-When the coding target is a REMOTE host (production VPS, customer's server, GitHub-Actions runner), do **not** invoke Claude Code directly on the remote unless it is already installed there. Most remote VPSes run Python + Node + bare Debian without Claude CLI. The lockdown pattern proven 2026-06-20:
-
-### The 3-stage pipeline
-```
-LOCAL (ILMA LXC container, has claude CLI)
-     │
-     ├── 1. Claude writes files into local workdir
-     │      workdir = /root/conversation-bos/<DATE>_<descr>/   ← NOT /root
-     │      pattern: claude -p --output-format json "..." (avoiding --dangerously-skip-permissions)
-     │
-     ├── 2. SCP files to remote
-     │      scp app.py requirements.txt README.md <ssh_host>:/tmp/<project>/
-     │
-     └── 3. SSH to remote, verify & run
-            ssh <ssh_host> "cd /tmp/<project> && pip install -r requirements.txt && nohup python3 app.py > /tmp/server.log 2>&1 &"
-            ssh <ssh_host> "curl -s http://127.0.0.1:<port>/..."
-            ssh <shortcut> "pkill -f <proc>  # cleanup"
-```
-
-### Critical: pick or create `workdir` BEFORE running Claude
-Bos preference (2026-06-20): **separate workdir, NOT `/root`**. Reason: `/root` accumulation makes orphan tracking impossible and breaks the per-session audit trail.
-
-```bash
-WORKDIR=/root/conversation-bos/$(date +%Y-%m-%d)_<project-slug>
-mkdir -p "$WORKDIR" && cd "$WORKDIR"
-```
-
-### SSH shortcut prerequisites
-Always establish `/root/.ssh/config` shortcut BEFORE pushing code:
-
-```bash
-cat >> /root/.ssh/config <<EOF
-
-Host <shortcut>
-    HostName <IP>
-    User <user>
-    IdentityFile /root/credential/<keyfile>
-    IdentitiesOnly yes                # don't offer wrong keys to wrong host
-    StrictHostKeyChecking accept-new  # auto-accept on first connect
-    ServerAliveInterval 30
-    ServerAliveCountMax 4
-EOF
-chmod 600 /root/.ssh/config
-ssh-keyscan -H <IP> 2>/dev/null >> /root/.ssh/known_hosts
-ssh <shortcut> 'echo OK_$(hostname) && exit'
-```
-
-If the key+user combo is unknown, defer to the **`ssh-server-discovery-and-recon`** skill first — do NOT brute-force, do NOT trust `vps_project.json` blindly.
-
-### Cost & timing reference (Opus 4.8)
-- 2 print-mode calls per project (one for code, one for two-file JSON block): ~$0.10–0.15, 20–50s
-- Output file sizes 800–1000 bytes typical Python source; expand proportionally for richer specs
-- `--output-format json` returns the full structured result; the `result` field contains natural language + code blocks + the `permission_denials[]` array exposing what Claude wanted to write but couldn't
-
-### Cleanup is mandatory
-Remote processes left running waste memory and pollute logs. Always `pkill -f "<proc>"` after each verification cycle, even on partial failures.
 
 ## CLI Subcommands
 
@@ -781,15 +720,8 @@ Use `/context` in interactive mode to see a colored grid of context usage. Key t
 
 1. **Interactive mode REQUIRES tmux** — Claude Code is a full TUI app. Using `pty=true` alone in Hermes terminal works but tmux gives you `capture-pane` for monitoring and `send-keys` for input, which is essential for orchestration.
 2. **`--dangerously-skip-permissions` dialog defaults to "No, exit"** — you must send Down then Enter to accept. Print mode (`-p`) skips this entirely.
-3. **Running Claude Code as root silently refuses `--dangerously-skip-permissions`** — prints `--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons` to stderr and exits with code 0 (no error visible without tailing output). When ILMA itself runs as root inside the LXC, this hits you on every attempt.
-   - **Symptom**: `claude -p --dangerously-skip-permissions "..."` returns exit 0, looks fine, but Claude never writes — content comes back as `"result": "app.py"` and the file doesn't exist.
-   - **Diagnosis**: inspect the JSON `permission_denials` array — every `Write` and `Edit` tool_use will be listed there even though the exit code is 0.
-   - **Workarounds in preferred order**:
-     1. **Have Claude return content as embedded code blocks** — ask Claude to respond with `\`\`\`json {"filename":"app.py","content":"..."}\`\`\`` blocks; the result string in the JSON output contains them; parse with `python3 -c` and `write_file` from the agent side. Proven pattern: 3 files (app.py 883 bytes, requirements.txt 13 bytes, README.md 914 bytes) end-to-end in ~41s for $0.13.
-     2. **Run Claude as a dedicated non-root user** — `useradd -m ilacode`, `chown -R ilacode /workdir`, then invoke with `sudo -u ilacode claude -p ... --dangerously-skip-permissions` (still works since UID != 0 inside the subprocess).
-     3. **`--permission-mode acceptEdits`** — newer flag (v2.1+) that auto-approves edits without the root refusal; does NOT grant shell execution. Easiest fix when only writes are needed.
-4. **`--max-budget-usd` minimum is ~$0.05** — system prompt cache creation alone costs this much. Setting lower will error immediately.
-5. **`--max-turns` is print-mode only** — ignored in interactive sessions.
+3. **`--max-budget-usd` minimum is ~$0.05** — system prompt cache creation alone costs this much. Setting lower will error immediately.
+4. **`--max-turns` is print-mode only** — ignored in interactive sessions.
 5. **Claude may use `python` instead of `python3`** — on systems without a `python` symlink, Claude's bash commands will fail on first try but it self-corrects.
 6. **Session resumption requires same directory** — `--continue` finds the most recent session for the current working directory.
 7. **`--json-schema` needs enough `--max-turns`** — Claude must read files before producing structured output, which takes multiple turns.
@@ -798,7 +730,6 @@ Use `/context` in interactive mode to see a colored grid of context usage. Key t
 10. **Slash commands (like `/commit`) only work in interactive mode** — in `-p` mode, describe the task in natural language instead.
 11. **`--bare` skips OAuth** — requires `ANTHROPIC_API_KEY` env var or an `apiKeyHelper` in settings.
 12. **Context degradation is real** — AI output quality measurably degrades above 70% context window usage. Monitor with `/context` and proactively `/compact`.
-13. **Load the skill library BEFORE reinventing workarounds.** When you hit an obstacle (e.g. `claude -p --dangerously-skip-permissions` fails for root), your first move should be `skills_list()` then `skill_view(name='claude-code')`, not running 3 retries to discover the answer. The skill you don't load is the skill you can't reuse next session.
 
 ## Rules for Hermes Agents
 

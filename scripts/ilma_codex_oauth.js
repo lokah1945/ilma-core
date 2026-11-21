@@ -21,7 +21,7 @@ const CHROME = process.env.PUPPETEER_EXECUTABLE_PATH
   || '/root/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome';
 
 const PROFILE = process.env.BROWSER_PROFILE
-  || '/root/.cache/ayda/playwright_persistent/nvidia_build/nvidia_build';
+  || '/root/user-data/lokah2150';
 
 const OUT_DIR = '/tmp/codex_oauth';
 fs.mkdirSync(OUT_DIR, { recursive: true });

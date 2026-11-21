@@ -1599,6 +1599,31 @@
       "evidence_type": "IMPORT_SMOKE",
       "verification_status": "STRONGLY_SUPPORTED"
     },
+    "reverse_engineering": {
+      "status": "VERIFIED",
+      "primary_module": "radare2",
+      "secondary_module": "ghidra",
+      "tools": [
+        "terminal",
+        "execute_code",
+        "browser_navigate"
+      ],
+      "scripts": [
+        "scripts/ilma_reverse_engineering.py"
+      ],
+      "skills": [
+        "reverse-engineer-anything"
+      ],
+      "fallback": "ghidra headless / rea_agents / execute_code for static analysis",
+      "gap": "Hopper/IDA/JADX/Kuna not configured; REA not registered for Hermes/ILMA",
+      "next_test": "Test REA agents analyze-javascript-application on Electron app; test Hopper if available",
+      "confidence_score": 0.85,
+      "confidence": 0.9,
+      "notes": "radare2 v6.1.5 at /usr/local/bin/radare2. Ghidra 12.0.4 at /usr/local/bin/ghidra (symlink to /opt/ghidra_12.0.4) — headless WORKS with JDK 21 at /opt/jdk-21. REA agents v6.8.0 at /root/.npm-global/bin/rea-agents. REA skill docs at /root/agent-enhancements/agentic-awesome-skills/skills/reverse-engineer-anything/. REA registered for Codex but NOT for Hermes/ILMA. All three tools tested and working on /bin/ls.",
+      "evidence_note": "Verified - radare2, Ghidra headless, REA agents all working",
+      "evidence_type": "BEHAVIORAL",
+      "verification_status": "VERIFIED"
+    },
     "ilma_smart_model_router": {
       "status": "STRONGLY_SUPPORTED",
       "primary_module": "ilma_model_router.py",

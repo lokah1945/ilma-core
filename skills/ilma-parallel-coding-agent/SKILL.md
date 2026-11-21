@@ -13,6 +13,10 @@ ClaudeCode-style parallel coding agent that fans out tasks to multiple free-tier
 
 - `scripts/verify_claudecode.sh` — Verification script for ClaudeCode agent
 
+## References
+
+- `references/runtime-integration-gap-2026-11-16.md` — Runtime integration gap: parallel agent not wired into DELEGATE phase
+
 ## Usage
 
 The canonical implementation is `ilma_claudecode_agent.py` (Phase 71). Use via:

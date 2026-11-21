@@ -52,6 +52,9 @@ This skill activates when task contains:
 - ilma-learning (knowledge acquisition)
 - ilma-assessment (evaluation)
 
+## References
+- `references/github-tag-release-pattern.md` — Tag-triggered release debugging pattern (discovered 2026-11-10 on smahud/uaeg)
+
 ## Quality Standards
 - Minimum SKILL.md size: 600 bytes
 - Must have clear trigger conditions

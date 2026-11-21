@@ -659,6 +659,18 @@ class CapabilityRegistry:
                 tags=["evolution", "optimization", "self_audit"],
             ),
             CapabilityEntry(
+                name="reverse_engineering",
+                category=CapabilityCategory.ANALYTICAL,
+                status=CapabilityStatus.VERIFIED,
+                description="Binary analysis, decompilation, static analysis (Ghidra, radare2, REA agents)",
+                primary_tool="radare2",
+                fallback_tools=["ghidra", "rea_agents", "execute_code", "terminal"],
+                script_fallback="scripts/ilma_reverse_engineering.py",
+                evidence_id="rea_capability_verified_20261102",
+                risk_level="high",
+                tags=["reverse_engineering", "binary_analysis", "decompilation", "ghidra", "radare2", "rea", "rea_agents"],
+            ),
+            CapabilityEntry(
                 name="confidence_routing",
                 category=CapabilityCategory.META,
                 status=CapabilityStatus.VERIFIED,

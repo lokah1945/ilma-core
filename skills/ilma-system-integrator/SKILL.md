@@ -287,6 +287,10 @@ print('Orchestrator:', type(core.get_orchestrator()).__name__)
 - [ILMA Self Improve](../ilma-self-improve/SKILL.md) - Continuous improvement
 - [ILMA Evolution](../ilma-evolution/SKILL.md) - Self-improvement system
 - `references/v3.9-consolidation-bugs.md` - Session bug log (health_mgr naming, QualityGate API, enricher stats, git CWD)
+- `references/external-skills-bridge-integration.md` - External skills bridge integration (3,116 skills from agent-enhancements, read-only pattern, capability registry extensions, full integration complete 2026-11-01)
+- `references/agent-enhancements-full-integration-2026-11-14.md` - Full AgentEnhancements repo replacement + multi-agent integration (Claude Code, Codex, OpenCode, Gemini CLI), memory hooks, headroom compression, all ILMA refs updated
+- `references/reverse-engineering-capability.md` — REA capability status (from ilma-capability-registry): NOT installed, only skill docs present; Ghidra 12.0.4 exists but headless fails without JDK+TTY; no primary_cap in 25 ILMA capabilities
+- `references/system-storage-cleanup-20261113.md` — System-wide Ponytail full-mode storage cleanup (17GB freed, patterns documented for repeatability)
 
 ---
 

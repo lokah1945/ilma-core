@@ -101,7 +101,9 @@ def check_orchestrator_live() -> tuple[bool, str]:
     try:
         from ilma_master_orchestrator import ILMAMaster
         r = ILMAMaster().process_request("Reply with just: OK")
-        ok = r.get("status") == "success" and bool(str(r.get("response", "")).strip())
+        # Check for content in either 'response' (sync fallback) or 'content' (async path)
+        response_text = r.get("response") or r.get("content") or ""
+        ok = r.get("status") == "success" and bool(str(response_text).strip())
         return ok, f"status={r.get('status')} model={r.get('model')}"
     except Exception as e:
         return False, str(e)[:80]

@@ -1,0 +1,5 @@
+name: agentic-awesome-skills
+version: 1.0.0
+description: "2,884+ reusable AI agent skills for Claude Code, Codex, Cursor, Gemini CLI, and Hermes. AAS Core adds local catalog discovery, agent-owned selection and plan preview. CLI, MCP and plugins."
+author: sickn33
+provides_skills: true

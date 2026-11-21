@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-ILMA Unified Core — Integrated AYDA Capabilities
-==================================================
+ILMA Unified Core — Native ILMA Capabilities
+==============================================
 One cohesive system, not standalone files.
 
 Architecture:
-- Model Router (AYDA): Database-driven routing
+- Model Router: Database-driven routing
 - Judge System: L10 verification
 - Workflow ECC: Execution pipeline
 - Capability Registry: Capability tracking
@@ -37,8 +37,6 @@ from functools import lru_cache
 # === PATHS ===
 ILMA_PROFILE = Path("/root/.hermes/profiles/ilma")
 WORKSPACE = ILMA_PROFILE
-AYDA_WORKSPACE = Path("/root/.openclaw/workspace")
-AYDA_DATA = Path("/root/.cache/ayda")
 
 # Add ILMA paths
 sys.path.insert(0, str(WORKSPACE))
@@ -278,38 +276,8 @@ def get_recent_executions(n: int = 10) -> List[Dict]:
     return _execution_history[-n:]
 
 
-# === AYDA INTEGRATION LAYER ===
-# These are AYDA components that ILMA can use directly
-
-def load_ayda_capability_orchestrator():
-    """Load AYDA's capability orchestrator."""
-    try:
-        sys.path.insert(0, str(AYDA_WORKSPACE / "scripts"))
-        from ayda_capability_orchestrator import classify_task, task_complexity, plan_task
-        return {"classify": classify_task, "complexity": task_complexity, "plan": plan_task, "available": True}
-    except Exception as e:
-        return {"available": False, "error": str(e)}
-
-
-def load_ayda_benchmark_aware_routing():
-    """Load AYDA's benchmark-aware routing."""
-    try:
-        sys.path.insert(0, str(AYDA_WORKSPACE / "core"))
-        from benchmark_aware_routing import route_with_benchmark
-        return {"route": route_with_benchmark, "available": True}
-    except Exception as e:
-        return {"available": False, "error": str(e)}
-
-
-def load_ayda_confidence_aware_routing():
-    """Load AYDA's confidence-aware routing."""
-    try:
-        sys.path.insert(0, str(AYDA_WORKSPACE / "core"))
-        from confidence_aware_routing import route_with_confidence
-        return {"route": route_with_confidence, "available": True}
-    except Exception as e:
-        return {"available": False, "error": str(e)}
-
+# === AYDA INTEGRATION LAYER REMOVED — legacy OpenClaw/AYDA deprecated ===
+# All AYDA components have been removed. ILMA now uses native capabilities.
 
 from .ilma_agent_civilization import (
     AgentCivilization,
@@ -381,11 +349,6 @@ class ILMASystem:
         self.status = "ready"
         self.boot_time = datetime.now().isoformat()
 
-        # AYDA integrations
-        self.ayda_capability_orchestrator = load_ayda_capability_orchestrator()
-        self.ayda_benchmark_routing = load_ayda_benchmark_aware_routing()
-        self.ayda_confidence_routing = load_ayda_confidence_aware_routing()
-
     def route(self, task_type: str) -> Dict[str, Any]:
         """Route task to best model."""
         return route_model(task_type)
@@ -441,9 +404,6 @@ class ILMASystem:
             "boot_time": self.boot_time,
             "model_router": self.model_router.get("available", False),
             "judge": self.judge.get("available", False),
-            "ayda_capability_orchestrator": self.ayda_capability_orchestrator.get("available", False),
-            "ayda_benchmark_routing": self.ayda_benchmark_routing.get("available", False),
-            "ayda_confidence_routing": self.ayda_confidence_routing.get("available", False),
             "verified_capabilities": len(list_verified_capabilities()),
             "learning_events": len(_learning_events),
             "execution_history": len(_execution_history)
