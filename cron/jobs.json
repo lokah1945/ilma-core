@@ -26,7 +26,7 @@
       "last_error": null,
       "status": "pending",
       "next_run_at": "2026-11-24T09:00:00+07:00",
-      "last_run_at": "2026-11-22T09:03:11.282380+07:00",
+      "last_run_at": "2026-11-23T09:02:56.169420+07:00",
       "last_status": "ok",
       "last_delivery_error": null,
       "fire_claim": null,
@@ -88,5 +88,5 @@
       "fire_claim": null
     }
   ],
-  "updated_at": "2026-11-23T09:00:58.377892+07:00"
+  "updated_at": "2026-11-23T09:02:56.170224+07:00"
 }
