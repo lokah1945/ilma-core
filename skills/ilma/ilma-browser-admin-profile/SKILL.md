@@ -80,6 +80,32 @@ systemctl --user enable --now ilma-chrome@user_arahman.service
 systemctl --user stop ilma-chrome@user_arahman.service
 ```
 
+### Chrome binary version mismatch fix (2026-11-25)
+When Playwright updates Chromium, the systemd service path becomes stale. Fix:
+```bash
+# Check actual version
+ls /root/.cache/ms-playwright/chromium_headless_shell-*/
+
+# Update service file
+sed -i 's|chromium_headless_shell-[0-9]*/|chromium_headless_shell-1255/|' /root/.config/systemd/user/ilma-chrome.service
+systemctl --user daemon-reload && systemctl --user restart ilma-chrome.service
+```
+
+### Cloudflare-protected platform access patterns
+| Platform | Status | Workaround |
+|----------|--------|------------|
+| Upwork | Blocked (Cloudflare) | Manual login first, then reuse session cookies |
+| Fiverr | Blocked (PX challenge) | Manual login, or use API if available |
+| WeWorkRemotely | Blocked (Cloudflare) | Use RemoteOK alternative |
+| Toptal | Blocked (Cloudflare) | Manual application only |
+| Projects.co.id | Blocked (Cloudflare) | Use Sribu alternative |
+| Freelancer.com | ✅ Accessible | Works directly with CDP |
+| Guru.com | ✅ Accessible | Works directly with CDP |
+| PeoplePerHour | ✅ Accessible | Works directly with CDP |
+| RemoteOK | ✅ Accessible | Works directly with CDP |
+| Python.org Jobs | ✅ Accessible | Static HTML, works directly |
+| Sribu | ✅ Accessible | Works directly with CDP |
+
 ### Verify CDP
 ```bash
 curl -s http://127.0.0.1:9222/json/version | python3 -m json.tool

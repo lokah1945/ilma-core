@@ -187,6 +187,47 @@ else:
     error = result.get('error', 'Unknown error')
 ```
 
+## Freelance Platform Research Reference (2026-11-25)
+
+### Platform Access Status via ILMA Browser (CDP)
+
+| Platform | Cloudflare Blocked | Direct CDP Access | Notes |
+|----------|-------------------|-------------------|-------|
+| **Freelancer.com** | ❌ No | ✅ Full | Best for Python automation/AI jobs |
+| **Guru.com** | ❌ No | ✅ Full | Less competition, hourly/fixed |
+| **PeoplePerHour** | ❌ No | ✅ Full | 300+ Python results |
+| **RemoteOK** | ❌ No | ✅ Full | 91 Python jobs, remote-first |
+| **Python.org Jobs** | ❌ No | ✅ Full | 22 quality jobs, static HTML |
+| **Sribu (Indonesia)** | ❌ No | ✅ Full | Local, Rupiah, service-model |
+| **Upwork** | ✅ Yes | ⚠️ Blocked | Need manual login + cookies |
+| **Fiverr** | ✅ Yes | ⚠️ Blocked | PX challenge, manual login |
+| **Toptal** | ✅ Yes | ⚠️ Blocked | Screening + Cloudflare |
+| **WeWorkRemotely** | ✅ Yes | ⚠️ Blocked | Cloudflare challenge |
+| **Projects.co.id** | ✅ Yes | ⚠️ Blocked | Cloudflare challenge |
+
+### Job Categories Best Matching ILMA Capabilities
+
+| ILMA Capability | Platform Matches | Example Job Titles |
+|-----------------|------------------|-------------------|
+| `coding` + `api_integration` + `autonomous_loop` | Freelancer, Guru, RemoteOK | AI Automation Developer, Async API Client, Backend API |
+| `browser_automation` + `web_fetch` + `coding` | Freelancer, RemoteOK | Web Scraping, Lead Gen, Repricing Tools |
+| `research` + `coding` + `api_integration` | Python.org, RemoteOK | ML Engineer, Research Scientist, Data Engineer |
+| `coding` + `database` + `devops` | Guru, Freelancer | Odoo ERP, Desktop Apps, Full-stack |
+| `browser_automation` + `coding` | Sribu, Freelancer | AI Chatbot, Custom GPT, Automation Bots |
+
+### Research Trigger for Freelance Market Analysis
+
+```python
+# When user asks: "find freelance jobs", "platform research", "job market analysis"
+# Use this trigger pattern:
+if any(term in query.lower() for term in ['freelance', 'upwork', 'fiverr', 'job market', 'platform']):
+    # 1. Check platform accessibility via CDP
+    # 2. Search each accessible platform for target keywords
+    # 3. Aggregate and deduplicate results
+    # 4. Map to ILMA capabilities
+    # 5. Return prioritized actionable list
+```
+
 ## Error Handling
 
 | Error Type | Handling Strategy |
