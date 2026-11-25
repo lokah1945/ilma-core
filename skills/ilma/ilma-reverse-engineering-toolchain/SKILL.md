@@ -314,9 +314,10 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 ### Pitfall 11: Hopper download 403 (2026-11-02)
 **Symptom:** curl to hopperapp.com/downloader returns 403 HTML
 **Fix:** add browser User-Agent + `-e https://www.hopperapp.com/download` referer
-
 ### SpeedtestServer Reverse Engineering (2026-11-26)
+
 **Target:** `smahud/SpeedtestServer` — Hybrid speedtest server (VPS gateway + Cloudflare Workers)
+
 **Status:** Repo pulled, architecture mapped, binary offsets cataloged
 
 **Key Findings:**
@@ -340,7 +341,8 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 - `references/rea-mcp-registration.md` — REA MCP setup for Hermes/ILMA
 - `references/rea-package-search.md` — PyPI/npm search results for RE frameworks
 - `references/reverse-engineering-capability.md` — ILMA capability registry entry (single source of truth)
-- `references/rea-providers-2026-11-02.md` — **NEW** Session detail: all optional providers installed (Kuna 1.988, jadx 0.7.1, Hopper 6.6.1, Ghidra 12.1.4), per-client env injection, E2E evidence, gotchas
+- `references/rea-providers-2026-11-02.md` — Session detail: all optional providers installed (Kuna 1.988, jadx 0.7.1, Hopper 6.6.1, Ghidra 12.1.4), per-client env injection, E2E evidence, gotchas
+- `references/speedtestserver-reverse-engineering-2026-11-26.md` — SpeedtestServer hybrid architecture RE session: repo pull, binary offsets, protocol flow, production deployment verification
 
 ---
 

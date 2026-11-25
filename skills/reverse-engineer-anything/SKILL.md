@@ -498,6 +498,10 @@ as complete while required questions remain open.
   a live instance or a HAR:
   [references/environments.md](references/environments.md)
 
+## Session References (Auto-Generated)
+
+- [references/speedtest-ookla-binary-analysis.md](references/speedtest-ookla-binary-analysis.md) — 2026-11-26: Official speedtest CLI binary analysis via objdump + cross-ref with repo TypeScript impl + GDB batch analysis
+
 ## Finish the task
 
 Explain findings in plain language and tie them to returned evidence. When the
