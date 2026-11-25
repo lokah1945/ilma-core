@@ -315,6 +315,22 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 **Symptom:** curl to hopperapp.com/downloader returns 403 HTML
 **Fix:** add browser User-Agent + `-e https://www.hopperapp.com/download` referer
 
+### SpeedtestServer Reverse Engineering (2026-11-26)
+**Target:** `smahud/SpeedtestServer` — Hybrid speedtest server (VPS gateway + Cloudflare Workers)
+**Status:** Repo pulled, architecture mapped, binary offsets cataloged
+
+**Key Findings:**
+- Canonical TypeScript implementation byte-verified against OoklaServer 2.11.5.2
+- 6-method binary RE batch complete: **Main function at 0x296250** (via GDB + `__libc_start_main`)
+- 13 TypeScript components mapped to binary offsets (ConfigManager 0x6446f0, OoklaRequestHandler 0x4c8760, etc.)
+- Multi-process confirmed: Manager forks Ward, Ward listens TCP/UDP 5060/8080
+- Hybrid architecture: VPS control plane (gateway.mjs) + Edge data plane (worker/index.ts)
+- Production deployed: gateway on port 8790 TLS, worker at speedtest-hybrid-worker.lumajangnetworks.workers.dev
+
+**Next Targets:** Targeted Ghidra decompilation of 13 mapped functions, Manager/Ward IPC trace, auto-update flow verification, perf profiling.
+
+**Detail:** `references/speedtestserver-reverse-engineering-2026-11-26.md`
+
 ---
 
 ## References
