@@ -1,203 +1,147 @@
-# Speedtest/OoklaServer Binary Analysis — Session Notes
+# Speedtest Ookla Official CLI — Binary Analysis Reference
 
-**Date:** 2026-11-26  
-**Target:** Official speedtest CLI binary (Ookla 1.2.0.84, ea6b6773cf)  
-**SHA256:** 31f1124c5ab8acdae6b9fe1741e704df420f9f2e7d429679fabe62075453c051  
-**Path:** `/root/project/SpeedtestServer/speedtest-cli_official/speedtest`  
-**Repo:** `/root/project/SpeedtestServer` (smahud/SpeedtestServer)
+**Session**: 2026-11-26 | **Target**: `/root/project/SpeedtestServer/speedtest-cli_official/speedtest`
+**SHA256**: `31f1124c5ab8acdae6b9fe1741e704df420f9f2e7d429679fabe62075453c051`
+**Architecture**: ELF64 x86-64, static musl, stripped symbols
 
 ---
 
-## REA Toolchain Used
+## Binary Properties (objdump + readelf)
 
-| Tool | Command | Evidence ID | Status |
-|------|---------|-------------|--------|
-| `inspect-with-objdump` file_headers | `objdump -f` | `ev_fb9945a8e251` | ✅ Complete |
-| `inspect-with-objdump` section_headers | `objdump -h` | `ev_759bb9e92f61` | ✅ Complete |
-| `inspect-with-objdump` symbols | `objdump -t` | `ev_6954745bc237` | ✅ Stripped (no symbols) |
-| `inspect-with-objdump` disassemble_all | `objdump -D` | `ev_f2ecfa02c399` | ⚠️ SIGKILL at ~35MB output |
-
-**Providers:** GNU objdump (via REA pwntools-elf fallback)
-
----
-
-## Binary Layout (from objdump)
-
-```
-Format: elf64-x86-64
-Architecture: i386:x86-64
-Entry point: 0x0000000000401fd6
-Flags: EXEC_P, D_PAGED
-```
-
-**Key Sections:**
-| Idx | Name | Size | VMA | Flags |
-|-----|------|------|-----|-------|
-| 1 | .text | 0x1c6507 (~1.8MB) | 0x400170 | CODE, READONLY |
-| 3 | .rodata | 0x30db0 (~197KB) | 0x5c6680 | DATA, READONLY |
-| 4 | .eh_frame | 0x5746c (~350KB) | 0x5f7430 | DATA, READONLY |
-| 5 | .gcc_except_table | 0x175c7 (~95KB) | 0x64e89c | DATA, READONLY |
-| 7 | .init_array | 0x1f8 | 0x866380 | DATA |
-| 11 | .data.rel.ro | 0x15a30 (~88KB) | 0x8665a0 | DATA |
-| 14 | .data | 0x1b10 | 0x87c020 | DATA |
-| 15 | .bss | 0x7d98 | 0x87db40 | ALLOC |
-
-**Note:** Symbol table stripped (`objdump -t` → "tidak ada simbol").
+| Property | Value |
+|----------|-------|
+| Format | elf64-x86-64 |
+| Entry point | `0x401fd6` → `__libc_start_main` |
+| **Main function** | **`0x296250`** (verified via GDB `__libc_start_main` rdi) |
+| .text size | 1.8 MB (`0x1c6507`) |
+| .rodata size | 194 KB |
+| .eh_frame | 356 KB (heavy C++ exceptions) |
+| .gcc_except_table | 96 KB |
+| Dynamic deps | **NONE** (fully static) |
+| Symbol table | **STRIPPED** (`objdump -t`: "tidak ada simbol") |
 
 ---
 
-## Cross-Reference: Prior GDB Analysis (from repo batch)
+## Key Binary Offsets (from GDB batch analysis RE-BATCH-20261102-001)
 
-From `reverse-engineering-batch/method6-gdb/MAIN_FUNCTION_REPORT.md`:
-- **Main function at 0x296250** (verified via `__libc_start_main` argument tracing)
-- Entry point traced: 0x29fc35
-- 133 global constructors in `.init_array`
-- Singleton init at 0x0b445f0 (double-checked locking)
-- Library init sequence: 0xb52af5 → 0xb52ebc
-- Pattern: `Poco::Util::Application` (init → loadConfig → run)
-- Multi-process: Manager forks Ward, Ward listens TCP/UDP 5060/8080
-
-**Component Mapping (from BATCH_SUMMARY.md):**
-| TypeScript Component | Binary Offset |
-|---------------------|---------------|
-| ConfigManager | 0x6446f0 (loadConfig) |
-| OoklaRequestHandler | 0x4c8760 (server create) |
-| OoklaDownloader | 0x543690 (SSL context) |
-| BinaryManager | auto-update logic |
-| InstanceLocker | manager coordination |
-| ClientAuthTokenValidator | token validation |
-| ConnectionTracker | connection management |
-| IpStatsManager | rate limiting |
-| MetricsUploader | metrics collection |
-| TLSCertificateManager | 0x543690 |
-| TracerouteManager | traceroute logic |
-| Logger | logging system |
-| OoklaServer main | **0x296250** |
+| Component | Binary Offset | Likely Purpose |
+|-----------|---------------|----------------|
+| Entry point | `0x29fc35` | `_start` |
+| Init array | `0xfff2b0` | 133 constructors |
+| Singleton init | `0xb445f0` | Double-checked locking |
+| Lib init | `0xb52af5` | Library initialization |
+| **Main** | **`0x296250`** | **Poco::Util::Application entry** |
+| App init | `0x4b1020` | `Poco::Application::init` |
+| Config load | `0x6446f0` | `Poco::Application::loadConfig` |
+| Main run | `0x4b21e0` | `Poco::Application::run` (server listen) |
+| Server create | `0x4c8760` | Server creation/start |
+| SSL context | `0x543690` | SSL/TLS context setup |
+| Socket setup | `0x542a10` / `0x5429d0` | Socket/channel setup |
+| String/config parse | `0x4a1f00` | String/config parsing |
 
 ---
 
-## Protocol Flow (Binary → TypeScript Implementation)
+## Main Function Flow (0x296250)
 
-### 1. Client Startup & Server Discovery
-```
-speedtest binary
-    │
-    ├─► HTTPS GET https://www.speedtest.net/api/js/servers
-    │       → JSON server list (id, host, lat/lon, sponsor, url)
-    │
-    └─► Select server (lowest latency or --server-id)
+```assembly
+main:
+  → App init (0x4b1020)
+  → Config load (0x6446f0) 
+  → Main run loop (0x4b21e0)  ← server starts listening here
 ```
 
-### 2. Native NetGauge Protocol (TCP 5060/8080)
+**Multi-process confirmed**: Manager forks Ward process; Ward listens TCP/UDP 5060/8080.
+
+---
+
+## Protocol Analysis — NetGauge (Verified via TypeScript impl + differential probes)
+
+### Command Set (FIXED — no extension mechanism)
+
 ```
-Client                          Server (TypeScript: ServerCore + NetGaugeEngine)
-  │                                    │
-  ├─► TCP Connect                     │
-  │                                    │
-  ├─► Encrypted Binary Hello (AES-GCM?)│
-  │       ← ERROR (our impl)           │  ← Triggers plaintext fallback
-  │                                    │
-  ├─► HI                              │  → HELLO <version>
-  ├─► HI <uuid>                       │  → HELLO <version> + register session
-  ├─► GETIP                           │  → YOURIP <peer-ip> (STRICT: exact "GETIP\n")
-  ├─► CAPABILITIES                    │  → CAPABILITIES SERVER_HOST_AUTH UPLOAD_STATS
-  ├─► SERVERID                        │  → SERVERID <instance-uuid> (LOWER-CASE)
-  ├─► UPTIME                          │  → UPTIME <seconds>
-  ├─► PING <x>                        │  → PONG <epoch-ms>
-  ├─► INITPLOSS                       │  → OK (arm UDP LossRegistry)
-  ├─► PLOSS                           │  → PLOSS <count> <dupes> <maxseq>
-  │                                    │
-  ├─► DOWNLOAD <n>                    │  → exact n bytes:
-  │       "DOWNLOAD " prefix (9 bytes, truncated if n<10)
-  │       pool bytes [0x20..0x7F] (daemon charset)
-  │       trailing "\n" (counted in n)
-  │                                    │
-  ├─► UPLOAD <n> [ms] [c]             │  → reads n bytes inclusive of command line
-  │       n < cmd_len → ERROR          │  → OK <n> <epoch-ms>
-  │       non-numeric/neg → ignored    │
-  │                                    │
-  └─► QUIT                            │  → TCP close / WS: ERROR reply
+HI [uuid]           → HELLO <version>
+GETIP               → YOURIP <peer-ip>        (STRICT: exact "GETIP\n")
+CAPABILITIES        → CAPABILITIES SERVER_HOST_AUTH UPLOAD_STATS
+SERVERID            → SERVERID <instance-uuid> (lower-case)
+UPTIME              → UPTIME <seconds>
+PING <x>            → PONG <epoch-ms>         (arg REQUIRED)
+INITPLOSS           → OK                       (arms UDP loss)
+PLOSS               → PLOSS <count> <dupes> <maxseq>
+DOWNLOAD <n>        → n bytes: "DOWNLOAD " + pool[0x20..0x7F] + \n
+UPLOAD <n> [ms] [c] → reads n bytes INCLUSIVE cmd line → OK <n> <epoch-ms>
+QUIT                → TCP close / WS: ERROR
 ```
 
-### 3. HTTP Legacy Path (Browser/HTML5)
+### Critical Constraints
+
+| Constraint | Implication |
+|------------|-------------|
+| **DOWNLOAD** = server pushes bytes | Client MUST receive bytes for throughput calc |
+| **UPLOAD** = client pushes bytes | Client MUST send bytes |
+| **Throughput** = bytes / time | Zero bytes = zero throughput |
+| **No SIMULATE/GENERATE command** | Protocol cannot trigger local generation |
+| **Symbol table stripped** | No plugin/extension mechanism discoverable |
+| **Fully static musl** | No `dlopen()` / shared library loading |
+| **Poco::Util::Application** | Monolithic C++ app, no scripting/hooks |
+
+---
+
+## Evidence Against Virtual Sandbox on Official CLI
+
+| Method | Evidence |
+|--------|----------|
+| **Static analysis** | Stripped, static, no plugin API |
+| **Dynamic GDB** | Main flow: init → config → run(); no hook points |
+| **Protocol capture** | `hybrid/lab/evidence/e-e-mixed-cf-plus-sts/sts-evidence.jsonl` (2918 lines) shows real byte transfer |
+| **TypeScript impl** | `NetGaugeEngine.ts` byte-verified against OoklaServer 2.11.5.2 — no virtual command exists |
+| **Differential probes** | `e-d-all-non-netgauge/` → CLI tries encrypted hello → ERROR → fallback plaintext NetGauge |
+
+---
+
+## Bypass Attempts & Feasibility
+
+| Approach | Feasibility | Notes |
+|----------|-------------|-------|
+| **Protocol extension** | ❌ Impossible | Fixed command set, no extension |
+| **LD_PRELOAD hook `recv`/`send`** | ⚠️ Fragile | Platform-specific, anti-tamper risk, must synthesize bytes + fake timing |
+| **MITM proxy** | ⚠️ Complex | TLS cert pinning unknown, need CA intercept setup |
+| **Binary patching** | ❌ "Tanpa modifikasi" | Requires rebuild/patch |
+| **Official CLI + custom client** | ✅ **Recommended** | Use existing hybrid control plane |
+
+---
+
+## Existing Architecture for Custom Client (Already in Repo)
+
 ```
-GET  /speedtest/latency.txt      → "test=test\n"
-GET  /speedtest/random{N}x{N}.jpg → deterministic JPEG sizes (IMAGE_SIZES map)
-POST /speedtest/upload.php       → drain body → "size=<bytes>\n"
-GET  /hi                         → "hello <version>\n"
-GET  /crossdomain.xml            → Flash policy (allowedDomains + defaults)
-WS   /ws                         → NetGauge commands as WS frames (1 cmd/frame)
+hybrid/gateway/src/gateway.mjs          ← VPS Control Plane (READY)
+  /api/servers, /api/sessions, /api/results, /api/ping
+
+hybrid/worker/src/index.ts              ← Edge Data Plane (READY)
+  __down/__up (poolResponse from RAM)
+  WS NetGauge, HTTP Legacy
+  Token-gated, smart worker pool
+
+CUSTOM CLIENT NEEDED:
+  - NetGauge + HTTP + WS protocol impl
+  - SIMULATE mode: generate locally, fake timing
+  - Honest reporting: simulation: true, mode: "ram"
 ```
 
 ---
 
-## Hybrid Architecture (VPS + Cloudflare Workers)
+## Ghidra Headless Attempt
 
-```
-┌─────────────┐     Control Plane      ┌──────────────┐
-│   Client    │◄──────────────────────►│  VPS Gateway │
-│             │  discovery, tokens,    │  (gateway.mjs)│
-│             │  results, ping         │  :8790 TLS   │
-└──────┬──────┘                        └──────┬───────┘
-       │                                      │
-       │         Payload Plane (NO VPS transit)        │
-       ▼                                      ▼
-┌─────────────────────┐              ┌─────────────────────┐
-│  Cloudflare Worker  │              │  Cloudflare Worker  │
-│  (index.ts)         │              │  (index.ts)         │
-│  __down?bytes=N     │              │  POST __up          │
-│  poolResponse()     │              │  countBody()        │
-│  fillFromPool()     │              │  (drain + count)    │
-└─────────────────────┘              └─────────────────────┘
-```
-
-**Key Implementation (Worker edge):**
-- `hybrid/worker/src/http-legacy.ts:poolResponse()` — `FixedLengthStream` + backpressure
-- `hybrid/worker/src/pool.ts:fillFromPool()` — deterministic printable-ASCII pool [0x20..0x7F]
-- `hybrid/worker/src/index.ts:handleDown()` → token-gated, auto-deflection to sibling workers
-
-**Evidence of Offload:** `hybrid/lab/evidence/e-j-real-edge/measure-real-edge-*.json`
-- Payload: 117.4 MB transferred
-- VPS interface delta: 67.9 KB
-- **Offload ratio: ~1:28,000**
+- Binary imported successfully (ELF64, x86:LE:64:default:gcc)
+- Auto-analysis: 253 seconds (heavy C++ exception handling)
+- Script loading issues: classpath conflicts with cached Java files in `/tmp`
+- **Decompilation not completed** — needs clean script path
 
 ---
 
-## REA Workflow Lessons
+## References
 
-1. **Start with `inspect-with-objdump` file_headers + section_headers** — fast, no provider setup
-2. **Symbols stripped** → need Ghidra/Kuna for function recovery (objdump disassemble_all too large)
-3. **Use `--detail summary --evidence_output`** for large disassembly to avoid transport truncation
-4. **Cross-reference with repo TypeScript impl** — `reverse-engineered/typescript/src/server/` has byte-verified NetGauge/HttpApi
-5. **Batch analysis dir** (`reverse-engineering-batch/`) has 6-method cross-validation including GDB main discovery
-
----
-
-## Next Steps for Deeper Analysis
-
-| Goal | Tool | Target |
-|------|------|--------|
-| Decompile main (0x296250) | Ghidra `analyze_function` | Config loading, server discovery, protocol init |
-| Decompile SSL context (0x543690) | Ghidra | Certificate handling, ACME flow |
-| Decompile request handler (0x4c8760) | Ghidra | NetGauge command dispatch |
-| Trace network calls | Frida `instrument-with-frida` | `curl`/`libcurl` usage for server list + result upload |
-| Compare binaries | REA `compare` | x86_64 vs aarch64/armel builds |
-
----
-
-## Files in Repo for Reference
-
-| Path | Purpose |
-|------|---------|
-| `reverse-engineered/typescript/src/bin/ooklaserver.ts` | Canonical entry point |
-| `reverse-engineered/typescript/src/server/ServerCore.ts` | Listener architecture (1 listener/port, multiplexed) |
-| `reverse-engineered/typescript/src/server/NetGaugeEngine.ts` | Protocol engine (verified F-8..F-36) |
-| `reverse-engineered/typescript/src/server/HttpApi.ts` | HTTP legacy surface (verified F-15..F-37) |
-| `reverse-engineered/typescript/src/server/CertificateManager.ts` | TLS resolution (custom > ACME > dev-self-signed) |
-| `reverse-engineered/typescript/src/server/UdpLossEngine.ts` | UDP packet-loss protocol |
-| `hybrid/gateway/src/gateway.mjs` | VPS control plane |
-| `hybrid/worker/src/index.ts` | Worker edge (NetGauge WS + HTTP __down/__up) |
-| `hybrid/worker/src/http-legacy.ts` | Worker HTTP legacy + poolResponse |
-| `hybrid/worker/src/pool.ts` | fillFromPool deterministic generator |
-| `reverse-engineering-batch/BATCH_SUMMARY.md` | 6-method analysis summary |
-| `reverse-engineering-batch/method6-gdb/MAIN_FUNCTION_REPORT.md` | GDB main function discovery |
+- `hybrid/lab/evidence/` — differential probe captures
+- `reverse-engineered/typescript/src/server/NetGaugeEngine.ts` — protocol contract
+- `reverse-engineering-batch/method6-gdb/MAIN_FUNCTION_REPORT.md` — GDB main discovery
+- `reverse-engineering-batch/BATCH_SUMMARY.md` — batch analysis summary
+- `docs/HYBRID_DEPLOYMENT_RUNBOOK.md` — hybrid architecture deployment

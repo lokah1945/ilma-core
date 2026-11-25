@@ -318,7 +318,7 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 
 **Target:** `smahud/SpeedtestServer` — Hybrid speedtest server (VPS gateway + Cloudflare Workers)
 
-**Status:** Repo pulled, architecture mapped, binary offsets cataloged
+**Status:** Repo pulled, architecture mapped, binary offsets cataloged, virtual sandbox investigation complete
 
 **Key Findings:**
 - Canonical TypeScript implementation byte-verified against OoklaServer 2.11.5.2
@@ -327,6 +327,7 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 - Multi-process confirmed: Manager forks Ward, Ward listens TCP/UDP 5060/8080
 - Hybrid architecture: VPS control plane (gateway.mjs) + Edge data plane (worker/index.ts)
 - Production deployed: gateway on port 8790 TLS, worker at speedtest-hybrid-worker.lumajangnetworks.workers.dev
+- **Virtual sandbox investigation**: Official CLI CANNOT do server-triggered local simulation without binary modification — protocol has no control channel, requires bytes on wire for throughput calculation. Custom client + existing hybrid control plane is the recommended path.
 
 **Next Targets:** Targeted Ghidra decompilation of 13 mapped functions, Manager/Ward IPC trace, auto-update flow verification, perf profiling.
 
@@ -334,7 +335,7 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 
 ---
 
-## References
+### References
 
 - `references/radare2-persistent-db.md` — Detailed radare2 DB workflow
 - `references/ghidra-headless-setup.md` — Full Ghidra headless configuration (updated for 12.1.4 + JDK 21)
@@ -342,7 +343,12 @@ result = re.rea_analyze_javascript("/path/to/electron-app")
 - `references/rea-package-search.md` — PyPI/npm search results for RE frameworks
 - `references/reverse-engineering-capability.md` — ILMA capability registry entry (single source of truth)
 - `references/rea-providers-2026-11-02.md` — Session detail: all optional providers installed (Kuna 1.988, jadx 0.7.1, Hopper 6.6.1, Ghidra 12.1.4), per-client env injection, E2E evidence, gotchas
-- `references/speedtestserver-reverse-engineering-2026-11-26.md` — SpeedtestServer hybrid architecture RE session: repo pull, binary offsets, protocol flow, production deployment verification
+- `references/speedtestserver-reverse-engineering-2026-11-26.md` — SpeedtestServer hybrid architecture RE session: repo pull, binary offsets, protocol flow, production deployment verification, virtual sandbox investigation
+
+### Related Protocol References (in other skills)
+
+- `reverse-engineer-anything/references/netgauge-protocol.md` — NetGauge protocol contract (byte-verified)
+- `reverse-engineer-anything/references/speedtest-ookla-binary-analysis.md` — Official CLI binary analysis
 
 ---
 
