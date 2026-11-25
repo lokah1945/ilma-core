@@ -120,6 +120,39 @@ Add to optimizer's Step 6 (Health Check):
 
 These complement the existing health score (model health, direct API probe, disk, git sync, wiring integrity) by adding "data is usable by runtime, not just well-formed".
 
+## Git-Based Hermes Update Workflow (2026-11-25)
+
+When the optimizer detects Hermes is behind upstream (Step 1), or when manually triggered, use the git-based update procedure for git-installed Hermes:
+
+```bash
+cd /root/.hermes/hermes-agent && \
+git fetch https://github.com/NousResearch/hermes-agent.git main --depth=1 && \
+git reset --hard FETCH_HEAD && \
+/root/.hermes/hermes-agent/venv/bin/python -m pip install -e . --force-reinstall --no-deps && \
+/root/.hermes/hermes-agent/venv/bin/hermes --version
+```
+
+**Critical conflicts to expect and resolve:**
+
+| File | Conflict Type | Resolution |
+|------|---------------|------------|
+| `plugins/model-providers/custom/__init__.py` | Local stricter Ollama gating vs upstream `_looks_like_ollama_endpoint()` | Accept upstream — more flexible for proxies |
+| `tests/providers/test_transport_parity.py` | Local test expects `ollama_num_ctx` guard | Accept upstream — new parametrized tests for proxy detection |
+| `tests/agent/transports/test_chat_completions.py` | Local test changes | Accept upstream |
+
+If local customizations MUST be kept, manually merge the upstream `_looks_like_ollama_endpoint()` function.
+
+**Post-update verification (add to Step 1):**
+```bash
+/root/.hermes/hermes-agent/venv/bin/python -m pytest tests/agent/transports/test_chat_completions.py tests/providers/test_transport_parity.py -v
+/root/.hermes/hermes-agent/venv/bin/hermes doctor
+cd /root/.hermes/profiles/ilma && /root/.hermes/hermes-agent/venv/bin/python ilma.py --status
+```
+
+Full procedure documented at `references/git-update-workflow.md`.
+
+---
+
 ## SOT Runtime Audit Cleanup Recipe (2026-07-02)
 
 When `sot_runtime_audit.py --audit` reports defects that `--patch` cannot auto-fix, apply these manual fixes in order. Each is idempotent.

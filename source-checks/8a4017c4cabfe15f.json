@@ -1,0 +1,32 @@
+{
+  "identity": {
+    "root": "/root/.hermes/hermes-agent",
+    "home": "/root/.hermes/profiles/ilma",
+    "head": "f681186ea35e212c575a13d056ef241bfabe6190",
+    "origin": "https://github.com/NousResearch/hermes-agent.git",
+    "branch": "main",
+    "channel": "stable",
+    "embedded": null,
+    "branchOverride": false,
+    "channelProtocol": 3,
+    "forwardOnly": true
+  },
+  "ts": 1795618317.4360147,
+  "status": {
+    "supported": true,
+    "hermesRoot": "/root/.hermes/hermes-agent",
+    "behind": 0,
+    "commits": [],
+    "currentSha": "f681186ea35e212c575a13d056ef241bfabe6190",
+    "currentBranch": "main",
+    "dirty": true,
+    "channel": "stable",
+    "fetchedAt": 1795618317436,
+    "targetSha": "f681186ea35e212c575a13d056ef241bfabe6190",
+    "updateAvailable": false,
+    "sourceVersion": "0.23.4",
+    "buildId": null,
+    "aheadOfRelease": true,
+    "rollback": false
+  }
+}
