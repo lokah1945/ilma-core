@@ -1,8 +1,8 @@
 # SOUL.md — ILMA v3.32
 
 **NAMA AGENT:** ILMA — Hermes Agent, Memory Specialist, Smart Router
-**VERSI:** v3.32 — PHASE 73 COMPLETE ✅ (SOT-only router, self-improve integrator, 37 modules wired, 9-layer pipeline) + Phase 74 OPTIMIZATION RUN
-**LAST UPDATED:** 2026-11-06
+**VERSI:** v3.32 — PHASE 73 COMPLETE ✅ (SOT-only router, self-improve integrator, 37 modules wired, 9-layer pipeline) + Phase 74 OPTIMIZATION RUN (2026-11-25)
+**LAST UPDATED:** 2026-11-25
 **PHASE 57 STATUS:** COMPLETE ✅ (28 modules wired, 8 archived, 0 orphan, Canon8 pipeline)
 **PHASE 58 STATUS:** COMPLETE ✅ (47 tests PASS, routing benchmark, passive enricher, CLI commands)
 **PHASE 59 STATUS:** COMPLETE ✅ (Browser Unified v2.0 — 1 canonical engine, no duplicate implementations)
@@ -16,7 +16,7 @@
 **PHASE 71 STATUS:** COMPLETE ✅ — SOT-only Provider Architecture: Legacy sub-providers disabled (openaicodex, use, arena = 199 models), FREE_PROVIDERS updated (nvidia, openrouter, minimax, blackbox, qwen), ilma_claudecode_agent.py parallel coding agent with 4-tier priority.
 **PHASE 72 STATUS:** COMPLETE ✅ — PROVIDER_INTELLIGENCE_MASTER.json Pipeline Health: ilma_model_db_manager.py --full-sync (4-step: sync→benchmark→enrich→verify) runs via cron (no_agent=true), 13/18 providers live, 2830 models, SOT integrity gate WARN (quality_score out of range), git push blocked by secret guard.
 **PHASE 73 STATUS:** COMPLETE ✅ — SOT-only Router & Self-Improve Integrator: ilma_sot_dispatcher (layer 8), ilma_self_improve_integrator (layer 9), ilma_optimizer_daemon v2.0 (8 steps: hermes→capability→autowire→pipeline→wiring→health→self_improve→git), 36/36 modules wired, pipeline 100%, health 1.000.
-**PHASE 74 STATUS:** COMPLETE ✅ (2026-11-06) — Comprehensive optimization run: MASTER DB sync (2741 models, 112 FREE), optimizer daemon v2.0 (64.6s, health=1.000, pipeline=100%, wired=37/37), self-improvement cycle #7210 (evolution delta 0.022), git sync blocked by secret guard (correct behavior).
+**PHASE 74 STATUS:** COMPLETE ✅ (2026-11-25) — Comprehensive optimization run: MASTER DB sync (2790 models, 56 FREE), optimizer daemon v2.0 (25.1s, health=1.000, pipeline=100%, wired=37/37), self-improvement cycle #8015 (evolution delta 0.022), git sync shows 2 uncommitted (PROVIDER_INTELLIGENCE_MASTER.json + plugins/ponytail).
 
 ## 📊 OPTIMIZATION SUMMARY (v3.31)
 
@@ -31,12 +31,12 @@
 | **Models removed from routing (Phase 71)** | 199 | 0 | 199 |
 
 **Total Files Removed:** 65+ duplicate/redundant files
-**Current Active Models:** 2,830 across 22 providers (13 live)
-**Free Models Available:** 109+ (NVIDIA NIM 80, MiniMax 8, Blackbox 2, OpenRouter 19)
+**Current Active Models:** 2,790 across 22 providers (13 live)
+**Free Models Available:** 56 (OpenRouter free, NVIDIA NIM, MiniMax, Blackbox)
 **Runtime Capabilities:** 37 (verified via ilma_capability_registry.get_all())
-**Evidence Ledger:** 108 tracked in config/ilma_capability_registry.json
-**Skills:** 154 ILMA + 86 Hermes-system = 240 total
-**Self-Improvement Cycles:** #6017 (evolution delta: 0.022)
+**Evidence Ledger:** 68 tracked in config/ilma_capability_registry.json
+**Skills:** 225 ILMA + 199 Hermes-system = 424 total
+**Self-Improvement Cycles:** #8015 (evolution delta: 0.022)
 
 ## 🆕 COMPLETE COMPONENT LIST (v3.0)
 
