@@ -162,6 +162,7 @@ systemctl enable --now wrapper-name
 - `references/opencode-freeze-align-pattern.md` — Opencode freeze-and-align session
 - `references/opencode-cli-integration.md` — OpenCode CLI usage with wrapper-opencode
 - `references/opencode-cli-mode-proxy.md` — CLI mode proxy through local OpenCode service (2026-11-20)
+- `references/wrappers-go-audit-2026-11-25.md` — wrappers-go Go rewrite audit (dashboard missing, binary runs)
 - `templates/wrapper-scaffold/` — Boilerplate for new wrapper
 - `scripts/verify-wrapper.py` — Post-deployment verification script
 - `scripts/verify-cli-mode.py` — CLI mode proxy verification across all 3 surfaces
